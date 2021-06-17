@@ -1,4 +1,4 @@
-package services
+package main
 
 import (
 	"fmt"
@@ -9,7 +9,9 @@ import (
 
 func main() {
 	// リクエストの作成
-	url := ""
+	apiKey := os.Getenv("OPEN_WEATHER_MAP_API_KEY")
+	cityName := "London"
+	url := fmt.Sprintf("http://api.openweathermap.org/data/2.5/forecast?q=%s&appid=%s&lang=ja", cityName, apiKey)
 	res, err := http.Get(url)
 	if err != nil {
 		panic(err)
