@@ -1,4 +1,4 @@
-package main
+package weather
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
  // OpenWeather api (https://openweathermap.org/current) を使って天気情報を取得
-func main() {
+func getWeatear() []Result {
 	// GET リクエストを投げる
 	apiKey := os.Getenv("OPEN_WEATHER_MAP_API_KEY")
 	cityName := "Yokohama"
@@ -40,8 +40,8 @@ func main() {
 		result = append(result, r)
 	}
 
-	fmt.Printf("%v", result)
-	// return result
+	// fmt.Printf("%v", result)
+	return result
 }
 
 // getWeather関数の戻り値
