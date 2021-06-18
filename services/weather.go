@@ -6,12 +6,12 @@ import (
 	"io/ioutil"
 	"net/http"
 )
-
+ // OpenWeather api (https://openweathermap.org/current) を使って天気情報を取得
 func main() {
-	// リクエストの作成
+	// GET リクエストを投げる
 	apiKey := os.Getenv("OPEN_WEATHER_MAP_API_KEY")
-	cityName := "London"
-	url := fmt.Sprintf("http://api.openweathermap.org/data/2.5/forecast?q=%s&appid=%s&lang=ja", cityName, apiKey)
+	cityName := "Yokohama"
+	url := fmt.Sprintf("http://api.openweathermap.org/data/2.5/forecast?q=%s&appid=%s&lang=ja&units=metric", cityName, apiKey)
 	res, err := http.Get(url)
 	if err != nil {
 		panic(err)
@@ -31,9 +31,27 @@ func main() {
 		panic(err)
 	}
 	
-	fmt.Printf("%v",data)
+	var result []Result 
+	for _, d := range data.List {
+		var r Result
+		r.Date = d.DtTxt
+		r.Temp = d.Main.Temp
+		r.Weather = d.Weather[0].Description
+		result = append(result, r)
+	}
+
+	fmt.Printf("%v", result)
+	// return result
 }
 
+// getWeather関数の戻り値
+type Result struct {
+	Date	string	`json:"date"`
+	Temp	float64	`json:"temp"`
+	Weather	string	`json:"weather"` 
+}
+
+// 自動生成 by https://mholt.github.io/json-to-go/
 type Response struct {
 	Cod     string `json:"cod"`
 	Message int    `json:"message"`
