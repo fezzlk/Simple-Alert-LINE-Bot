@@ -10,10 +10,13 @@ import (
 )
 
 func main() {
+	// 環境変数の取得
     dotEnvErr := godotenv.Load()
     if dotEnvErr != nil {
       log.Fatal("Error loading .env file")
     }
+
+	// bot を用意
     bot, botErr := linebot.New(
         os.Getenv("LINEBOT_CHANNEL_SECRET"),
         os.Getenv("LINEBOT_CHANNEL_TOKEN"),
@@ -21,16 +24,18 @@ func main() {
     if botErr != nil {
         log.Fatal(botErr)
     }
-      
+    
+	// gin サーバーの準備
     router := gin.Default()
     router.Use(gin.Logger())
     router.LoadHTMLGlob("templates/*.html")
 
+	// ルートパスでの処理(ホームページの表示)
     router.GET("/", func(ctx *gin.Context){
         ctx.HTML(200, "index.html", gin.H{})
     })
 
-    // LINE Messaging API ルーティング
+    // LINE Messaging API のリクエスト
 	router.POST("/callback", func(c *gin.Context) {
 		events, err := bot.ParseRequest(c.Request)
 		if err != nil {
