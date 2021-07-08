@@ -94,7 +94,7 @@ func main() {
 					} else if strings.Contains(replyMessage, replyLocation) {
 						bot.ReplyMessage(event.ReplyToken, responseLocation).Do()
 					}
-					// 上記意外は、おうむ返しで返信
+					// 上記以外は、おうむ返しで返信
 					_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(replyMessage)).Do()
 					if err != nil {
 						log.Print(err)
