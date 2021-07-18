@@ -2,11 +2,13 @@ package main
 
 import (
     "os"
+	"fmt"
     "log"
     "strings"
     "github.com/gin-gonic/gin"
     "github.com/joho/godotenv"
     "github.com/line/line-bot-sdk-go/linebot"
+	"main.go/scraping"
 )
 
 func main() {
@@ -73,6 +75,21 @@ func main() {
 
 		// ディズニーが地図表示される
 		responseLocation := linebot.NewLocationMessage("東京ディズニーランド", "千葉県浦安市舞浜", 35.632896, 139.880394)
+
+
+		// https://transit.yahoo.co.jp/traininfo/top より各路線の運行情報が
+		// 記載されたページのURLを取得
+		// 京浜東北根岸線
+		fmt.Println("京浜東北根岸線")
+		url := "https://transit.yahoo.co.jp/traininfo/detail/22/0/"
+		trainInfo := scraping.GetTrainInfo(url)
+		fmt.Println(trainInfo)
+		
+		// 横須賀線
+		fmt.Println("横須賀線")
+		url = "https://transit.yahoo.co.jp/traininfo/detail/29/0/"
+		trainInfo = scraping.GetTrainInfo(url)
+		fmt.Println(trainInfo)
 
 		for _, event := range events {
 			// イベントがメッセージの受信だった場合
