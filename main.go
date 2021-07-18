@@ -2,7 +2,6 @@ package main
 
 import (
     "os"
-	"fmt"
     "log"
     "strings"
     "github.com/gin-gonic/gin"
@@ -85,14 +84,12 @@ func main() {
 		trainInfo := ""
 
 		// 京浜東北根岸線
-		fmt.Println("京浜東北根岸線")
 		url := "https://transit.yahoo.co.jp/traininfo/detail/22/0/"
 		trainInfo += "京浜東北根岸線:\n" + scraping.GetTrainInfo(url) + "\n"
 
 		// 横須賀線
-		fmt.Println("横須賀線")
 		url = "https://transit.yahoo.co.jp/traininfo/detail/29/0/"
-		trainInfo += "横須賀線:/n" + scraping.GetTrainInfo(url)
+		trainInfo += "横須賀線:\n" + scraping.GetTrainInfo(url)
 
 
 		for _, event := range events {
