@@ -46,8 +46,8 @@ func main() {
 		}
 
 		// "可愛い" 単語を含む場合、返信される
-		var replyText string
-		replyText = "可愛い"
+		var keywordForTextResponse string
+		keywordForTextResponse = "可愛い"
 
 		// チャットの回答
 		var response string
@@ -80,22 +80,22 @@ func main() {
 				switch message := event.Message.(type) {
 				// メッセージがテキスト形式の場合
 				case *linebot.TextMessage:
-					replyMessage := message.Text
+					receivedMessage := message.Text
 					// テキストで返信されるケース
-					if strings.Contains(replyMessage, replyText) {
+					if strings.Contains(receivedMessage, keywordForTextResponse) {
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(response)).Do()
 						// スタンプで返信されるケース
-					} else if strings.Contains(replyMessage, replySticker) {
+					} else if strings.Contains(receivedMessage, replySticker) {
 						bot.ReplyMessage(event.ReplyToken, responseSticker).Do()
 						// 画像で返信されるケース
-					} else if strings.Contains(replyMessage, replyImage) {
+					} else if strings.Contains(receivedMessage, replyImage) {
 						bot.ReplyMessage(event.ReplyToken, responseImage).Do()
 						// 地図表示されるケース
-					} else if strings.Contains(replyMessage, replyLocation) {
+					} else if strings.Contains(receivedMessage, replyLocation) {
 						bot.ReplyMessage(event.ReplyToken, responseLocation).Do()
 					}
 					// 上記以外は、おうむ返しで返信
-					_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(replyMessage)).Do()
+					_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(receivedMessage)).Do()
 					if err != nil {
 						log.Print(err)
 					}
