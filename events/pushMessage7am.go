@@ -27,18 +27,28 @@ func main() {
 	// https://transit.yahoo.co.jp/traininfo/top より各路線の運行情報が
 	// 記載されたページのURLを取得
 	trainInfo := ""
+	data := ""
 
 	// 京浜東北根岸線
 	url := "https://transit.yahoo.co.jp/traininfo/detail/22/0/"
-	trainInfo += "京浜東北根岸線:\n" + scraping.GetTrainInfo(url) + "\n"
+	data = scraping.GetTrainInfo(url)
+	trainInfo += "京浜東北根岸線:\n" + data + "\n"
+	// if data != "遅延はありません。" {
+	// 	trainInfo += "京浜東北根岸線:\n" + data + "\n"
+	// }
 
 	// 横須賀線
 	url = "https://transit.yahoo.co.jp/traininfo/detail/29/0/"
-	trainInfo += "横須賀線:\n" + scraping.GetTrainInfo(url)
+	data = scraping.GetTrainInfo(url)
+	trainInfo += "横須賀線:\n" + data
+	// 	if data != "遅延はありません。" {
+	// 	trainInfo += "横須賀線:\n" + data
+	// }
 
-
-	_, err := bot.BroadcastMessage(linebot.NewTextMessage(trainInfo)).Do()
-	if err != nil {
-		log.Fatal(err)
+	if trainInfo != "" {
+		_, err := bot.BroadcastMessage(linebot.NewTextMessage(trainInfo)).Do()
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
