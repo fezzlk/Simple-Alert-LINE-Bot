@@ -56,40 +56,44 @@ func main() {
 		response = "ありがとう！！"
 
 		// "おはよう" 単語を含む場合、返信される
-		var replySticker string
-		replySticker = "おはよう"
+		var keywordForStickerResponse string
+		keywordForStickerResponse = "おはよう"
 
 		// スタンプで回答が来る
 		responseSticker := linebot.NewStickerMessage("11537", "52002757")
 
 		// "猫" 単語を含む場合、返信される
-		var replyImage string
-		replyImage = "猫"
+		var keywordForImageResponse string
+		keywordForImageResponse = "猫"
 
 		// 猫の画像が表示される
 		responseImage := linebot.NewImageMessage("https://i.gyazo.com/2db8f85c496dd8f21a91eccc62ceee05.jpg", "https://i.gyazo.com/2db8f85c496dd8f21a91eccc62ceee05.jpg")
 
 		// "ディズニー" 単語を含む場合、返信される
-		var replyLocation string
-		replyLocation = "ディズニー"
+		var keywordForLocationResponse string
+		keywordForLocationResponse = "ディズニー"
 
 		// ディズニーが地図表示される
 		responseLocation := linebot.NewLocationMessage("東京ディズニーランド", "千葉県浦安市舞浜", 35.632896, 139.880394)
 
+		// 遅延情報を返信
+		var keywordForTrainInfoResponse string
+		keywordForTrainInfoResponse = "遅延"
 
 		// https://transit.yahoo.co.jp/traininfo/top より各路線の運行情報が
 		// 記載されたページのURLを取得
+		trainInfo := ""
+
 		// 京浜東北根岸線
 		fmt.Println("京浜東北根岸線")
 		url := "https://transit.yahoo.co.jp/traininfo/detail/22/0/"
-		trainInfo := scraping.GetTrainInfo(url)
-		fmt.Println(trainInfo)
-		
+		trainInfo += "京浜東北根岸線:\n" + scraping.GetTrainInfo(url) + "\n"
+
 		// 横須賀線
 		fmt.Println("横須賀線")
 		url = "https://transit.yahoo.co.jp/traininfo/detail/29/0/"
-		trainInfo = scraping.GetTrainInfo(url)
-		fmt.Println(trainInfo)
+		trainInfo += "横須賀線:/n" + scraping.GetTrainInfo(url)
+
 
 		for _, event := range events {
 			// イベントがメッセージの受信だった場合
@@ -102,14 +106,17 @@ func main() {
 					if strings.Contains(receivedMessage, keywordForTextResponse) {
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(response)).Do()
 						// スタンプで返信されるケース
-					} else if strings.Contains(receivedMessage, replySticker) {
+					} else if strings.Contains(receivedMessage, keywordForStickerResponse) {
 						bot.ReplyMessage(event.ReplyToken, responseSticker).Do()
 						// 画像で返信されるケース
-					} else if strings.Contains(receivedMessage, replyImage) {
+					} else if strings.Contains(receivedMessage, keywordForImageResponse) {
 						bot.ReplyMessage(event.ReplyToken, responseImage).Do()
 						// 地図表示されるケース
-					} else if strings.Contains(receivedMessage, replyLocation) {
+					} else if strings.Contains(receivedMessage, keywordForLocationResponse) {
 						bot.ReplyMessage(event.ReplyToken, responseLocation).Do()
+						// 電車遅延情報を返信
+					} else if strings.Contains(receivedMessage, keywordForTrainInfoResponse) {
+						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(trainInfo)).Do()
 					}
 					// 上記以外は、おうむ返しで返信
 					_, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(receivedMessage)).Do()
