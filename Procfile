@@ -1,1 +1,1 @@
-web: Simple-Alert-LINE-Bot
+web: ls bin
