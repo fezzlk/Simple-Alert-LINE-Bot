@@ -37,17 +37,17 @@ func main() {
         url := "https://transit.yahoo.co.jp/traininfo/detail/22/0/"
         data = scraping.GetTrainInfo(url)
         trainInfo += "京浜東北根岸線:\n" + data + "\n"
-        // if data != "遅延はありません。" {
-        // 	trainInfo += "京浜東北根岸線:\n" + data + "\n"
-        // }
+        if data != "遅延はありません。" {
+            trainInfo += "京浜東北根岸線:\n" + data + "\n"
+        }
 
         // 横須賀線
         url = "https://transit.yahoo.co.jp/traininfo/detail/29/0/"
         data = scraping.GetTrainInfo(url)
         trainInfo += "横須賀線:\n" + data
-        // 	if data != "遅延はありません。" {
-        // 	trainInfo += "横須賀線:\n" + data
-        // }
+        if data != "遅延はありません。" {
+            trainInfo += "横須賀線:\n" + data
+        }
 
         if trainInfo != "" {
             _, err := bot.BroadcastMessage(linebot.NewTextMessage(trainInfo)).Do()
