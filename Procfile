@@ -1,1 +1,1 @@
-web: bin/main "7am"
+web: bin/main
