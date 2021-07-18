@@ -8,6 +8,7 @@ import (
     "github.com/joho/godotenv"
     "github.com/line/line-bot-sdk-go/linebot"
     "main.go/scraping"
+    "main.go/weather"
 )
 
 func main() {
@@ -121,6 +122,16 @@ func main() {
             url = "https://transit.yahoo.co.jp/traininfo/detail/29/0/"
             trainInfo += "横須賀線:\n" + scraping.GetTrainInfo(url)
 
+            // 天気情報を返信
+            var keywordForWeatherResponse string
+            keywordForWeatherResponse = "天気"
+
+            weatherInfo := weather.GetWeather()
+            weatherInfoStr := ""
+            for _, r := range weatherInfo {
+                weatherInfoStr += r.Date + r.Weather + "\n"
+            }
+            log.Print(weatherInfo)
 
             for _, event := range events {
                 // イベントがメッセージの受信だった場合
@@ -144,6 +155,9 @@ func main() {
                             // 電車遅延情報を返信
                         } else if strings.Contains(receivedMessage, keywordForTrainInfoResponse) {
                             bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(trainInfo)).Do()
+                        // 天気情報を返信
+                        } else if strings.Contains(receivedMessage, keywordForWeatherResponse) {
+                            bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(weatherInfoStr)).Do()
                         }
                         // 上記以外は、おうむ返しで返信
                         _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(receivedMessage)).Do()
