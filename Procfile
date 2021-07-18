@@ -1,1 +1,1 @@
-web: bin/SimpleAlertLineBot
+web: SimpleAlertLineBot
