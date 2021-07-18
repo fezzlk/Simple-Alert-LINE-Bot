@@ -1,1 +1,1 @@
-web: bin/simple-alert-line-bot
+web: bin/Simple-Alert-LINE-Bot
