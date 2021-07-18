@@ -27,7 +27,7 @@ func main() {
     }
     
     // 定期イベント
-    if len(os.Args) >= 2 && os.Args[1] == "7pm" {
+    if len(os.Args) >= 2 && os.Args[1] == "7am" {
         // https://transit.yahoo.co.jp/traininfo/top より各路線の運行情報が
         // 記載されたページのURLを取得
         trainInfo := ""
