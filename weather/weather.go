@@ -19,20 +19,22 @@ func GetWeather() []Result {
         panic(err)
     }
 
+	// 処理が最後まで実行されたら、res.Body を close する用に設定
     defer res.Body.Close() 
 
-    // レスポンス表示
+    // レスポンスから json データを取得
     body, err := ioutil.ReadAll(res.Body)
     if err != nil{
         panic(err)
     }
 
-    // jsonを構造体へデコード
+    // json を構造体へデコード
     var data Response
     if err := json.Unmarshal(body, &data); err != nil {
         panic(err)
     }
     
+    // 不要なデータを省く
     var result []Result 
     for _, d := range data.List {
         var r Result
@@ -42,17 +44,17 @@ func GetWeather() []Result {
         result = append(result, r)
     }
 
-    // fmt.Printf("%v", result)
     return result
 }
 
-// getWeather関数の戻り値
+// getWeather関数の戻り値の型を定義
 type Result struct {
     Date	string	`json:"date"`
     Temp	float64	`json:"temp"`
     Weather	string	`json:"weather"` 
 }
 
+// OpenWeather api から返ってくるデータの型を定義
 // 自動生成 by https://mholt.github.io/json-to-go/
 type Response struct {
     Cod     string `json:"cod"`
