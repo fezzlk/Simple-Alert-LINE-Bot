@@ -7,7 +7,7 @@ import (
     "github.com/gin-gonic/gin"
     "github.com/joho/godotenv"
     "github.com/line/line-bot-sdk-go/linebot"
-    "main.go/scraping"
+    "main.go/trainInfo"
     "main.go/weather"
 )
 
@@ -18,7 +18,7 @@ func main() {
       log.Fatal("Error loading .env file")
     }
 
-    // bot を用意
+    // line bot sdk for go の linebot の利用
     bot, botErr := linebot.New(
         os.Getenv("LINEBOT_CHANNEL_SECRET"),
         os.Getenv("LINEBOT_CHANNEL_TOKEN"),
@@ -27,36 +27,26 @@ func main() {
         log.Fatal(botErr)
     }
     
-    // 定期イベント
-    if len(os.Args) >= 2 && os.Args[1] == "7am" {
-        // https://transit.yahoo.co.jp/traininfo/top より各路線の運行情報が
-        // 記載されたページのURLを取得
-        trainInfo := ""
-        data := ""
-
-        // 京浜東北根岸線
-        url := "https://transit.yahoo.co.jp/traininfo/detail/22/0/"
-        data = scraping.GetTrainInfo(url)
-        trainInfo += "京浜東北根岸線:\n" + data + "\n"
-        if data != "遅延はありません。" {
-            trainInfo += "京浜東北根岸線:\n" + data + "\n"
-        }
-
-        // 横須賀線
-        url = "https://transit.yahoo.co.jp/traininfo/detail/29/0/"
-        data = scraping.GetTrainInfo(url)
-        trainInfo += "横須賀線:\n" + data
-        if data != "遅延はありません。" {
-            trainInfo += "横須賀線:\n" + data
-        }
-
-        if trainInfo != "" {
-            _, err := bot.BroadcastMessage(linebot.NewTextMessage(trainInfo)).Do()
-            if err != nil {
-                log.Fatal(err)
+    // 定期イベント(heroku scheduler で go コマンドによる起動ができないため、ここに記述し、コマンドライン引数の有無で実行を制御)
+    // see. https://stackoverflow.com/questions/39172378/using-heroku-scheduler-add-on-with-golang-app
+    if len(os.Args) >= 2 {
+        if os.Args[1] == "check_train" {
+            // 電車遅延情報を取得し、遅延があった場合のみプッシュ通知する
+            data := trainInfo.GetTrainInfoMap();
+            trainInfoText := ""
+            for key, value := range data {
+                if value != "遅延はありません。" {
+                    trainInfoText += key + ":\n" + value + "\n"
+                }
+            }
+            if trainInfoText != "" {
+                _, err := bot.BroadcastMessage(linebot.NewTextMessage(trainInfoText)).Do()
+                if err != nil {
+                    log.Fatal(err)
+                }
             }
         }
-    } else {
+    } else { // コマンドライン引数がない場合はサーバー起動
         // gin サーバーの準備
         router := gin.Default()
         router.Use(gin.Logger())
@@ -67,8 +57,9 @@ func main() {
             ctx.HTML(200, "index.html", gin.H{})
         })
 
-        // LINE Messaging API のリクエスト
+        // LINE Messaging API 用のエンドポイント
         router.POST("/callback", func(c *gin.Context) {
+            // リクエストから LINE イベント(LINEユーザーが操作した内容)を取得
             events, err := bot.ParseRequest(c.Request)
             if err != nil {
                 if err == linebot.ErrInvalidSignature {
@@ -77,61 +68,30 @@ func main() {
                 return
             }
 
-            // "可愛い" 単語を含む場合、返信される
-            var keywordForTextResponse string
-            keywordForTextResponse = "可愛い"
+            // キーワードを定義（ユーザーが送信したメッセージに以下のキーワードが含まれていた場合対応した返事をする)
+            keywordForTextResponse := "可愛い" // テキスト返信用
+            keywordForStickerResponse := "おはよう" // スタンプ返信用
+            keywordForImageResponse := "猫" // 画像返信用
+            keywordForLocationResponse := "ディズニー" // 地図表示用
+            keywordForTrainInfoResponse := "遅延" // 電車遅延情報返信用
+            keywordForWeatherResponse := "天気" // 天気情報返信用
 
-            // チャットの回答
-            var response string
-            response = "ありがとう！！"
-
-            // "おはよう" 単語を含む場合、返信される
-            var keywordForStickerResponse string
-            keywordForStickerResponse = "おはよう"
-
-            // スタンプで回答が来る
-            responseSticker := linebot.NewStickerMessage("11537", "52002757")
-
-            // "猫" 単語を含む場合、返信される
-            var keywordForImageResponse string
-            keywordForImageResponse = "猫"
-
-            // 猫の画像が表示される
-            responseImage := linebot.NewImageMessage("https://i.gyazo.com/2db8f85c496dd8f21a91eccc62ceee05.jpg", "https://i.gyazo.com/2db8f85c496dd8f21a91eccc62ceee05.jpg")
-
-            // "ディズニー" 単語を含む場合、返信される
-            var keywordForLocationResponse string
-            keywordForLocationResponse = "ディズニー"
-
-            // ディズニーが地図表示される
-            responseLocation := linebot.NewLocationMessage("東京ディズニーランド", "千葉県浦安市舞浜", 35.632896, 139.880394)
-
-            // 遅延情報を返信
-            var keywordForTrainInfoResponse string
-            keywordForTrainInfoResponse = "遅延"
-
-            // https://transit.yahoo.co.jp/traininfo/top より各路線の運行情報が
-            // 記載されたページのURLを取得
-            trainInfo := ""
-
-            // 京浜東北根岸線
-            url := "https://transit.yahoo.co.jp/traininfo/detail/22/0/"
-            trainInfo += "京浜東北根岸線:\n" + scraping.GetTrainInfo(url) + "\n"
-
-            // 横須賀線
-            url = "https://transit.yahoo.co.jp/traininfo/detail/29/0/"
-            trainInfo += "横須賀線:\n" + scraping.GetTrainInfo(url)
-
-            // 天気情報を返信
-            var keywordForWeatherResponse string
-            keywordForWeatherResponse = "天気"
-
-            weatherInfo := weather.GetWeather()
-            weatherInfoStr := ""
-            for _, r := range weatherInfo {
+            // 返信内容を定義
+            responseText := "ありがとう！！" // テキスト
+            responseSticker := linebot.NewStickerMessage("11537", "52002757") // スタンプ
+            responseImage := linebot.NewImageMessage("https://i.gyazo.com/2db8f85c496dd8f21a91eccc62ceee05.jpg", "https://i.gyazo.com/2db8f85c496dd8f21a91eccc62ceee05.jpg") // 画像
+            responseLocation := linebot.NewLocationMessage("東京ディズニーランド", "千葉県浦安市舞浜", 35.632896, 139.880394) // 地図
+            // 電車遅延情報
+            data := trainInfo.GetTrainInfoMap()
+            trainInfoText := ""
+            for key, value := range data {
+                trainInfoText += key + ":\n" + value + "\n"
+            }
+            // 天気情報
+            weatherInfoStr := "" 
+            for _, r := range weather.GetWeather() {
                 weatherInfoStr += r.Date + r.Weather + "\n"
             }
-            log.Print(weatherInfo)
 
             for _, event := range events {
                 // イベントがメッセージの受信だった場合
@@ -140,23 +100,23 @@ func main() {
                     // メッセージがテキスト形式の場合
                     case *linebot.TextMessage:
                         receivedMessage := message.Text
-                        // テキストで返信されるケース
                         if strings.Contains(receivedMessage, keywordForTextResponse) {
-                            bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(response)).Do()
-                            // スタンプで返信されるケース
+                            // テキストを返信
+                            bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(responseText)).Do()
                         } else if strings.Contains(receivedMessage, keywordForStickerResponse) {
+                            // スタンプを返信
                             bot.ReplyMessage(event.ReplyToken, responseSticker).Do()
-                            // 画像で返信されるケース
                         } else if strings.Contains(receivedMessage, keywordForImageResponse) {
+                            // 画像を返信
                             bot.ReplyMessage(event.ReplyToken, responseImage).Do()
-                            // 地図表示されるケース
                         } else if strings.Contains(receivedMessage, keywordForLocationResponse) {
+                            // 地図を返信
                             bot.ReplyMessage(event.ReplyToken, responseLocation).Do()
-                            // 電車遅延情報を返信
                         } else if strings.Contains(receivedMessage, keywordForTrainInfoResponse) {
-                            bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(trainInfo)).Do()
-                        // 天気情報を返信
+                            // 電車遅延情報を返信
+                            bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(trainInfoText)).Do()
                         } else if strings.Contains(receivedMessage, keywordForWeatherResponse) {
+                            // 天気情報を返信
                             bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(weatherInfoStr)).Do()
                         }
                         // 上記以外は、おうむ返しで返信
@@ -168,6 +128,8 @@ func main() {
                 }
             }
         })
+
+        // サーバー起動
         router.Run()
     }
 }

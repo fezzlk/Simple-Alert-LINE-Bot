@@ -1,4 +1,4 @@
-package scraping
+package trainInfo
 
 import (
 	"bytes"
@@ -54,6 +54,21 @@ func GetTrainInfo(url string) string {
 	}
 }
 
+// 遅延情報を取得し、遅延している場合のみプッシュ通知する
+func GetTrainInfoMap() map[string]string {
+	// https://transit.yahoo.co.jp/traininfo/top より各路線の運行情報が
+	// 記載されたページのURLを取得
+	trains := map[string]string{"京浜東北根岸線": "22", "横須賀線": "29"}
+	result := map[string]string{}
+
+	for key, value := range trains {
+		url := "https://transit.yahoo.co.jp/traininfo/detail/" + value + "/0/"
+		result[key] = GetTrainInfo(url)
+	}
+
+	return result
+}
+
 ////////////////////
 // main関数での使用法
 
@@ -61,7 +76,7 @@ func GetTrainInfo(url string) string {
 // 記載されたページのURLを取得
 
 // import(
-// 		"main.go/scraping"
+// 		"main.go/trainInfo"
 // )
 
 // func main(){
