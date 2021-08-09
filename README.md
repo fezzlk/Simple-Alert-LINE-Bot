@@ -12,7 +12,7 @@
 ## 初回起動および LINE Bot との紐付けまでの手順
 
 1. 仮想環境の作成（必須ではないが推奨）
-   `python3 -m venv bot-env`
+   `python3 -m venv venv`
 1. 依存パッケージのインストール
    `$ pip3 install -r requirements.txt`
 1. LINE Devlopers にてプロバイダ及び messaging API のチャンネルを作っておく
