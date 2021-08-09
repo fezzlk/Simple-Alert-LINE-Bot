@@ -1,1 +1,1 @@
-web: bin/main
+web: gunicorn server:app --log-file=-
