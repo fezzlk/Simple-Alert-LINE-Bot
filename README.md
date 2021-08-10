@@ -1,26 +1,24 @@
 (執筆途中)
 # Simple-Alert-LINE-Bot
 
-## できること
+## Try it!
+<a href="https://lin.ee/Ha5GnFv"><img src="https://scdn.line-apps.com/n/line_add_friends/btn/ja.png" alt="友だち追加" height="36" border="0"></a>
+
+## Features
 ### 電車遅延情報の表示
 #### 対象
 - 京浜東北線
 - 横須賀線
 
-#### やり方
+#### How to
 Bot に '遅延'　と送信 
 
 ### 天気情報の表示
 #### 対象
 - 横浜市
 
-#### やり方
+#### How to
 Bot に '天気'　と送信 
-
-
-## Try it!
-<a href="https://lin.ee/Ha5GnFv"><img src="https://scdn.line-apps.com/n/line_add_friends/btn/ja.png" alt="友だち追加" height="36" border="0"></a>
-
 
 ## 開発環境準備
 
