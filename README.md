@@ -1,11 +1,12 @@
+(執筆途中)
 # Simple-Alert-LINE-Bot
 
-(執筆途中)
+## できること
+- 京浜東北線、横須賀線の遅延情報表示
+- 横浜の天気の表示
 
 ## Try it!
 <a href="https://lin.ee/Ha5GnFv"><img src="https://scdn.line-apps.com/n/line_add_friends/btn/ja.png" alt="友だち追加" height="36" border="0"></a>
-
-## Demo
 
 
 ## 開発環境準備
