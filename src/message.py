@@ -1,9 +1,13 @@
 from linebot.models import TextSendMessage
-from .functions import weather
+from .functions import weather, train
 
 
 def create_train_delay_message():
-    return '電車遅延情報を取得'
+    data = train.get_trains_delay_info()
+    res = '運行情報\n'
+    for name, info in data.items():
+        res += '\n' + name + ':\n' + info + '\n'
+    return res
 
 def create_weather_message():
     data = weather.get_weather()
@@ -11,7 +15,7 @@ def create_weather_message():
     for date, info_of_the_day in data['data'].items():
         res += '\n' + date
         for time, info in info_of_the_day.items():
-            res += '\n' + ' '.join([time, str(info['temp']), info['weather']])
+            res += '\n' ' '.join([time, str(info['temp']), info['weather']])
         res += '\n'
     return res
 
