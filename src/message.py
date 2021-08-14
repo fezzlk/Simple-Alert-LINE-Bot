@@ -9,6 +9,7 @@ def create_train_delay_message():
         res += '\n' + name + ':\n' + info + '\n'
     return res
 
+
 def create_weather_message():
     data = weather.get_weather()
     res = data['city'] + 'の天気\n'
@@ -18,6 +19,7 @@ def create_weather_message():
             res += '\n' ' '.join([time, str(info['temp']), info['weather']])
         res += '\n'
     return res
+
 
 def create_message(user_id, message):
     '''

@@ -10,6 +10,8 @@ from linebot.models import (
 '''
 Endpoints for Web
 '''
+
+
 @app.route('/', methods=['GET'])
 def route():
     return 'Hello, world!'
@@ -18,6 +20,8 @@ def route():
 '''
 Endpoints for LINE Bot
 '''
+
+
 @app.route('/callback', methods=['POST'])
 def callback():
     signature = request.headers['X-Line-Signature']
@@ -29,9 +33,12 @@ def callback():
         abort(400)
     return 'OK'
 
-''' 
+
+'''
 handle event
 '''
+
+
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     message = event.message.text
