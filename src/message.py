@@ -1,10 +1,10 @@
 from typing import Dict
 from linebot.models import TextSendMessage
-from .services import weather, train
+from .services import weather_service, train_service
 
 
 def create_train_delay_message() -> str:
-    data = train.get_trains_delay_info()
+    data = train_service.get_trains_delay_info()
     res = '運行情報\n'
     for name, info in data.items():
         res += '\n' + name + ':\n' + info + '\n'
@@ -12,7 +12,7 @@ def create_train_delay_message() -> str:
 
 
 def create_weather_message() -> str:
-    data = weather.get_weather()
+    data = weather_service.get_weather()
     res = data['city'] + 'の天気\n'
     for date, info_of_the_day in data['data'].items():
         res += '\n' + date
