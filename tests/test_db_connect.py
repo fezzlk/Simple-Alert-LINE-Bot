@@ -1,5 +1,5 @@
 import config
-from pymongo import MongoClient
+from PyMongo import MongoClient
 
 
 def test_connect_mongo_with():
