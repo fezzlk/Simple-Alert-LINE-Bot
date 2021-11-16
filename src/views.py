@@ -91,5 +91,5 @@ def handle_event(event: Event, handle_func: Callable):
     except BaseException as err:
         print(err)
         line_response_service.add_message(str(err))
-    line_response_service.reply(Event)
+    line_response_service.reply(event)
     line_request_service.delete_req_info()
