@@ -37,7 +37,9 @@ class LineRequestService:
         if event.source.type == 'group':
             self.req_line_group_id = event.source.group_id
 
-        print(f"Received message: \"{self.message}\" from {self.user_name}")
+        print(
+            f"Received message: \"{self.message}\" from {self.req_line_user_name}"
+        )
 
     """
     メッセージ送信元情報の削除
