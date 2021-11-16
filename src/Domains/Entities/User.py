@@ -14,8 +14,8 @@ class User:
     def __init__(
         self,
         _id: str = None,
-        name: str = 'unknown',
-        line_user_name: str = 'unknown',
+        name: str = None,
+        line_user_name: str = None,
         line_user_id: str = None,
         created_at: datetime = datetime.now(),
         updated_at: datetime = datetime.now(),
