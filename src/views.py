@@ -1,3 +1,4 @@
+import traceback
 from typing import Callable
 from flask import request, abort
 from linebot.exceptions import InvalidSignatureError
@@ -89,7 +90,9 @@ def handle_event(event: Event, handle_func: Callable):
         line_request_service.set_req_info(event)
         handle_func()
     except BaseException as err:
-        print(err)
+        print(traceback.format_exc())
+        line_response_service.reset()
+        line_response_service.add_message('サーバーエラーが発生しました。')
         line_response_service.add_message(str(err))
     line_response_service.reply(event)
     line_request_service.delete_req_info()
