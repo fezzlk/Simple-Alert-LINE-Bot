@@ -11,6 +11,7 @@ class LineRequestService:
         # 受信メッセージ、送信元の LINE ユーザー ID, トークルーム ID, グループ ID
         self.message: str = None
         self.event_type: str = None
+        self.message_type: str = None
         self.req_line_user_name: str = None
         self.req_line_user_id: str = None
         self.req_line_group_id: str = None
@@ -21,8 +22,10 @@ class LineRequestService:
 
     def set_req_info(self, event: Event) -> None:
         self.event_type = event.type
-        if event.type == 'message' and event.message.type == 'text':
-            self.message = event.message.text
+        if event.type == 'message':
+            self.message_type = event.message.type
+            if event.message.type == 'text':
+                self.message = event.message.text
 
         self.req_line_user_id = event.source.user_id
         self.req_line_user_name = line_bot_api.get_profile(
