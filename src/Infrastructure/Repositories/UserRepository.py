@@ -7,10 +7,9 @@ class UserRepository:
     def create(
         new_user: User,
     ) -> User:
-        # for i, v in new_user.__dict__.items():
-        #     print(i)
-        #     print(v)
-        res = mongo_client.db.users.insert_one(new_user.__dict__)
-        print("###")
-        print(res)
+        user_dict = new_user.__dict__.copy()
+        if user_dict['_id'] is None:
+            user_dict.pop('_id')
+        result = mongo_client.db.users.insert_one(user_dict)
+        new_user['_id'] = result.inserted_id
         return new_user
