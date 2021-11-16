@@ -4,7 +4,7 @@ import requests
 
 
 class WeatherService:
-    def get_weather():
+    def get_weather(self):
         '''
         OpenWeather api (https://openweathermap.org/current) を使って天気情報を取得
         '''
