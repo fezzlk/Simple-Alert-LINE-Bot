@@ -31,6 +31,6 @@ class TrainService:
         運行情報を返す
         '''
         return {
-            '京浜東北線': scrape_trains_delay_info('22'),
-            '横須賀線': scrape_trains_delay_info('29'),
+            '京浜東北線': self.scrape_trains_delay_info('22'),
+            '横須賀線': self.scrape_trains_delay_info('29'),
         }
