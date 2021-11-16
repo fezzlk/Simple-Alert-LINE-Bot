@@ -1,8 +1,9 @@
 from src.Domains.Entities.User import User
 from src.pymongo import mongo_client
+from src.Domains.IRepositories.IUserRepository import IUserRepository
 
 
-class UserRepository:
+class UserRepository(IUserRepository):
 
     def create(
         new_user: User,
