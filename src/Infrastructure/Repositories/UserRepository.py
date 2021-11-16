@@ -1,5 +1,5 @@
 from src.Domains.Entities.User import User
-from src.pymongo import mongo_client
+from src.PyMongo import mongo_client
 from src.Domains.IRepositories.IUserRepository import IUserRepository
 
 

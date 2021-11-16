@@ -1,5 +1,5 @@
 from src.Domains.Entities.Stock import Stock
-from src.pymongo import mongo_client
+from src.PyMongo import mongo_client
 from src.Domains.IRepositories.IStockRepository import IStockRepository
 
 
