@@ -1,17 +1,22 @@
 import traceback
-from typing import Callable
+from typing import Callable, Dict
 from flask import request, abort
 from linebot.exceptions import InvalidSignatureError
 from linebot.models.events import Event
 from src import app
+from src.UseCases.Interface.IUseCase import IUseCase
 from src.line_bot_api import handler
 from src.UseCases import (
-    text_message_use_case,
     follow_use_case,
     unfollow_use_case,
     postback_use_case,
     join_use_case,
+    text_message_use_case,
     image_message_use_case,
+    reply_train_delay_use_case,
+    reply_weather_use_case,
+    register_stock_use_case,
+    reply_stock_use_case,
 )
 from linebot.models import (
     FollowEvent,
@@ -23,6 +28,7 @@ from linebot.models import (
     PostbackEvent,
 )
 from src.services import line_request_service, line_response_service
+
 '''
 Endpoints for Web
 '''
@@ -57,7 +63,7 @@ handle event
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event: Event) -> None:
-    handle_event(event, text_message_use_case)
+    handle_event(event, get_text_message_use_case(event))
 
 
 @handler.add(FollowEvent)
@@ -85,10 +91,10 @@ def handle_postback(event: Event) -> None:
     handle_event(event, postback_use_case)
 
 
-def handle_event(event: Event, handle_func: Callable):
+def handle_event(event: Event, use_case: IUseCase):
     try:
         line_request_service.set_req_info(event)
-        handle_func()
+        use_case.execute()
     except BaseException as err:
         print(traceback.format_exc())
         line_response_service.reset()
@@ -96,3 +102,30 @@ def handle_event(event: Event, handle_func: Callable):
         line_response_service.add_message(str(err))
     line_response_service.reply(event)
     line_request_service.delete_req_info()
+
+
+def get_text_message_use_case(event: Event):
+
+    train_keywords: Dict[str, Callable] = {
+        '遅延': reply_train_delay_use_case,
+    }
+    weather_keywords: Dict[str, Callable] = {
+        '天気': reply_weather_use_case,
+    }
+    stock_keywords: Dict[str, Callable] = {
+        '在庫登録': register_stock_use_case,
+        '在庫一覧': reply_stock_use_case,
+    }
+
+    keyword = event.message.text.split()[0]
+    # 電車情報
+    if keyword in train_keywords:
+        return train_keywords[keyword]
+    # 天気情報
+    elif keyword in weather_keywords:
+        return weather_keywords[keyword]
+    # 食材在庫情報
+    elif keyword in stock_keywords:
+        return stock_keywords[keyword]
+    else:
+        return text_message_use_case
