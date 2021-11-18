@@ -1,10 +1,11 @@
+from src.UseCases.Interface.IUseCase import IUseCase
 from src.services import (
     weather_service,
     line_response_service,
 )
 
 
-class ReplyWeatherUseCase:
+class ReplyWeatherUseCase(IUseCase):
     def execute(self) -> None:
         data = weather_service.get_weather()
         res = data['city'] + 'の天気\n'

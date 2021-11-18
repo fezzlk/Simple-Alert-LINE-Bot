@@ -1,10 +1,11 @@
+from src.UseCases.Interface.IUseCase import IUseCase
 from src.services import (
     train_service,
     line_response_service,
 )
 
 
-class ReplyTrainDelayUseCase:
+class ReplyTrainDelayUseCase(IUseCase):
     def execute(self) -> None:
         print('get train info')
         data = train_service.get_trains_delay_info()

@@ -1,9 +1,10 @@
+from src.UseCases.Interface.IUseCase import IUseCase
 from src.services import (
     line_response_service,
 )
 
 
-class RegisterStockUseCase:
+class RegisterStockUseCase(IUseCase):
     def execute() -> None:
         args = line_request_service.message.split()
 
