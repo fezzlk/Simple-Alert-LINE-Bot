@@ -12,5 +12,5 @@ class UserRepository(IUserRepository):
         if user_dict['_id'] is None:
             user_dict.pop('_id')
         result = mongo_client.db.users.insert_one(user_dict)
-        new_user['_id'] = result.inserted_id
+        new_user._id = result.inserted_id
         return new_user
