@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from Domains.Entities.Stock import Stock
+from src.Domains.Entities.Stock import Stock
 
 
 class IStockRepository(metaclass=ABCMeta):

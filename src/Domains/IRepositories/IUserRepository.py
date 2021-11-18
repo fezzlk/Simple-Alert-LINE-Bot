@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from Domains.Entities.User import User
+from src.Domains.Entities.User import User
 
 
 class IUserRepository(metaclass=ABCMeta):
