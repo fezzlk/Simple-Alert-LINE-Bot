@@ -2,7 +2,7 @@
 
 import config
 from flask import Flask
-from src.PyMongo import mongo_client
+from src.mongo_client import mongo_client
 
 # setup flask app
 app = Flask(__name__)
