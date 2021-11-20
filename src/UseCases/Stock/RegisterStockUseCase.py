@@ -5,7 +5,7 @@ from src.services import (
 
 
 class RegisterStockUseCase(IUseCase):
-    def execute() -> None:
+    def execute(self) -> None:
         args = line_request_service.message.split()
 
         keyword = args[0]

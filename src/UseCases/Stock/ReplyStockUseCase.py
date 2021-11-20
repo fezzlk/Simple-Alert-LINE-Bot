@@ -5,5 +5,5 @@ from src.services import (
 
 
 class ReplyStockUseCase(IUseCase):
-    def execute() -> None:
+    def execute(self) -> None:
         line_response_service.add_message('在庫一覧を表示')
