@@ -18,12 +18,12 @@ class IUserRepository(metaclass=ABCMeta):
     # ) -> User:
     #     pass
 
-    # @abstractmethod
-    # def delete(
-    #     self,
-    #     user_id: str,
-    # ) -> bool:
-    #     pass
+    @abstractmethod
+    def delete_by_line_user_id(
+        self,
+        line_user_id: str,
+    ) -> bool:
+        pass
 
     # @abstractmethod
     # def find_all(
