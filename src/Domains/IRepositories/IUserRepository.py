@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+from typing import Dict, List
 from src.Domains.Entities.User import User
 
 
@@ -19,9 +20,9 @@ class IUserRepository(metaclass=ABCMeta):
     #     pass
 
     @abstractmethod
-    def delete_by_line_user_id(
+    def delete(
         self,
-        line_user_id: str,
+        query: Dict[str, any],
     ) -> bool:
         pass
 
@@ -31,9 +32,9 @@ class IUserRepository(metaclass=ABCMeta):
     # ) -> List[User]:
     #     pass
 
-    # @abstractmethod
-    # def find(
-    #     self,
-    #     query: Dict[str, any],
-    # ) -> List[User]:
-    #     pass
+    @abstractmethod
+    def find(
+        self,
+        query: Dict[str, any],
+    ) -> List[User]:
+        pass
