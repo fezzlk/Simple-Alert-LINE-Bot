@@ -45,6 +45,7 @@ jobs:
     strategy:
       matrix:
         python-version: [3.7]
+        mongodb-version: ["4.4"]
 
     steps:
       # 対象のブランチにチェックアウト
@@ -70,6 +71,12 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           if [ -f requirements.dev.txt ]; then pip install -r requirements.dev.txt; fi
+      # テスト用 DB
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.7.0
+        with:
+          mongodb-version: ${{ matrix.mongodb-version }}
+          mongodb-port: 27017
       - name: Test with pytest
         env:
           OPEN_WEATHER_MAP_API_KEY: ${{ secrets.OPEN_WEATHER_MAP_API_KEY }}
