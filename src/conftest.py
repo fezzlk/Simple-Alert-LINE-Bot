@@ -12,4 +12,5 @@ load_dotenv()
 
 @pytest.fixture(scope='function', autouse=True)
 def reset_db():
-    mongo_client.db.collection.delete_many({})
+    print('hoge')
+    mongo_client.drop_database('db')
