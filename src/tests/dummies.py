@@ -38,6 +38,19 @@ class IProfile(metaclass=ABCMeta):
 def generate_dummy_user_list() -> List[User]:
     return [
         User(
+            user_name='dummy_user_1',
+            line_user_name='dummy_line_user_1',
+            line_user_id='U0123456789abcdefghijklmnopqrstu1',
+        ),
+        User(
+            user_name='dummy_user_2',
+            line_user_name='dummy_line_user_2',
+            line_user_id='U0123456789abcdefghijklmnopqrstu2',
+        ),
+        User(
+            user_name='dummy_user_3',
+            line_user_name='dummy_line_user_3',
+            line_user_id='U0123456789abcdefghijklmnopqrstu3',
         ),
     ]
 
