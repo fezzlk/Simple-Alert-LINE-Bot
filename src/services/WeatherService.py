@@ -1,5 +1,5 @@
 
-import config
+from src import config
 import requests
 
 

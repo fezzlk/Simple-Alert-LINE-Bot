@@ -1,6 +1,6 @@
 # flake8: noqa
 
-import config
+import src.config
 from flask import Flask
 from src.mongo_client import mongo_client
 

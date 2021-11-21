@@ -1,4 +1,4 @@
-import config
+from src import config
 from linebot import (LineBotApi, WebhookHandler)
 
 # setup for line-bot-sdk
