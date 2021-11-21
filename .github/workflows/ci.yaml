@@ -82,6 +82,6 @@ jobs:
           OPEN_WEATHER_MAP_API_KEY: ${{ secrets.OPEN_WEATHER_MAP_API_KEY }}
           LINEBOT_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINEBOT_CHANNEL_ACCESS_TOKEN }}
           LINEBOT_CHANNEL_SECRET: ${{ secrets.LINEBOT_CHANNEL_SECRET }}
-          MONGO_URI: "mongodb://localhost:27017/local"
+          MONGO_URI: "mongodb://localhost:27017/db"
         run: |
           pytest --cov=src src/
