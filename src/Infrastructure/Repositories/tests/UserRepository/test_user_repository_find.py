@@ -26,3 +26,24 @@ def test_success():
         assert result[i].user_name == target_users[i].user_name
         assert result[i].line_user_name == target_users[i].line_user_name
         assert result[i].line_user_id == target_users[i].line_user_id
+
+
+def test_success_hit_all_records():
+    # Arrange
+    user_repository = UserRepository()
+    dummy_users = generate_dummy_user_list()[:3]
+    for dummy_user in dummy_users:
+        user_repository.create(
+            new_user=dummy_user,
+        )
+
+    # Act
+    result = user_repository.find()
+
+    # Assert
+    assert len(result) == len(dummy_users)
+    for i in range(len(result)):
+        assert isinstance(result[i], User)
+        assert result[i].user_name == dummy_users[i].user_name
+        assert result[i].line_user_name == dummy_users[i].line_user_name
+        assert result[i].line_user_id == dummy_users[i].line_user_id
