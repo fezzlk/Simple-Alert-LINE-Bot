@@ -1,3 +1,4 @@
+from logging import captureWarnings
 from linebot.models.events import Event
 from src.line_bot_api import line_bot_api
 
@@ -28,9 +29,12 @@ class LineRequestService:
                 self.message = event.message.text
 
         self.req_line_user_id = event.source.user_id
-        self.req_line_user_name = line_bot_api.get_profile(
-            self.req_line_user_id
-        ).display_name
+        try:
+            self.req_line_user_name = line_bot_api.get_profile(
+                self.req_line_user_id
+            ).display_name
+        except BaseException as err:
+            print(err)
 
         if event.source.type == 'room':
             self.req_line_group_id = event.source.room_id
