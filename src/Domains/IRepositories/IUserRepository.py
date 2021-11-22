@@ -23,7 +23,7 @@ class IUserRepository(metaclass=ABCMeta):
     def delete(
         self,
         query: Dict[str, any],
-    ) -> bool:
+    ) -> int:
         pass
 
     # @abstractmethod

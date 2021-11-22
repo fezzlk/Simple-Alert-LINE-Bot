@@ -29,9 +29,10 @@ class UserRepository(IUserRepository):
 
     def delete(
         self,
-        query: Dict[str, any],
-    ) -> bool:
-        print('delete')
+        query: Dict[str, any] = {},
+    ) -> int:
+        result = mongo_client.db.users.delete_many(filter=query)
+        return result.deleted_count
 
     def _mapping_record_to_domain(self, record: Dict[str, any]) -> User:
         domain = User()
