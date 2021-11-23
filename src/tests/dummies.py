@@ -1,5 +1,7 @@
 from abc import ABCMeta, abstractmethod
+from datetime import datetime
 from typing import List
+from src.Domains.Entities.Stock import Stock
 from src.Domains.Entities.User import User
 
 
@@ -51,6 +53,29 @@ def generate_dummy_user_list() -> List[User]:
             user_name='dummy_user_3',
             line_user_name='dummy_line_user_3',
             line_user_id='U0123456789abcdefghijklmnopqrstu3',
+        ),
+    ]
+
+
+def generate_dummy_stock_list() -> List[Stock]:
+    return [
+        Stock(
+            goods_name='dummy_good_1',
+            owner_id='U0123456789abcdefghijklmnopqrstu1',
+            expiry_date=None,
+            status=1,
+        ),
+        Stock(
+            goods_name='dummy_good_2',
+            owner_id='U0123456789abcdefghijklmnopqrstu1',
+            expiry_date=datetime(2020, 1, 1),
+            status=1,
+        ),
+        Stock(
+            goods_name='dummy_good_3',
+            owner_id='U0123456789abcdefghijklmnopqrstu2',
+            expiry_date=datetime(2020, 1, 1),
+            status=1,
         ),
     ]
 
