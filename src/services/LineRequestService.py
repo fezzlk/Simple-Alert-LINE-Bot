@@ -33,8 +33,8 @@ class LineRequestService:
             self.req_line_user_name = line_bot_api.get_profile(
                 self.req_line_user_id
             ).display_name
-        except BaseException as err:
-            print(err)
+        except BaseException:
+            print(f'Failed to get LINE profile "{self.req_line_user_id}"')
 
         if event.source.type == 'room':
             self.req_line_group_id = event.source.room_id
@@ -42,7 +42,7 @@ class LineRequestService:
             self.req_line_group_id = event.source.group_id
 
         print(
-            f"Received message: \"{self.message}\" from {self.req_line_user_name}"
+            f'Received message: "{self.message}" from {self.req_line_user_name}'
         )
 
     """
