@@ -113,8 +113,8 @@ def get_text_message_use_case(event: Event):
         '天気': reply_weather_use_case,
     }
     stock_keywords: Dict[str, Callable] = {
-        '在庫登録': register_stock_use_case,
-        '在庫一覧': reply_stock_use_case,
+        '食材登録': register_stock_use_case,
+        '食材一覧': reply_stock_use_case,
     }
 
     keyword = event.message.text.split()[0]
@@ -124,7 +124,7 @@ def get_text_message_use_case(event: Event):
     # 天気情報
     elif keyword in weather_keywords:
         return weather_keywords[keyword]
-    # 食材在庫情報
+    # 食材情報
     elif keyword in stock_keywords:
         return stock_keywords[keyword]
     else:

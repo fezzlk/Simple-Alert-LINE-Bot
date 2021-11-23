@@ -50,8 +50,8 @@ class LineResponseService:
                             data='_train'
                         ),
                         PostbackAction(
-                            label='食材在庫を確認',
-                            display_text='食材在庫を確認',
+                            label='食材を確認',
+                            display_text='食材を確認',
                             data='_stock'
                         ),
                     ]
