@@ -12,4 +12,3 @@ class UnfollowUseCase(IUseCase):
         user_repository.delete(
             query=query,
         )
-        line_response_service.isAbleToReply = False

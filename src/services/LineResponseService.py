@@ -13,7 +13,6 @@ from linebot.models.events import Event
 class LineResponseService:
 
     def __init__(self):
-        self.isAbleToReply = True
         self.texts = []
         self.buttons = []
         self.images = []
@@ -63,7 +62,7 @@ class LineResponseService:
     def reply(self, event: Event) -> None:
         contents = self.texts + self.buttons + self.images
 
-        if (len(contents) == 0 or not self.isAbleToReply):
+        if (len(contents) == 0):
             return
         if hasattr(event, 'reply_token'):
             line_bot_api.reply_message(
