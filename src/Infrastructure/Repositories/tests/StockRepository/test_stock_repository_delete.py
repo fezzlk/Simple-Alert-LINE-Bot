@@ -26,7 +26,7 @@ def test_success():
     assert len(records_in_db) == len(other_stocks)
     for i in range(len(records_in_db)):
         assert records_in_db[i].goods_name == other_stocks[i].goods_name
-        assert records_in_db[i].owner_id == other_stocks[i].owner_id
+        assert records_in_db[i].owner_line_id == other_stocks[i].owner_line_id
         assert records_in_db[i].expiry_date == other_stocks[i].expiry_date
         assert records_in_db[i].status == other_stocks[i].status
 

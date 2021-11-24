@@ -24,7 +24,7 @@ def test_success():
     for i in range(len(result)):
         assert isinstance(result[i], Stock)
         assert result[i].goods_name == target_stocks[i].goods_name
-        assert result[i].owner_id == target_stocks[i].owner_id
+        assert result[i].owner_line_id == target_stocks[i].owner_line_id
         assert result[i].expiry_date == target_stocks[i].expiry_date
         assert result[i].status == target_stocks[i].status
 
@@ -46,6 +46,6 @@ def test_success_hit_all_records():
     for i in range(len(result)):
         assert isinstance(result[i], Stock)
         assert result[i].goods_name == dummy_stocks[i].goods_name
-        assert result[i].owner_id == dummy_stocks[i].owner_id
+        assert result[i].owner_line_id == dummy_stocks[i].owner_line_id
         assert result[i].expiry_date == dummy_stocks[i].expiry_date
         assert result[i].status == dummy_stocks[i].status

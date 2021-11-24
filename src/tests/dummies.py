@@ -61,19 +61,19 @@ def generate_dummy_stock_list() -> List[Stock]:
     return [
         Stock(
             goods_name='dummy_good_1',
-            owner_id='U0123456789abcdefghijklmnopqrstu1',
+            owner_line_id='U0123456789abcdefghijklmnopqrstu1',
             expiry_date=None,
             status=1,
         ),
         Stock(
             goods_name='dummy_good_2',
-            owner_id='U0123456789abcdefghijklmnopqrstu1',
+            owner_line_id='U0123456789abcdefghijklmnopqrstu1',
             expiry_date=datetime(2020, 1, 1),
             status=1,
         ),
         Stock(
             goods_name='dummy_good_3',
-            owner_id='U0123456789abcdefghijklmnopqrstu2',
+            owner_line_id='U0123456789abcdefghijklmnopqrstu2',
             expiry_date=datetime(2020, 1, 1),
             status=1,
         ),
