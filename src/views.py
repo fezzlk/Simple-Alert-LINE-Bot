@@ -1,10 +1,10 @@
 import traceback
 from typing import Callable, Dict
-from flask import request, abort
+from flask import Blueprint, request, abort
 from linebot.exceptions import InvalidSignatureError
 from linebot.models.events import Event
-from src import app
 from src.UseCases.Interface.IUseCase import IUseCase
+from src.services import line_request_service, line_response_service
 from src.line_bot_api import handler
 from src.UseCases import (
     follow_use_case,
@@ -27,16 +27,27 @@ from linebot.models import (
     ImageMessage,
     PostbackEvent,
 )
-from src.services import line_request_service, line_response_service
+
+views_blueprint = Blueprint('views_blueprint', __name__, url_prefix='/')
 
 '''
 Endpoints for Web
 '''
 
 
-@app.route('/', methods=['GET'])
+@views_blueprint.route('/hoge', methods=['GET'])
 def route() -> str:
     return 'Hello, world!'
+
+
+@views_blueprint.route('/')
+def index():
+    if request.args.get('message') is not None:
+        message = request.args.get('message')
+    else:
+        message = ''
+    return 'Hello, world!'
+    # return render_template('index.html', title='home', message=message)
 
 
 '''
@@ -44,11 +55,11 @@ Endpoints for LINE Bot
 '''
 
 
-@app.route('/callback', methods=['POST'])
+@views_blueprint.route('/callback', methods=['POST'])
 def callback() -> str:
     signature = request.headers['X-Line-Signature']
     body = request.get_data(as_text=True)
-    app.logger.info('Request body: ' + body)
+    print('Request body: ' + body)
     try:
         handler.handle(body, signature)
     except InvalidSignatureError:
