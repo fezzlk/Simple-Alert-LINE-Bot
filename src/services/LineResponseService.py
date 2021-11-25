@@ -71,6 +71,12 @@ class LineResponseService:
             )
         self.reset()
 
+    def push(self, to: str) -> None:
+        contents = self.texts + self.buttons + self.images
+        if (len(contents) == 0):
+            return
+        line_bot_api.push_message(to, contents)
+
     def reset(self) -> None:
         self.texts = []
         self.buttons = []
