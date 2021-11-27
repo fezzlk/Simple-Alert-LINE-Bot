@@ -1,3 +1,4 @@
+from datetime import datetime
 from src.Domains.Entities.Stock import Stock
 from src.UseCases.Interface.IUseCase import IUseCase
 from src.services import (
@@ -12,11 +13,30 @@ class RegisterStockUseCase(IUseCase):
         args = line_request_service.message.split()
 
         goods_name = args[1] if len(args) >= 2 else None
-        period = args[2] if len(args) >= 3 else None
-        print(f'register stock req: {goods_name} {period}')
+        date_str = args[2] if len(args) >= 3 else None
+
+        if goods_name is None:
+            line_response_service.add_message(
+                '"食材登録 [食材名] [賞味期限YYMMDD]" と送ってください。')
+            return
+
+        if len(date_str) != 6 and len(date_str) != 8:
+            line_response_service.add_message(
+                '賞味期限のフォーマットは YYYYMMDD または YYMMDD')
+            return
+
+        if len(date_str) == 6:
+            year = 2000 + int(date_str[:2])
+        else:
+            year = int(date_str[:4])
+        month = int(date_str[-4:-2])
+        day = int(date_str[-2:])
+        expiry_date = datetime(year, month, day)
+
         new_stock = Stock(
             goods_name=goods_name,
             owner_line_id=line_request_service.req_line_user_id,
+            expiry_date=expiry_date,
         )
         stock_repository.create(new_stock)
-        line_response_service.add_message('食材を登録しました')
+        line_response_service.add_message(f'"{goods_name}"を登録しました')
