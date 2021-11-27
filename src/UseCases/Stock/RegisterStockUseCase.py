@@ -20,18 +20,20 @@ class RegisterStockUseCase(IUseCase):
                 '"食材登録 [食材名] [賞味期限YYMMDD]" と送ってください。')
             return
 
-        if len(date_str) != 6 and len(date_str) != 8:
-            line_response_service.add_message(
-                '賞味期限のフォーマットは YYYYMMDD または YYMMDD')
-            return
+        expiry_date = None
+        if date_str is not None:
+            if len(date_str) != 6 and len(date_str) != 8:
+                line_response_service.add_message(
+                    '賞味期限のフォーマットは YYYYMMDD または YYMMDD')
+                return
 
-        if len(date_str) == 6:
-            year = 2000 + int(date_str[:2])
-        else:
-            year = int(date_str[:4])
-        month = int(date_str[-4:-2])
-        day = int(date_str[-2:])
-        expiry_date = datetime(year, month, day)
+            if len(date_str) == 6:
+                year = 2000 + int(date_str[:2])
+            else:
+                year = int(date_str[:4])
+            month = int(date_str[-4:-2])
+            day = int(date_str[-2:])
+            expiry_date = datetime(year, month, day)
 
         new_stock = Stock(
             goods_name=goods_name,
