@@ -12,12 +12,13 @@ class IStockRepository(metaclass=ABCMeta):
     ) -> Stock:
         pass
 
-    # @abstractmethod
-    # def update(
-    #     self,
-    #     stock: Stock,
-    # ) -> Stock:
-    #     pass
+    @abstractmethod
+    def update(
+        self,
+        query: Dict[str, any],
+        new_stock: Stock,
+    ) -> int:
+        pass
 
     @abstractmethod
     def delete(

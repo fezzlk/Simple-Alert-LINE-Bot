@@ -17,6 +17,17 @@ class UserRepository(IUserRepository):
         new_user._id = result.inserted_id
         return new_user
 
+    def update(
+        self,
+        query: Dict[str, any],
+        new_user: User,
+    ) -> int:
+        user_dict = new_user.__dict__.copy()
+        if user_dict['_id'] is not None:
+            user_dict.pop('_id')
+        result = mongo_client.db.users.update_one(query, user_dict)
+        return result.matched_count
+
     def find(
         self,
         query: Dict[str, any] = {},

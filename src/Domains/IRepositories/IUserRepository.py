@@ -12,12 +12,13 @@ class IUserRepository(metaclass=ABCMeta):
     ) -> User:
         pass
 
-    # @abstractmethod
-    # def update(
-    #     self,
-    #     user: User,
-    # ) -> User:
-    #     pass
+    @abstractmethod
+    def update(
+        self,
+        query: Dict[str, any],
+        new_user: User,
+    ) -> int:
+        pass
 
     @abstractmethod
     def delete(
@@ -25,12 +26,6 @@ class IUserRepository(metaclass=ABCMeta):
         query: Dict[str, any],
     ) -> int:
         pass
-
-    # @abstractmethod
-    # def find_all(
-    #     self,
-    # ) -> List[User]:
-    #     pass
 
     @abstractmethod
     def find(

@@ -17,6 +17,17 @@ class StockRepository(IStockRepository):
         new_stock._id = result.inserted_id
         return new_stock
 
+    def update(
+        self,
+        query: Dict[str, any],
+        new_stock: Stock,
+    ) -> int:
+        stock_dict = new_stock.__dict__.copy()
+        if stock_dict['_id'] is not None:
+            stock_dict.pop('_id')
+        result = mongo_client.db.stocks.update_one(query, stock_dict)
+        return result.matched_count
+
     def find(
         self,
         query: Dict[str, any] = {},
