@@ -22,7 +22,7 @@ class StockRepository(IStockRepository):
         query: Dict[str, any],
         new_values: Dict[str, any],
     ) -> int:
-        result = mongo_client.db.stocks.update_one(query, new_values)
+        result = mongo_client.db.stocks.update_one(query, {'$set': new_values})
         return result.matched_count
 
     def find(
