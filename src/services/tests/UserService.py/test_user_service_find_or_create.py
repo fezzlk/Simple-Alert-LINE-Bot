@@ -1,53 +1,51 @@
-from src.Domains.Entities.User import User
-from src.services import UserService
-from src.tests.dummies import generate_dummy_user_list
-from src.Infrastructure.Repositories import UserRepository
+from src.Domains.Entities.LineUser import LineUser
+from src.services import LineUserService
+from src.tests.dummies import generate_dummy_line_user_list
+from src.Infrastructure.Repositories import LineUserRepository
 
 
 def test_success_not_exist():
     # Arrange
-    user_service = UserService()
-    user_repository = UserRepository()
-    dummy_users = generate_dummy_user_list()[:3]
-    target_user = dummy_users[0]
-    other_users = dummy_users[1:]
-    for other_user in other_users:
-        user_repository.create(other_user)
+    line_user_service = LineUserService()
+    line_user_repository = LineUserRepository()
+    dummy_line_users = generate_dummy_line_user_list()[:3]
+    target_line_user = dummy_line_users[0]
+    other_line_users = dummy_line_users[1:]
+    for other_user in other_line_users:
+        line_user_repository.create(other_user)
 
     # Act
-    result = user_service.find_or_create(
-        new_user=target_user
+    result = line_user_service.find_or_create(
+        new_line_user=target_line_user
     )
 
     # Assert
-    assert isinstance(result, User)
-    assert result.user_name == target_user.user_name
-    assert result.line_user_name == target_user.line_user_name
-    assert result.line_user_id == target_user.line_user_id
+    assert isinstance(result, LineUser)
+    assert result.line_user_name == target_line_user.line_user_name
+    assert result.line_user_id == target_line_user.line_user_id
 
-    records_in_db = user_repository.find()
-    assert len(records_in_db) == len(dummy_users)
+    records_in_db = line_user_repository.find()
+    assert len(records_in_db) == len(dummy_line_users)
 
 
 def test_success_exist():
     # Arrange
-    user_service = UserService()
-    user_repository = UserRepository()
-    dummy_users = generate_dummy_user_list()[:3]
-    for dummy_user in dummy_users:
-        user_repository.create(dummy_user)
-    target_user = dummy_users[0]
+    line_user_service = LineUserService()
+    line_user_repository = LineUserRepository()
+    dummy_line_users = generate_dummy_line_user_list()[:3]
+    for dummy_line_user in dummy_line_users:
+        line_user_repository.create(dummy_line_user)
+    target_line_user = dummy_line_users[0]
 
     # Act
-    result = user_service.find_or_create(
-        new_user=target_user
+    result = line_user_service.find_or_create(
+        new_line_user=target_line_user
     )
 
     # Assert
-    assert isinstance(result, User)
-    assert result.user_name == target_user.user_name
-    assert result.line_user_name == target_user.line_user_name
-    assert result.line_user_id == target_user.line_user_id
+    assert isinstance(result, LineUser)
+    assert result.line_user_name == target_line_user.line_user_name
+    assert result.line_user_id == target_line_user.line_user_id
 
-    records_in_db = user_repository.find()
-    assert len(records_in_db) == len(dummy_users)
+    records_in_db = line_user_repository.find()
+    assert len(records_in_db) == len(dummy_line_users)

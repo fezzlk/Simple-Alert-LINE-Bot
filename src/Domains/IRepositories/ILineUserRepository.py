@@ -1,22 +1,22 @@
 from abc import ABCMeta, abstractmethod
 from typing import Dict, List
-from src.Domains.Entities.User import User
+from src.Domains.Entities.LineUser import LineUser
 
 
-class IUserRepository(metaclass=ABCMeta):
+class ILineUserRepository(metaclass=ABCMeta):
 
     @abstractmethod
     def create(
         self,
-        new_user: User,
-    ) -> User:
+        new_line_user: LineUser,
+    ) -> LineUser:
         pass
 
     @abstractmethod
     def update(
         self,
         query: Dict[str, any],
-        new_user: User,
+        new_line_user: LineUser,
     ) -> int:
         pass
 
@@ -31,5 +31,5 @@ class IUserRepository(metaclass=ABCMeta):
     def find(
         self,
         query: Dict[str, any],
-    ) -> List[User]:
+    ) -> List[LineUser]:
         pass

@@ -3,13 +3,13 @@ from src.UseCases.Interface.IUseCase import IUseCase
 from src.services import (
     line_response_service,
 )
-from src.Infrastructure.Repositories import user_repository, stock_repository
+from src.Infrastructure.Repositories import line_user_repository, stock_repository
 
 
 class NotifyStockUseCase(IUseCase):
     def execute(self) -> None:
-        users = user_repository.find()
-        for user in users:
+        line_users = line_user_repository.find()
+        for user in line_users:
             stocks = stock_repository.find(
                 {'owner_line_id': user.line_user_id})
             messages = []

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 from src.Domains.Entities.Stock import Stock
-from src.Domains.Entities.User import User
+from src.Domains.Entities.LineUser import LineUser
 from dataclasses import dataclass
 
 
@@ -11,7 +11,7 @@ class Profile:
     def __init__(
         self,
         display_name='dummy_display_name',
-        user_id='dummy_user_id'
+        user_id='dummy_line_user_id'
     ):
         self.display_name = display_name
         self.user_id = user_id
@@ -82,20 +82,17 @@ class Postback:
 '''
 
 
-def generate_dummy_user_list() -> List[User]:
+def generate_dummy_line_user_list() -> List[LineUser]:
     return [
-        User(
-            user_name='dummy_user_1',
+        LineUser(
             line_user_name='dummy_line_user_1',
             line_user_id='U0123456789abcdefghijklmnopqrstu1',
         ),
-        User(
-            user_name='dummy_user_2',
+        LineUser(
             line_user_name='dummy_line_user_2',
             line_user_id='U0123456789abcdefghijklmnopqrstu2',
         ),
-        User(
-            user_name='dummy_user_3',
+        LineUser(
             line_user_name='dummy_line_user_3',
             line_user_id='U0123456789abcdefghijklmnopqrstu3',
         ),
@@ -129,7 +126,7 @@ def generate_dummy_follow_event() -> Event:
     return Event(
         type='follow',
         source_type='user',
-        user_id=generate_dummy_user_list()[0].line_user_id,
+        user_id=generate_dummy_line_user_list()[0].line_user_id,
     )
 
 
@@ -137,7 +134,7 @@ def generate_dummy_unfollow_event() -> Event:
     return Event(
         type='unfollow',
         source_type='user',
-        user_id=generate_dummy_user_list()[0].line_user_id,
+        user_id=generate_dummy_line_user_list()[0].line_user_id,
     )
 
 
@@ -145,7 +142,7 @@ def generate_dummy_join_event() -> Event:
     return Event(
         type='join',
         source_type='group',
-        user_id=generate_dummy_user_list()[0].line_user_id,
+        user_id=generate_dummy_line_user_list()[0].line_user_id,
         group_id='dummy_line_group_id',
     )
 
@@ -154,7 +151,7 @@ def generate_dummy_text_message_event_from_user() -> Event:
     return Event(
         type='message',
         source_type='user',
-        user_id=generate_dummy_user_list()[0].line_user_id,
+        user_id=generate_dummy_line_user_list()[0].line_user_id,
         message_type='text',
         text='dummy_text',
     )
@@ -164,7 +161,7 @@ def generate_dummy_text_message_event_from_group() -> Event:
     return Event(
         type='message',
         source_type='group',
-        user_id=generate_dummy_user_list()[0].line_user_id,
+        user_id=generate_dummy_line_user_list()[0].line_user_id,
         group_id='dummy_line_group_id',
         message_type='text',
         text='dummy_text',
@@ -174,5 +171,5 @@ def generate_dummy_text_message_event_from_group() -> Event:
 def generate_dummy_profile() -> Profile:
     return Profile(
         display_name='dummy_display_name',
-        user_id='dummy_user_id',
+        user_id='dummy_line_user_id',
     )
