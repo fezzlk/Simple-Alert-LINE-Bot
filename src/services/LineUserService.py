@@ -4,7 +4,7 @@ from src.Infrastructure.Repositories import line_user_repository
 
 class LineUserService:
 
-    def find_or_create(self, new_line_user: LineUser) -> None:
+    def find_or_create(self, new_line_user: LineUser) -> LineUser:
         """
             line user id で存在チェックし、同一ユーザーが存在しなければ追加
         """
