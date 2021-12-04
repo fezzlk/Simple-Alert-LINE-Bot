@@ -7,7 +7,9 @@ from .ImageMessageUseCase import ImageMessageUseCase
 from .PostbackUseCase import PostbackUseCase
 
 from .ReplyTrainDelayUseCase import ReplyTrainDelayUseCase
+
 from .ReplyWeatherUseCase import ReplyWeatherUseCase
+from .ViewWeatherUseCase import ViewWeatherUseCase
 
 from .Stock.RegisterStockUseCase import RegisterStockUseCase
 from .Stock.ReplyStockUseCase import ReplyStockUseCase
@@ -21,7 +23,9 @@ image_message_use_case = ImageMessageUseCase()
 postback_use_case = PostbackUseCase()
 
 reply_train_delay_use_case = ReplyTrainDelayUseCase()
+
 reply_weather_use_case = ReplyWeatherUseCase()
+view_weather_use_case = ViewWeatherUseCase()
 
 register_stock_use_case = RegisterStockUseCase()
 reply_stock_use_case = ReplyStockUseCase()
