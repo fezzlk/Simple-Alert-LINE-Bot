@@ -6,10 +6,13 @@ from flask_assets import Environment, Bundle
 from src.routes.views import views_blueprint
 from src.routes.api import api_blueprint
 from src.routes.handle_line_event import line_blueprint
+from src.oauth_client import oauth
 
 # setup flask app
 app = Flask(__name__)
 app.debug = bool(config.DEBUG)
+app.secret_key = 'random secret'
+oauth.init_app(app)
 
 # set endpoints for views
 app.register_blueprint(views_blueprint)
