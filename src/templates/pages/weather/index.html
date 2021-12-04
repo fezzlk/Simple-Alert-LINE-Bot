@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1>{{ page_contents.data.city }}の天気</h1>
+<div>
+  {% for date, data_per_date in page_contents.data.data.items() %}
+    {% for hour, data_per_hour in data_per_date.items() %}
+      <div>
+        <p>{{ date }}</p>
+        <p>{{ hour }}</p>
+        <p>温度: {{ data_per_hour.temp }}, 天気: {{ data_per_hour.weather }}</p>
+      </div>
+    {% endfor %}
+  {% endfor %}
+</div>
+
+{% endblock %}
