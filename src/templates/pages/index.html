@@ -1,11 +1,5 @@
 {% extends "layout.html" %}
 {% block content %}
-<h3>Hello</h3>
-{% if page_contents.login_email == '' %}
-    <a href='/login'>ログイン</a>
-{% else %}
-    <p>{{ page_contents.login_email }}でログイン中</p>
-    <a href='/logout'>ログアウト</a>
-{% endif %}
-<p>{{ page_contents.message }}</p>
+    <h3>Hello</h3>
+    <p>{{ page_contents.message }}</p>
 {% endblock %}

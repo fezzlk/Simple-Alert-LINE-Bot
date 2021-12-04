@@ -1,0 +1,23 @@
+{% macro render(page_contents) -%}
+<nav class="navbar navbar-light bg-light border-bottom">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">Simple Alert LINE Bot</a>
+    </div>
+    <div class="navbar-right">
+      <div class="nav-item dropdown">
+        {% if page_contents.login_email == '' %}
+          <a class="nav-link text-dark" href='/login'>ログイン</a>
+        {% else %}
+        <div class="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          {{ page_contents.login_email }}
+        </div>
+        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <li><a class="dropdown-item" href='/logout'>ログアウト</a></li>
+        </ul>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+{%- endmacro %}
