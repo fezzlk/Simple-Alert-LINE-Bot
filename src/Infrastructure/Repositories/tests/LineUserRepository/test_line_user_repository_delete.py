@@ -1,4 +1,3 @@
-from src.Domains.Entities.LineUser import LineUser
 from src.Infrastructure.Repositories.LineUserRepository import LineUserRepository
 from src.tests.dummies import generate_dummy_line_user_list
 

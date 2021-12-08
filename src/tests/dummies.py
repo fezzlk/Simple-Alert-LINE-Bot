@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import List
 from src.Domains.Entities.Stock import Stock
 from src.Domains.Entities.LineUser import LineUser
+from src.Domains.Entities.WebUser import WebUser
 from dataclasses import dataclass
 
 
@@ -95,6 +96,42 @@ def generate_dummy_line_user_list() -> List[LineUser]:
         LineUser(
             line_user_name='dummy_line_user_3',
             line_user_id='U0123456789abcdefghijklmnopqrstu3',
+        ),
+        LineUser(
+            line_user_name='dummy_line_user_4',
+            line_user_id='U0123456789abcdefghijklmnopqrstu4',
+        ),
+        LineUser(
+            line_user_name='dummy_line_user_5',
+            line_user_id='U0123456789abcdefghijklmnopqrstu5',
+        ),
+    ]
+
+
+def generate_dummy_web_user_list() -> List[WebUser]:
+    return [
+        WebUser(
+            web_user_name='dummy_web_user_1',
+            web_user_email='dummy1@example.com',
+        ),
+        WebUser(
+            web_user_name='dummy_web_user_2',
+            web_user_email='dummy2@example.com',
+        ),
+        WebUser(
+            web_user_name='dummy_web_user_3',
+            web_user_email='dummy3@example.com',
+        ),
+        WebUser(
+            web_user_name='dummy_web_user_4',
+            web_user_email='dummy4@example.com',
+            linked_line_user_id='U0123456789abcdefghijklmnopqrstu4',
+        ),
+        WebUser(
+            web_user_name='dummy_web_user_5',
+            web_user_email='dummy5@example.com',
+            linked_line_user_id='U0123456789abcdefghijklmnopqrstu5',
+            is_linked_line_user=True,
         ),
     ]
 
