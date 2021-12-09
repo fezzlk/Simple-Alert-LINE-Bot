@@ -12,10 +12,10 @@ class RegisterStockUseCase(IUseCase):
     def execute(self) -> None:
         args = line_request_service.message.split()
 
-        goods_name = args[1] if len(args) >= 2 else None
+        item_name = args[1] if len(args) >= 2 else None
         date_str = args[2] if len(args) >= 3 else None
 
-        if goods_name is None:
+        if item_name is None:
             line_response_service.add_message(
                 '"食材登録 [食材名] [賞味期限YYMMDD]" と送ってください。')
             return
@@ -36,9 +36,9 @@ class RegisterStockUseCase(IUseCase):
             expiry_date = datetime(year, month, day)
 
         new_stock = Stock(
-            goods_name=goods_name,
-            owner_line_id=line_request_service.req_line_user_id,
+            item_name=item_name,
+            owner_id=line_request_service.req_line_user_id,
             expiry_date=expiry_date,
         )
         stock_repository.create(new_stock)
-        line_response_service.add_message(f'"{goods_name}"を登録しました')
+        line_response_service.add_message(f'"{item_name}"を登録しました')

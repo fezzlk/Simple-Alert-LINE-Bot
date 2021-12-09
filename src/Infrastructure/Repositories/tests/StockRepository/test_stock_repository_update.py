@@ -12,10 +12,10 @@ def test_success():
         )
     target_stock = dummy_stocks[0]
     query = {
-        'goods_name': target_stock.goods_name,
+        'item_name': target_stock.item_name,
     }
     new_values = {
-        'owner_line_id': 'updated'
+        'owner_id': 'updated'
     }
 
     # Act
@@ -28,5 +28,5 @@ def test_success():
     assert result == 1
     records_in_db = stock_repository.find(query=query)
     for record in records_in_db:
-        assert record.goods_name == target_stock.goods_name
-        assert record.owner_line_id == new_values['owner_line_id']
+        assert record.item_name == target_stock.item_name
+        assert record.owner_id == new_values['owner_id']

@@ -11,7 +11,7 @@ class CheckExpiredStockUseCase(IUseCase):
         line_users = line_user_repository.find()
         for user in line_users:
             stocks = stock_repository.find(
-                {'owner_line_id': user.line_user_id}
+                {'owner_id': user.line_user_id}
             )
             messages = []
             for stock in stocks:
@@ -23,13 +23,13 @@ class CheckExpiredStockUseCase(IUseCase):
                 print(days_until_expire)
                 if days_until_expire < 0:
                     messages.append(
-                        f'{stock.goods_name}: x ({days_until_expire * -1}日超過)')
+                        f'{stock.item_name}: x ({days_until_expire * -1}日超過)')
                 elif days_until_expire == 0:
                     messages.append(
-                        f'{stock.goods_name}: 今日まで')
+                        f'{stock.item_name}: 今日まで')
                 elif days_until_expire < 7:
                     messages.append(
-                        f'{stock.goods_name}: あと{days_until_expire}日')
+                        f'{stock.item_name}: あと{days_until_expire}日')
             if len(messages) == 0:
                 messages[0] = '賞味期限が近づいている食材はありません。'
             line_response_service.add_message('\n'.join(messages))

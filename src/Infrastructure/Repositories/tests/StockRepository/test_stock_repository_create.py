@@ -15,7 +15,7 @@ def test_success():
 
     # Assert
     assert isinstance(result, Stock)
-    assert result.goods_name == dummy_stock.goods_name
-    assert result.owner_line_id == dummy_stock.owner_line_id
+    assert result.item_name == dummy_stock.item_name
+    assert result.owner_id == dummy_stock.owner_id
     assert result.expiry_date == dummy_stock.expiry_date
     assert result.status == dummy_stock.status

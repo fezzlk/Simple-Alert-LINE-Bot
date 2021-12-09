@@ -13,7 +13,7 @@ def test_success():
         )
     target_stocks = dummy_stocks[:1]
     query = {
-        'goods_name': target_stocks[0].goods_name,
+        'item_name': target_stocks[0].item_name,
     }
 
     # Act
@@ -23,8 +23,8 @@ def test_success():
     assert len(result) == len(target_stocks)
     for i in range(len(result)):
         assert isinstance(result[i], Stock)
-        assert result[i].goods_name == target_stocks[i].goods_name
-        assert result[i].owner_line_id == target_stocks[i].owner_line_id
+        assert result[i].item_name == target_stocks[i].item_name
+        assert result[i].owner_id == target_stocks[i].owner_id
         assert result[i].expiry_date == target_stocks[i].expiry_date
         assert result[i].status == target_stocks[i].status
 
@@ -45,7 +45,7 @@ def test_success_hit_all_records():
     assert len(result) == len(dummy_stocks)
     for i in range(len(result)):
         assert isinstance(result[i], Stock)
-        assert result[i].goods_name == dummy_stocks[i].goods_name
-        assert result[i].owner_line_id == dummy_stocks[i].owner_line_id
+        assert result[i].item_name == dummy_stocks[i].item_name
+        assert result[i].owner_id == dummy_stocks[i].owner_id
         assert result[i].expiry_date == dummy_stocks[i].expiry_date
         assert result[i].status == dummy_stocks[i].status

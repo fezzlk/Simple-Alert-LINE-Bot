@@ -13,5 +13,5 @@ class ReplyStockUseCase(IUseCase):
         messages = []
         for stock in stocks:
             elapsed_time = (datetime.now() - stock.created_at).days
-            messages.append(f'{stock.goods_name}: {elapsed_time}日')
+            messages.append(f'{stock.item_name}: {elapsed_time}日')
         line_response_service.add_message('\n'.join(messages))
