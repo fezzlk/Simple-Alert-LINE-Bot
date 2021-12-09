@@ -16,6 +16,8 @@ from .ViewWeatherUseCase import ViewWeatherUseCase
 from .Stock.RegisterStockUseCase import RegisterStockUseCase
 from .Stock.ReplyStockUseCase import ReplyStockUseCase
 
+from .Web.RequestLinkLineWebUseCase import RequestLinkLineWebUseCase
+
 after_login_use_case = AfterLoginUseCase()
 
 follow_use_case = FollowUseCase()
@@ -33,3 +35,5 @@ view_weather_use_case = ViewWeatherUseCase()
 
 register_stock_use_case = RegisterStockUseCase()
 reply_stock_use_case = ReplyStockUseCase()
+
+request_link_line_web_use_case = RequestLinkLineWebUseCase()

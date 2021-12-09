@@ -17,6 +17,7 @@ from src.UseCases import (
     reply_weather_use_case,
     register_stock_use_case,
     reply_stock_use_case,
+    request_link_line_web_use_case,
 )
 from linebot.models import (
     FollowEvent,
@@ -107,6 +108,9 @@ def get_text_message_use_case(event: Event):
         '食材登録': register_stock_use_case,
         '食材一覧': reply_stock_use_case,
     }
+    system_keywords: Dict[str, Callable] = {
+        'ユーザー連携': request_link_line_web_use_case,
+    }
 
     keyword = event.message.text.split()[0]
     # 電車情報
@@ -118,5 +122,7 @@ def get_text_message_use_case(event: Event):
     # 食材情報
     elif keyword in stock_keywords:
         return stock_keywords[keyword]
+    elif keyword in system_keywords:
+        return system_keywords[keyword]
     else:
         return text_message_use_case
