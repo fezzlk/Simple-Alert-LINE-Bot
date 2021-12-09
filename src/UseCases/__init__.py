@@ -1,3 +1,5 @@
+from .AfterLoginUseCase import AfterLoginUseCase
+
 from .FollowUseCase import FollowUseCase
 from .UnfollowUseCase import UnfollowUseCase
 from .JoinUseCase import JoinUseCase
@@ -13,6 +15,8 @@ from .ViewWeatherUseCase import ViewWeatherUseCase
 
 from .Stock.RegisterStockUseCase import RegisterStockUseCase
 from .Stock.ReplyStockUseCase import ReplyStockUseCase
+
+after_login_use_case = AfterLoginUseCase()
 
 follow_use_case = FollowUseCase()
 unfollow_use_case = UnfollowUseCase()

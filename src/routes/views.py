@@ -1,6 +1,6 @@
 from flask import Blueprint, request, render_template, url_for, redirect, session
 from src.oauth_client import oauth
-from src.UseCases import view_weather_use_case
+from src.UseCases import view_weather_use_case, after_login_use_case
 from src.middlewares import login_required
 
 views_blueprint = Blueprint('views_blueprint', __name__, url_prefix='/')
@@ -45,16 +45,7 @@ def login():
 
 @views_blueprint.route('/authorize')
 def authorize():
-    google = oauth.create_client('google')
-    token = google.authorize_access_token()
-    resp = google.get('userinfo')
-    user_info = resp.json()
-    # do something with the token and profile
-    session['login_email'] = user_info['email']
-    session['login_name'] = user_info['name']
-    session['login_picture'] = user_info['picture']
-    session['access_token'] = token['access_token']
-    session['id_token'] = token['id_token']
+    after_login_use_case.execute()
     return redirect('/')
 
 
