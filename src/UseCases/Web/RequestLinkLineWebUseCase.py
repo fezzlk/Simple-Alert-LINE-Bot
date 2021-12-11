@@ -1,5 +1,6 @@
 from src.services import line_request_service, line_response_service
 from src.Infrastructure.Repositories import web_user_repository
+from src.UseCases.Interface.IUseCase import IUseCase
 
 
 class RequestLinkLineWebUseCase(IUseCase):
