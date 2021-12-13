@@ -6,7 +6,7 @@ from src.Infrastructure.Repositories import web_user_repository
 
 
 class AfterLoginUseCase(IUseCase):
-    def execute(self) -> None:
+    def execute(self) -> str:
         google = oauth.create_client('google')
         token = google.authorize_access_token()
         resp = google.get('userinfo')
@@ -19,12 +19,3 @@ class AfterLoginUseCase(IUseCase):
         session['login_picture'] = user_info['picture']
         session['access_token'] = token['access_token']
         session['id_token'] = token['id_token']
-
-        # find_query クラス作る？
-        users = web_user_repository.find({'web_user_email': email})
-        if len(users) == 0:
-            new_web_user = WebUser(
-                web_user_name=user_name,
-                web_user_email=email,
-            )
-            web_user_repository.create(new_web_user)
