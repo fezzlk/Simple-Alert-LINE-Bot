@@ -1,22 +1,22 @@
-from .AfterLoginUseCase import AfterLoginUseCase
+from Web.AfterLoginUseCase import AfterLoginUseCase
 
-from .FollowUseCase import FollowUseCase
-from .UnfollowUseCase import UnfollowUseCase
-from .JoinUseCase import JoinUseCase
+from Line.FollowUseCase import FollowUseCase
+from Line.UnfollowUseCase import UnfollowUseCase
+from Line.JoinUseCase import JoinUseCase
 
-from .TextMessageUseCase import TextMessageUseCase
-from .ImageMessageUseCase import ImageMessageUseCase
-from .PostbackUseCase import PostbackUseCase
+from Line.TextMessageUseCase import TextMessageUseCase
+from Line.ImageMessageUseCase import ImageMessageUseCase
+from Line.PostbackUseCase import PostbackUseCase
 
-from .ReplyTrainDelayUseCase import ReplyTrainDelayUseCase
+from Line.ReplyTrainDelayUseCase import ReplyTrainDelayUseCase
 
-from .ReplyWeatherUseCase import ReplyWeatherUseCase
-from .ViewWeatherUseCase import ViewWeatherUseCase
+from Line.ReplyWeatherUseCase import ReplyWeatherUseCase
+from Web.ViewWeatherUseCase import ViewWeatherUseCase
 
 from .Stock.RegisterStockUseCase import RegisterStockUseCase
 from .Stock.ReplyStockUseCase import ReplyStockUseCase
 
-from .Web.RequestLinkLineWebUseCase import RequestLinkLineWebUseCase
+from .Line.RequestLinkLineWebUseCase import RequestLinkLineWebUseCase
 
 after_login_use_case = AfterLoginUseCase()
 
