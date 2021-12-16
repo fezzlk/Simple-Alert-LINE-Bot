@@ -6,7 +6,7 @@
     </div>
     <div class="navbar-right">
       <div class="nav-item dropdown">
-        {% if page_contents.login_email == '' %}
+        {% if 'login_email' not in page_contents %}
           <a class="nav-link text-dark" href='/login'>ログイン</a>
         {% else %}
         <div class="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">

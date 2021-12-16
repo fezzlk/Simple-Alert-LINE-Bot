@@ -1,7 +1,13 @@
-from flask import Blueprint, request, render_template, url_for, redirect, session
-from src.Domains.Entities.WebUser import WebUser
+from flask import (
+    Blueprint,
+    request,
+    render_template,
+    url_for,
+    redirect,
+    session,
+)
 from src.oauth_client import oauth
-from src.UseCases import view_weather_use_case, after_login_use_case
+from src.UseCases import view_weather_use_case
 from src.middlewares import login_required
 
 from src.Infrastructure.Repositories import (
@@ -18,40 +24,36 @@ Endpoints for Web
 
 @views_blueprint.route('/', methods=['GET'])
 def index():
-    page_contents = {'title': 'home'}
-    if request.args.get('message') is not None:
-        page_contents['message'] = request.args.get('message')
-    else:
-        page_contents['message'] = ''
-
-    email = dict(session).get('login_email', '')
-    page_contents['login_email'] = email
-    login_name = dict(session).get('login_name', '')
-    page_contents['login_name'] = login_name
-    users = web_user_repository.find({'web_user_email': email})
-    if len(users) == 0:
-        new_web_user = WebUser(
-            web_user_name=login_name,
-            web_user_email=email,
-        )
-        user = web_user_repository.create(new_web_user)
-    else:
-        user = users[0]
-    # 通知機能
+    page_contents = dict(session)
+    page_contents['title'] = 'Home'
+    page_contents['message'] = request.args.get('message', '')
 
     return render_template('pages/index.html', page_contents=page_contents)
 
 
-@views_blueprint.route('/approve_line_account')
+@views_blueprint.route('/register', methods=['GET'])
+def view_register():
+    page_contents = dict(session)
+    page_contents['title'] = 'Register Web User'
+
+    return render_template('pages/register.html', page_contents=page_contents)
+
+
+@views_blueprint.route('/register', methods=['POST'])
+def register():
+    print('register')
+    # service.find_or_create
+    return redirect(url_for('views_blueprint.index'))
+
+
+@views_blueprint.route('/line/approve', methods=['GET'])
 @login_required
 def view_approve_line_account():
-    email = dict(session).get('login_email', '')
-    page_contents = {}
-    page_contents['title'] = 'applove line account',
-    page_contents['template_path'] = 'pages/line/approve.html',
-    page_contents['login_email'] = email,
+    page_contents = dict(session)
+    page_contents['title'] = 'Applove LINE Account',
 
-    web_users = web_user_repository.find({'web_user_email': email})
+    web_users = web_user_repository.find(
+        {'web_user_email': page_contents['login_email']})
 
     line_users = line_user_repository.find(
         {'line_user_id': web_users[0].linked_line_user_id}
@@ -59,24 +61,31 @@ def view_approve_line_account():
 
     page_contents['line_user_name'] = line_users[0].line_user_name
 
-    return render_template('pages/line/approve.html', page_contents=page_contents)
+    return render_template(
+        'pages/line/approve.html',
+        page_contents=page_contents,
+    )
 
 
 @views_blueprint.route('/line/approve', methods=['POST'])
-def approve_line():
+def approve_line_account():
+    page_contents = dict(session)
     web_user_repository.update(
-        {'web_user_email': dict(session).get('login_email', '')},
+        {'web_user_email': page_contents['login_email']},
         {'is_linked_line_user': True},
     )
 
-    return redirect(url_for('views_blueprint.index'))
+    # return redirect(url_for('views_blueprint.index'))
 
 
 @ views_blueprint.route('/weather')
 @ login_required
 def view_weather():
     page_contents = view_weather_use_case.execute()
-    return render_template('pages/weather/index.html', page_contents=page_contents)
+    return render_template(
+        'pages/weather/index.html',
+        page_contents=page_contents,
+    )
 
 
 '''
@@ -97,8 +106,26 @@ def login():
 
 @ views_blueprint.route('/authorize')
 def authorize():
-    result = after_login_use_case.execute()
-    return redirect('/')
+    google = oauth.create_client('google')
+    token = google.authorize_access_token()
+    resp = google.get('userinfo')
+    user_info = resp.json()
+    # do something with the token and profile
+    email = user_info['email']
+    user_name = user_info['name']
+    session['login_email'] = email
+    session['login_name'] = user_name
+    session['login_picture'] = user_info['picture']
+    session['access_token'] = token['access_token']
+    session['id_token'] = token['id_token']
+
+    web_users = web_user_repository.find(
+        {'web_user_email': email})
+
+    if len(web_users) == 0:
+        return redirect('/register')
+
+    return redirect('/')  # [TODO] 引数からリダイレクト先を指定する
 
 
 @ views_blueprint.route('/logout')
