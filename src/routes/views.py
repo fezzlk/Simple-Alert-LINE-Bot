@@ -6,6 +6,7 @@ from flask import (
     redirect,
     session,
 )
+from src.Domains.Entities.WebUser import WebUser
 from src.oauth_client import oauth
 from src.UseCases import view_weather_use_case
 from src.middlewares import login_required
@@ -14,6 +15,7 @@ from src.Infrastructure.Repositories import (
     web_user_repository,
     line_user_repository,
 )
+from src.services import web_user_service
 
 views_blueprint = Blueprint('views_blueprint', __name__, url_prefix='/')
 
@@ -41,9 +43,14 @@ def view_register():
 
 @views_blueprint.route('/register', methods=['POST'])
 def register():
-    print('register')
-    # service.find_or_create
-    return redirect(url_for('views_blueprint.index'))
+    page_contents = dict(session)
+    new_web_user = WebUser(
+        web_user_email=page_contents['login_email'],
+        web_user_name=page_contents['login_name'],
+    )
+    web_user_service.find_or_create()
+
+    return redirect(url_for('views_blueprint.index'))  # ユーザー画面の方がいいかも
 
 
 @views_blueprint.route('/line/approve', methods=['GET'])
