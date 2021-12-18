@@ -2,12 +2,23 @@
 {% block content %}
 <h1>LINE アカウント連携</h1>
 <div>
-  <p>
-    {{ line_user_name }} からアカウント承認のリクエストが来ています。
-  </p>
-  <form action="{{ url_for('views_blueprint.approve_line') }}" method="post">
-    <input type="button" value="承認">
-  </form>
+  {% if page_contents.login_user.is_linked_line_user %}
+    <p>LINE アカウント名: {{ page_contents.line_user_name }} </p>
+  {% elif 'line_user_name' in page_contents %}
+    <p>
+      {{ page_contents.line_user_name }} さんからアカウント連携のリクエストが来ています。
+    </p>
+    <form action="{{ url_for('views_blueprint.approve_line_account') }}" method="post">
+      <input type="submit" value="承認">
+    </form>
+  {% else %}
+    <p>
+      アカウント連携リクエストが来ていません。
+    </p>
+    <p>
+      連携したい LINE アカウントから Bot に 「ユーザー連携 {{ page_contents.login_user.web_user_email }}」と送信してください。
+    </p>
+  {% endif %}
 </div>
 
 {% endblock %}
