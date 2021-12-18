@@ -12,5 +12,4 @@ load_dotenv()
 
 @pytest.fixture(scope='function', autouse=True)
 def reset_db():
-    print('hoge')
     mongo_client.drop_database('db')
