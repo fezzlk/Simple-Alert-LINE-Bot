@@ -3,7 +3,7 @@
 <h1>LINE アカウント連携</h1>
 <div>
   {% if page_contents.login_user.is_linked_line_user %}
-    <p>LINE アカウント名: {{ page_contents.line_user_name }} </p>
+    <p>連携中 LINE アカウント名: {{ page_contents.line_user_name }} </p>
   {% elif 'line_user_name' in page_contents %}
     <p>
       {{ page_contents.line_user_name }} さんからアカウント連携のリクエストが来ています。
