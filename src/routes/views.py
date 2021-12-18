@@ -57,17 +57,17 @@ def register():
 @login_required
 def view_approve_line_account():
     page_contents = dict(session)
-    page_contents['title'] = 'Applove LINE Account',
+    page_contents['title'] = 'Applove LINE Account'
 
-    web_users = web_user_repository.find(
-        {'web_user_email': page_contents['login_email']})
-
+    web_user: WebUser = page_contents['login_user']
     line_users = line_user_repository.find(
-        {'line_user_id': web_users[0].linked_line_user_id}
+        {'line_user_id': web_user['linked_line_user_id']}
     )
 
-    page_contents['line_user_name'] = line_users[0].line_user_name
+    if len(line_users) != 0:
+        page_contents['line_user_name'] = line_users[0].line_user_name
 
+    print(page_contents)
     return render_template(
         'pages/line/approve.html',
         page_contents=page_contents,
@@ -82,7 +82,7 @@ def approve_line_account():
         {'is_linked_line_user': True},
     )
 
-    # return redirect(url_for('views_blueprint.index'))
+    return redirect(url_for('views_blueprint.view_approve_line_account'))
 
 
 @ views_blueprint.route('/weather')
