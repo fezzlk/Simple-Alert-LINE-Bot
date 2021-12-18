@@ -10,7 +10,7 @@ class WebUserService:
         """
 
         record = web_user_repository.find(
-            query={'web_user_email': new_web_user.web_user_id})
+            query={'web_user_email': new_web_user.web_user_email})
 
         if len(record) != 0:
             return new_web_user

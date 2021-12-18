@@ -48,7 +48,7 @@ def register():
         web_user_email=page_contents['login_email'],
         web_user_name=page_contents['login_name'],
     )
-    web_user_service.find_or_create()
+    web_user_service.find_or_create(new_web_user)
 
     return redirect(url_for('views_blueprint.index'))  # ユーザー画面の方がいいかも
 
