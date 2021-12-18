@@ -11,18 +11,15 @@ def login_required(f):
         # メールアドレスがわからない(認証を通っていない)場合はログイン画面に遷移
         if 'login_email' not in session:
             return redirect(url_for('views_blueprint.login', next=request.url))
-        print('call login required2')
 
         web_users = web_user_repository.find(
             {'web_user_email': session['login_email']}
         )
-        print('call login required3')
 
         # メールアドレスが一致する web user がいなければ新規作成画面に遷移
         if len(web_users) == 0:
             return redirect(url_for('views_blueprint.register', next=request.url))
 
-        print('call login required4')
         # web user をログイン中ユーザーとしてセッションに保存し、通過
         user_dict = web_users[0].__dict__.copy()
         # bson.ObjectId は JSON 変換できないため
