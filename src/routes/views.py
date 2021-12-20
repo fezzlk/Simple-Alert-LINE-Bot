@@ -85,6 +85,16 @@ def approve_line_account():
     return redirect(url_for('views_blueprint.view_approve_line_account'))
 
 
+@ views_blueprint.route('/stock')
+@ login_required
+def view_stock_list():
+    page_contents = dict(session)
+    return render_template(
+        'pages/stock/index.html',
+        page_contents=page_contents,
+    )
+
+
 @ views_blueprint.route('/weather')
 @ login_required
 def view_weather():
