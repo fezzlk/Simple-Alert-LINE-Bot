@@ -31,6 +31,6 @@ class CheckExpiredStockUseCase(IUseCase):
                     messages.append(
                         f'{stock.item_name}: あと{days_until_expire}日')
             if len(messages) == 0:
-                messages[0] = '賞味期限が近づいている食材はありません。'
+                messages.append('賞味期限が近づいている食材はありません。')
             line_response_service.add_message('\n'.join(messages))
             line_response_service.push(to=user.line_user_id)
