@@ -1,3 +1,4 @@
+from src import config
 from datetime import datetime
 from src.UseCases.Interface.IUseCase import IUseCase
 from src.services import (
@@ -46,4 +47,7 @@ class CheckExpiredStockUseCase(IUseCase):
                 messages.append(
                     '賞味期限が近づいている食材はありません。[TODO]このような場合は通知しないように設定できる')
             line_response_service.add_message('\n'.join(messages))
+            line_response_service.add_message(
+                f'webで確認する→ {config.SERVER_URL}/stock')
+
             line_response_service.push(to=line_user.line_user_id)
