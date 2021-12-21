@@ -9,10 +9,21 @@ from src.Infrastructure.Repositories import line_user_repository, stock_reposito
 class CheckExpiredStockUseCase(IUseCase):
     def execute(self) -> None:
         line_users = line_user_repository.find()
-        for user in line_users:
-            stocks = stock_repository.find(
-                {'owner_id': user.line_user_id}
-            )
+        for line_user in line_users:
+            # [TODO] LINE ユーザー取得時に関連する web ユーザー id もまとめて取得するようにする
+            web_users = line_user_repository.find({
+                '$and': [
+                    {'linked_line_user_id': line_user._id},
+                    {'is_linked_line_user': True},
+                ],
+            })
+            web_user_id = '' if len(web_users) == 0 else web_users[0]._id
+            stocks = stock_repository.find({
+                '$or': [
+                    {'owner_id': line_user._id},
+                    {'owner_id': web_user_id},
+                ],
+            })
             messages = []
             for stock in stocks:
                 if stock.expiry_date is None:
@@ -34,4 +45,4 @@ class CheckExpiredStockUseCase(IUseCase):
                 messages.append(
                     '賞味期限が近づいている食材はありません。[TODO]このような場合は通知しないように設定できる')
             line_response_service.add_message('\n'.join(messages))
-            line_response_service.push(to=user.line_user_id)
+            line_response_service.push(to=line_user.line_user_id)
