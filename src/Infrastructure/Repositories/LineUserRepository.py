@@ -30,9 +30,10 @@ class LineUserRepository(ILineUserRepository):
         self,
         query: Dict[str, any] = {},
     ) -> List[LineUser]:
-        records = mongo_client.db.line_users.find(filter=query)
+        records: dict = mongo_client.db.line_users.find(filter=query)
         line_users = []
         for record in records:
+            record['_id'] = str(record['_id'])
             line_users.append(LineUser(**record))
         return line_users
 

@@ -32,6 +32,7 @@ class StockRepository(IStockRepository):
         records = mongo_client.db.stocks.find(filter=query)
         stocks = []
         for record in records:
+            record['_id'] = str(record['_id'])
             stocks.append(Stock(**record))
         return stocks
 

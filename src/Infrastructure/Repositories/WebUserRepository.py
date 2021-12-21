@@ -33,6 +33,7 @@ class WebUserRepository(IWebUserRepository):
         records = mongo_client.db.web_users.find(filter=query)
         web_users = []
         for record in records:
+            record['_id'] = str(record['_id'])
             web_users.append(WebUser(**record))
         return web_users
 

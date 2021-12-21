@@ -21,10 +21,7 @@ def login_required(f):
             return redirect(url_for('views_blueprint.register', next=request.url))
 
         # web user をログイン中ユーザーとしてセッションに保存し、通過
-        user_dict = web_users[0].__dict__.copy()
-        # bson.ObjectId は JSON 変換できないため
-        user_dict['_id'] = str(user_dict['_id'])
-        session['login_user'] = user_dict
+        session['login_user'] = web_users[0]
         return f(*args, **kwargs)
 
     return decorated_function
