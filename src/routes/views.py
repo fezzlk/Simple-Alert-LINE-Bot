@@ -14,6 +14,7 @@ from src.middlewares import login_required
 from src.Infrastructure.Repositories import (
     web_user_repository,
     line_user_repository,
+    stock_repository,
 )
 from src.services import web_user_service
 
@@ -61,7 +62,7 @@ def view_approve_line_account():
 
     web_user: WebUser = page_contents['login_user']
     line_users = line_user_repository.find(
-        {'line_user_id': web_user['linked_line_user_id']}
+        {'line_user_id': web_user.linked_line_user_id}
     )
 
     if len(line_users) != 0:
@@ -89,6 +90,13 @@ def approve_line_account():
 @ login_required
 def view_stock_list():
     page_contents = dict(session)
+    web_user: WebUser = page_contents['login_user']
+    page_contents['stocks'] = stock_repository.find({
+        '$or': [
+            {'owner_id': web_user.linked_line_user_id},
+            {'owner_id': web_user._id},
+        ],
+    })
     return render_template(
         'pages/stock/index.html',
         page_contents=page_contents,

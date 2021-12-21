@@ -1,3 +1,4 @@
+from bson.objectid import ObjectId
 from src.services import line_request_service, line_response_service
 from src.Infrastructure.Repositories import web_user_repository
 from src.UseCases.Interface.IUseCase import IUseCase
@@ -28,7 +29,7 @@ class RequestLinkLineWebUseCase(IUseCase):
             return
 
         result = web_user_repository.update(
-            {'_id': web_users[0]._id},
+            {'_id': ObjectId(web_users[0]._id)},
             {'linked_line_user_id': line_request_service.req_line_user_id},
         )
 
