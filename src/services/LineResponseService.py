@@ -76,6 +76,7 @@ class LineResponseService:
         if (len(contents) == 0):
             return
         line_bot_api.push_message(to, contents)
+        self.reset()
 
     def reset(self) -> None:
         self.texts = []
