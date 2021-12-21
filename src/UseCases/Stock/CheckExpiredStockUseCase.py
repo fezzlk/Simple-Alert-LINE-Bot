@@ -13,18 +13,19 @@ class CheckExpiredStockUseCase(IUseCase):
             # [TODO] LINE ユーザー取得時に関連する web ユーザー id もまとめて取得するようにする
             web_users = line_user_repository.find({
                 '$and': [
-                    {'linked_line_user_id': line_user._id},
+                    {'linked_line_user_id': line_user.line_user_id},
                     {'is_linked_line_user': True},
                 ],
             })
             web_user_id = '' if len(web_users) == 0 else web_users[0]._id
             stocks = stock_repository.find({
                 '$or': [
-                    {'owner_id': line_user._id},
+                    {'owner_id': line_user.line_user_id},
                     {'owner_id': web_user_id},
                 ],
             })
             messages = []
+            print(stocks)
             for stock in stocks:
                 if stock.expiry_date is None:
                     continue
