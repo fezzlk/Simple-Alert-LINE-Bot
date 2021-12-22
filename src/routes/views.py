@@ -1,3 +1,4 @@
+from typing import List
 from flask import (
     Blueprint,
     request,
@@ -17,6 +18,7 @@ from src.Infrastructure.Repositories import (
     stock_repository,
 )
 from src.services import web_user_service
+from src.models.StockViewModel import StockViewModel
 
 views_blueprint = Blueprint('views_blueprint', __name__, url_prefix='/')
 
@@ -91,12 +93,19 @@ def approve_line_account():
 def view_stock_list():
     page_contents = dict(session)
     web_user: WebUser = page_contents['login_user']
-    page_contents['stocks'] = stock_repository.find({
+    stocks = stock_repository.find({
         '$or': [
             {'owner_id': web_user.linked_line_user_id},
             {'owner_id': web_user._id},
         ],
     })
+    page_contents['stocks'] = [StockViewModel(stock) for stock in stocks]
+    page_contents['label_map'] = {
+        '_id': 'ID',
+        'item_name': '名前',
+        'str_expiry_date': '賞味期限',
+        'str_created_at': '登録日',
+    }
     return render_template(
         'pages/stock/index.html',
         page_contents=page_contents,

@@ -7,17 +7,29 @@
         <table class="table">
           <thead>
             <tr>
-            {% for key in page_contents.stocks[0].__dict__ %}
-              <th scope="col">{{ key }}</th>
-            {% endfor %}
+              <!-- create icon -->
+              <th scope="col"></th> 
+              {% for key in page_contents.stocks[0].__dict__ if key != '_id' %}
+                <th scope="col">{{ page_contents.label_map[key] }}</th>
+              {% endfor %}
+              <!-- delete icon -->
+              <th scope="col"></th> 
             </tr>
           </thead>
           <tbody>
             {% for stock in page_contents.stocks %}
             <tr>
-              {% for key in page_contents.stocks[0].__dict__ %}
+              <!-- create icon -->
+              <td></td>
+              {% for key in page_contents.stocks[0].__dict__ if key != '_id' %}
                 <td>{{ stock.__dict__[key] }}</td>
               {% endfor %}
+              <!-- delete icon -->
+              <td>
+                <button type="button" class="btn btn-light">
+                  <i class="far fa-trash-alt"></i>
+                </button>
+              </td>
             </tr>
             {% endfor %}
           </tbody>
