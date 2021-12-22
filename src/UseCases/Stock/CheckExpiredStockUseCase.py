@@ -48,6 +48,6 @@ class CheckExpiredStockUseCase(IUseCase):
                     '賞味期限が近づいている食材はありません。[TODO]このような場合は通知しないように設定できる')
             line_response_service.add_message('\n'.join(messages))
             line_response_service.add_message(
-                f'webで確認する→ {config.SERVER_URL}/stock')
+                f'webで確認する→ {config.SERVER_URL}/stock?openExternalBrowser=1')
 
             line_response_service.push(to=line_user.line_user_id)
