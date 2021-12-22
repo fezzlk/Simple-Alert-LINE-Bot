@@ -17,4 +17,4 @@ class ReplyStockUseCase(IUseCase):
             messages.append(f'{stock.item_name}: {elapsed_time}日')
         line_response_service.add_message('\n'.join(messages))
         line_response_service.add_message(
-            f'webで確認する→ {config.SERVER_URL}/stock')
+            f'webで確認する→ {config.SERVER_URL}/stock?openExternalBrowser=1')
