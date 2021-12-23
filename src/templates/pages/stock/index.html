@@ -3,40 +3,72 @@
   <div class='container'>
     <div class='row'>
       <div class='col'>
-      {% if page_contents.stocks|length != 0 %}
-        <table class="table">
-          <thead>
-            <tr>
-              <!-- create icon -->
-              <th scope="col"></th> 
-              {% for key in page_contents.stocks[0].__dict__ if key != '_id' %}
-                <th scope="col">{{ page_contents.label_map[key] }}</th>
+        {% if page_contents.stocks|length != 0 %}
+          <div class="modal fade" id="AddStockModal" tabindex="-1" aria-labelledby="AddStockModal" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <form action="{{ url_for('views_blueprint.create_stock') }}" method="post">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="AddStockModal">アイテム追加</h5>
+                  </div>
+                  <div class="modal-body">
+                    <div class="mb-3">
+                      <label for="ItemNameInput" class="form-label">アイテム名*</label>
+                      <input type="text" name="item_name" class="form-control" id="ItemNameInput" autofocus>
+                    </div>
+                    <div class="mb-3">
+                      <label for="ItemExpiryDateInput" class="form-label">賞味期限</label>
+                      <input type="date" name="expiry_date" class="form-control" id="ItemExpiryDateInput">
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" onClick>Add Item</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+          <script>
+            $("#AddStockModal").on("shown.bs.modal", function(){
+              $("#ItemNameInput").focus();
+            })
+          </script>
+          <table class="table table-hover table-sm">
+            <thead>
+              <tr class="table-light">
+                {% for key in page_contents.stocks[0].__dict__ if key != '_id' %}
+                  <th scope="col">{{ page_contents.label_map[key] }}</th>
+                {% endfor %}
+                <th scope="col">
+                  <div class="text-end">
+                    <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#AddStockModal">
+                      <i class="fas fa-plus"></i>
+                    </button>
+                  </div>
+                </th> 
+              </tr>
+            </thead>
+            <tbody>
+              {% for stock in page_contents.stocks %}
+              <tr>
+                {% for key in page_contents.stocks[0].__dict__ if key != '_id' %}
+                  <td class="align-middle">{{ stock.__dict__[key] }}</td>
+                {% endfor %}
+                <td>
+                  <div class="text-end">
+                    <button type="button" class="btn btn-light btn-sm">
+                      <i class="far fa-trash-alt"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
               {% endfor %}
-              <!-- delete icon -->
-              <th scope="col"></th> 
-            </tr>
-          </thead>
-          <tbody>
-            {% for stock in page_contents.stocks %}
-            <tr>
-              <!-- create icon -->
-              <td></td>
-              {% for key in page_contents.stocks[0].__dict__ if key != '_id' %}
-                <td>{{ stock.__dict__[key] }}</td>
-              {% endfor %}
-              <!-- delete icon -->
-              <td>
-                <button type="button" class="btn btn-light">
-                  <i class="far fa-trash-alt"></i>
-                </button>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      {% else %}
-        <p>アイテムが登録されていません。</p>
-      {% endif %}
+            </tbody>
+          </table>
+        {% else %}
+          <p>アイテムが登録されていません。</p>
+        {% endif %}
       </div>
     </div>
   </div>

@@ -6,11 +6,14 @@ from flask import (
     url_for,
     redirect,
     session,
+    flash,
 )
+from src.Domains.Entities.Stock import Stock
 from src.Domains.Entities.WebUser import WebUser
 from src.oauth_client import oauth
 from src.UseCases import view_weather_use_case
 from src.middlewares import login_required
+from datetime import datetime
 
 from src.Infrastructure.Repositories import (
     web_user_repository,
@@ -88,7 +91,7 @@ def approve_line_account():
     return redirect(url_for('views_blueprint.view_approve_line_account'))
 
 
-@ views_blueprint.route('/stock')
+@ views_blueprint.route('/stock', methods=['GET'])
 @ login_required
 def view_stock_list():
     page_contents = dict(session)
@@ -110,6 +113,35 @@ def view_stock_list():
         'pages/stock/index.html',
         page_contents=page_contents,
     )
+
+
+@ views_blueprint.route('/stock', methods=['POST'])
+@ login_required
+def create_stock():
+    page_contents = dict(session)
+    web_user: WebUser = page_contents['login_user']
+
+    item_name = request.form.get('item_name', '')
+
+    if item_name == '':
+        flash('アイテム名は必須です', 'danger')
+        return redirect(url_for('views_blueprint.view_stock_list'))
+
+    str_expiry_date = request.form.get('expiry_date', '')
+
+    expiry_date = datetime.strptime(
+        str_expiry_date, '%Y-%m-%d'
+    ) if str_expiry_date != '' else None
+
+    new_stock = Stock(
+        item_name=item_name,
+        expiry_date=expiry_date,
+        owner_id=web_user._id
+    )
+
+    result = stock_repository.create(new_stock=new_stock)
+    flash(f'"{result.item_name}" を追加しました', 'success')
+    return redirect(url_for('views_blueprint.view_stock_list'))
 
 
 @ views_blueprint.route('/weather')
