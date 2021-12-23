@@ -2,14 +2,29 @@ from src import config
 from datetime import datetime
 from src.UseCases.Interface.IUseCase import IUseCase
 from src.services import (
+    line_request_service,
     line_response_service,
 )
-from src.Infrastructure.Repositories import stock_repository
+from src.Infrastructure.Repositories import stock_repository, web_user_repository
 
 
 class ReplyStockUseCase(IUseCase):
     def execute(self) -> None:
-        stocks = stock_repository.find()
+        linked_web_users = web_user_repository.find({
+            'linked_line_user_id': line_request_service.req_line_user_id,
+            'is_linked_line': True,
+        })
+        linked_web_user_id = linked_web_users[0]._id if len(
+            linked_web_users) != 0 else ''
+        stocks = stock_repository.find({
+            '$and': [
+                {'$or': [
+                    {'owner_id': linked_web_user_id},
+                    {'owner_id': line_request_service.req_line_user_id},
+                ]},
+                {'status': 1},
+            ],
+        })
         messages = []
         for stock in stocks:
             if stock.expiry_date is not None:

@@ -39,6 +39,7 @@ class RegisterStockUseCase(IUseCase):
             item_name=item_name,
             owner_id=line_request_service.req_line_user_id,
             expiry_date=expiry_date,
+            status=1,
         )
         stock_repository.create(new_stock)
         line_response_service.add_message(f'"{item_name}"を登録しました')
