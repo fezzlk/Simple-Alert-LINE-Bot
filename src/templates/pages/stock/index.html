@@ -3,73 +3,8 @@
   <div class='container'>
     <div class='row'>
       <div class='col'>
-        <div class="modal fade" id="AddStockModal" tabindex="-1" aria-labelledby="AddStockModal" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <form action="{{ url_for('views_blueprint.create_stock') }}" method="post">
-                <div class="modal-header">
-                  <h5 class="modal-title" id="AddStockModal">アイテム追加</h5>
-                </div>
-                <div class="modal-body">
-                  <div class="mb-3">
-                    <label for="ItemNameInput" class="form-label">アイテム名*</label>
-                    <input type="text" name="item_name" class="form-control" id="ItemNameInput" autofocus>
-                  </div>
-                  <div class="mb-3">
-                    <label for="ItemExpiryDateInput" class="form-label">賞味期限</label>
-                    <input type="date" name="expiry_date" class="form-control" id="ItemExpiryDateInput">
-                  </div>
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                  <button type="submit" class="btn btn-primary" onClick>Add Item</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-        <script>
-          $("#AddStockModal").on("shown.bs.modal", function(){
-            $("#ItemNameInput").focus();
-          })
-        </script>
-        <table class="table table-hover table-sm">
-          <thead>
-            <tr class="table-light">
-              {% for label in page_contents['labels'] %}
-                <th scope="col">{{ label }}</th>
-              {% endfor %}
-              <th scope="col">
-                <div class="text-end">
-                  <button type="button" class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#AddStockModal">
-                    <i class="fas fa-plus"></i>
-                  </button>
-                </div>
-              </th> 
-            </tr>
-          </thead>
-          {% if page_contents.stocks|length != 0 %}
-            <tbody>
-              {% for stock in page_contents.stocks %}
-              <tr>
-                {% for key in page_contents.stocks[0].__dict__ if key != '_id' %}
-                  <td class="align-middle">{{ stock.__dict__[key] }}</td>
-                {% endfor %}
-                <td>
-                  <form action="{{ url_for('views_blueprint.delete_stock') }}" method="post">
-                  <div class="text-end">
-                    <input type="hidden" name="stock_id" value="{{ stock._id }}">
-                    <button type="submit" class="btn btn-sm text-danger">
-                      <i class="far fa-trash-alt"></i>
-                    </button>
-                  </div>
-                  </form>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          {% endif %}
-        </table>
+        {% import 'components/StockTable.html' as StockTable %}
+        {{ StockTable.render(page_contents) }}
       </div>
     </div>
   </div>

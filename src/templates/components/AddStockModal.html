@@ -1,0 +1,33 @@
+{% macro render(page_contents) -%}
+  <div class="modal fade" id="AddStockModal" tabindex="-1" aria-labelledby="AddStockModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form action="{{ url_for('views_blueprint.create_stock') }}" method="post">
+          <div class="modal-header">
+            <h5 class="modal-title" id="AddStockModal">アイテム追加</h5>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="ItemNameInput" class="form-label">アイテム名*</label>
+              <input type="text" name="item_name" class="form-control" id="ItemNameInput" autofocus>
+            </div>
+            <div class="mb-3">
+              <label for="ItemExpiryDateInput" class="form-label">賞味期限</label>
+              <input type="date" name="expiry_date" class="form-control" id="ItemExpiryDateInput">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+            <button type="submit" class="btn btn-primary" onClick>追加</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <script>
+    $("#AddStockModal").on("shown.bs.modal", function(){
+      $("#ItemNameInput").focus();
+    })
+  </script>
+
+{%- endmacro %}
