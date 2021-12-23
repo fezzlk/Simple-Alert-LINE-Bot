@@ -123,7 +123,7 @@ def create_stock():
     item_name = request.form.get('item_name', '')
 
     if item_name == '':
-        flash('アイテム名は必須です', 'danger')
+        flash('アイテム名は必須です', 'error')
         return redirect(url_for('views_blueprint.view_stock_list'))
 
     str_expiry_date = request.form.get('expiry_date', '')
@@ -149,7 +149,7 @@ def create_stock():
 def delete_stock():
     stock_id = request.form.get('stock_id', '')
     if stock_id == '':
-        flash('アイテムIDは必須です', 'danger')
+        flash('アイテムIDは必須です', 'error')
         return redirect(url_for('views_blueprint.view_stock_list'))
     print(stock_id)
     result = stock_repository.update(
@@ -157,7 +157,7 @@ def delete_stock():
         {'status': 0},
     )
     if result == 0:
-        flash('削除対象のアイテムが見つかりません', 'danger')
+        flash('削除対象のアイテムが見つかりません', 'error')
         return redirect(url_for('views_blueprint.view_stock_list'))
 
     flash('アイテムを削除しました(やり直す)', 'success')

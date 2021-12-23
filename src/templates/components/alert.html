@@ -3,10 +3,10 @@
     {% if messages %}
       <div class="container">
         {% for category, message in messages %}
-          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-            {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        {% endfor %}
+          <script>
+            toastr["{{category}}"]("{{ message }}");
+          </script>
+         {% endfor %}
       </div>
     {% endif %}
   {% endwith %}
