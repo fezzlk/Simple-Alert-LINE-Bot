@@ -14,6 +14,7 @@ from src.oauth_client import oauth
 from src.UseCases import view_weather_use_case
 from src.middlewares import login_required
 from datetime import datetime
+from bson.objectid import ObjectId
 
 from src.Infrastructure.Repositories import (
     web_user_repository,
@@ -97,18 +98,16 @@ def view_stock_list():
     page_contents = dict(session)
     web_user: WebUser = page_contents['login_user']
     stocks = stock_repository.find({
-        '$or': [
-            {'owner_id': web_user.linked_line_user_id},
-            {'owner_id': web_user._id},
+        '$and': [
+            {'$or': [
+                {'owner_id': web_user.linked_line_user_id},
+                {'owner_id': web_user._id},
+            ]},
+            {'status': 1},
         ],
     })
     page_contents['stocks'] = [StockViewModel(stock) for stock in stocks]
-    page_contents['label_map'] = {
-        '_id': 'ID',
-        'item_name': '名前',
-        'str_expiry_date': '賞味期限',
-        'str_created_at': '登録日',
-    }
+    page_contents['labels'] = ['名前', '賞味期限', '登録日']
     return render_template(
         'pages/stock/index.html',
         page_contents=page_contents,
@@ -136,11 +135,32 @@ def create_stock():
     new_stock = Stock(
         item_name=item_name,
         expiry_date=expiry_date,
-        owner_id=web_user._id
+        owner_id=web_user._id,
+        status=1,
     )
 
     result = stock_repository.create(new_stock=new_stock)
     flash(f'"{result.item_name}" を追加しました', 'success')
+    return redirect(url_for('views_blueprint.view_stock_list'))
+
+
+@ views_blueprint.route('/stock/delete', methods=['POST'])
+@ login_required
+def delete_stock():
+    stock_id = request.form.get('stock_id', '')
+    if stock_id == '':
+        flash('アイテムIDは必須です', 'danger')
+        return redirect(url_for('views_blueprint.view_stock_list'))
+    print(stock_id)
+    result = stock_repository.update(
+        {'_id': ObjectId(stock_id)},
+        {'status': 0},
+    )
+    if result == 0:
+        flash('削除対象のアイテムが見つかりません', 'danger')
+        return redirect(url_for('views_blueprint.view_stock_list'))
+
+    flash('アイテムを削除しました(やり直す)', 'success')
     return redirect(url_for('views_blueprint.view_stock_list'))
 
 
