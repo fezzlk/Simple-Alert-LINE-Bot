@@ -92,8 +92,8 @@ def approve_line_account():
     return redirect(url_for('views_blueprint.view_approve_line_account'))
 
 
-@ views_blueprint.route('/stock', methods=['GET'])
-@ login_required
+@views_blueprint.route('/stock', methods=['GET'])
+@login_required
 def view_stock_list():
     page_contents = dict(session)
     web_user: WebUser = page_contents['login_user']
@@ -114,8 +114,8 @@ def view_stock_list():
     )
 
 
-@ views_blueprint.route('/stock', methods=['POST'])
-@ login_required
+@views_blueprint.route('/stock', methods=['POST'])
+@login_required
 def create_stock():
     page_contents = dict(session)
     web_user: WebUser = page_contents['login_user']
@@ -144,8 +144,8 @@ def create_stock():
     return redirect(url_for('views_blueprint.view_stock_list'))
 
 
-@ views_blueprint.route('/stock/delete', methods=['POST'])
-@ login_required
+@views_blueprint.route('/stock/delete', methods=['POST'])
+@login_required
 def delete_stock():
     stock_id = request.form.get('stock_id', '')
     if stock_id == '':
@@ -160,12 +160,12 @@ def delete_stock():
         flash('削除対象のアイテムが見つかりません', 'error')
         return redirect(url_for('views_blueprint.view_stock_list'))
 
-    flash('アイテムを削除しました(やり直す)', 'success')
+    flash('アイテムを削除しました', 'success')
     return redirect(url_for('views_blueprint.view_stock_list'))
 
 
-@ views_blueprint.route('/weather')
-@ login_required
+@views_blueprint.route('/weather')
+@login_required
 def view_weather():
     page_contents = view_weather_use_case.execute()
     return render_template(
@@ -179,7 +179,7 @@ Auth
 '''
 
 
-@ views_blueprint.route('/login')
+@views_blueprint.route('/login')
 def login():
     email = dict(session).get('login_email', None)
     if email is not None:
@@ -190,7 +190,7 @@ def login():
     return google.authorize_redirect(redirect_uri)
 
 
-@ views_blueprint.route('/authorize')
+@views_blueprint.route('/authorize')
 def authorize():
     google = oauth.create_client('google')
     token = google.authorize_access_token()
@@ -214,7 +214,7 @@ def authorize():
     return redirect('/')  # [TODO] 引数からリダイレクト先を指定する
 
 
-@ views_blueprint.route('/logout')
+@views_blueprint.route('/logout')
 def logout():
     session.clear()
     return redirect('/')
