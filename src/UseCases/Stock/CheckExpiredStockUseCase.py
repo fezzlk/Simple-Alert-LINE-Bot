@@ -20,20 +20,21 @@ class CheckExpiredStockUseCase(IUseCase):
             })
             web_user_id = '' if len(web_users) == 0 else web_users[0]._id
             stocks = stock_repository.find({
-                '$or': [
-                    {'owner_id': line_user.line_user_id},
-                    {'owner_id': web_user_id},
+                '$and': [
+                    {'$or': [
+                        {'owner_id': line_user.line_user_id},
+                        {'owner_id': web_user_id},
+                    ]},
+                    {'status': 1},
                 ],
             })
             messages = []
-            print(stocks)
             for stock in stocks:
                 if stock.expiry_date is None:
                     continue
                 days_until_expire = (
                     stock.expiry_date - datetime.now()
                 ).days
-                print(days_until_expire)
                 if days_until_expire < 0:
                     messages.append(
                         f'{stock.item_name}: x ({days_until_expire * -1}日超過)')
