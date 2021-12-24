@@ -34,8 +34,6 @@ Endpoints for Web
 def index():
     page_contents = dict(session)
     page_contents['title'] = 'ホーム'
-    page_contents['message'] = request.args.get('message', '')
-
     return render_template('pages/index.html', page_contents=page_contents)
 
 
@@ -43,20 +41,29 @@ def index():
 def view_register():
     page_contents = dict(session)
     page_contents['title'] = 'ユーザー登録'
-
     return render_template('pages/register.html', page_contents=page_contents)
 
 
 @views_blueprint.route('/register', methods=['POST'])
 def register():
-    page_contents = dict(session)
+    web_user_email = request.form.get('web_user_email')
+    web_user_name = request.form.get('web_user_name')
+    if web_user_name == '':
+        flash('名前は必須項目です', 'error')
+        return redirect(url_for('views_blueprint.index'))
+
+    if web_user_email == '':
+        flash('メールアドレスは必須項目です', 'error')
+        return redirect(url_for('views_blueprint.index'))
+
     new_web_user = WebUser(
-        web_user_email=page_contents['login_email'],
-        web_user_name=page_contents['login_name'],
+        web_user_email=web_user_email,
+        web_user_name=web_user_name,
     )
     web_user_service.find_or_create(new_web_user)
+    flash(f'Hi, {web_user_name}! Welcome to SALB!', 'success')
 
-    return redirect(url_for('views_blueprint.index'))  # ユーザー画面の方がいいかも
+    return redirect(url_for('views_blueprint.index'))  # ユーザー画面作ったらユーザー画面に遷移する
 
 
 @views_blueprint.route('/line/approve', methods=['GET'])
