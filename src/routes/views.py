@@ -94,7 +94,7 @@ def approve_line_account():
 @login_required
 def view_stock_list():
     page_contents = dict(session)
-    page_contents['title']
+    page_contents['title'] = 'アイテム一覧'
     web_user: WebUser = page_contents['login_user']
     stocks = stock_repository.find({
         '$and': [
