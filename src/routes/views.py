@@ -1,4 +1,3 @@
-from typing import List
 from flask import (
     Blueprint,
     request,
@@ -11,7 +10,7 @@ from flask import (
 from src.Domains.Entities.Stock import Stock
 from src.Domains.Entities.WebUser import WebUser
 from src.oauth_client import oauth
-from src.UseCases import view_weather_use_case
+from src.UseCases.Web.ViewWeatherUseCase import ViewWeatherUseCase
 from src.middlewares import login_required
 from datetime import datetime
 from bson.objectid import ObjectId
@@ -167,7 +166,7 @@ def delete_stock():
 @views_blueprint.route('/weather')
 @login_required
 def view_weather():
-    page_contents = view_weather_use_case.execute()
+    page_contents = ViewWeatherUseCase().execute()
     return render_template(
         'pages/weather/index.html',
         page_contents=page_contents,

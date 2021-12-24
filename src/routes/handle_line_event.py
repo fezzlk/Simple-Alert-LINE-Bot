@@ -6,19 +6,24 @@ from linebot.models.events import Event
 from src.UseCases.Interface.IUseCase import IUseCase
 from src.services import line_request_service, line_response_service
 from src.line_bot_api import handler
-from src.UseCases import (
-    follow_use_case,
-    unfollow_use_case,
-    postback_use_case,
-    join_use_case,
-    text_message_use_case,
-    image_message_use_case,
-    reply_train_delay_use_case,
-    reply_weather_use_case,
-    register_stock_use_case,
-    reply_stock_use_case,
-    request_link_line_web_use_case,
-)
+
+from src.UseCases.Line.FollowUseCase import FollowUseCase
+from src.UseCases.Line.UnfollowUseCase import UnfollowUseCase
+from src.UseCases.Line.JoinUseCase import JoinUseCase
+
+from src.UseCases.Line.TextMessageUseCase import TextMessageUseCase
+from src.UseCases.Line.ImageMessageUseCase import ImageMessageUseCase
+from src.UseCases.Line.PostbackUseCase import PostbackUseCase
+
+from src.UseCases.Line.ReplyTrainDelayUseCase import ReplyTrainDelayUseCase
+
+from src.UseCases.Line.ReplyWeatherUseCase import ReplyWeatherUseCase
+
+from src.UseCases.Line.RegisterStockUseCase import RegisterStockUseCase
+from src.UseCases.Line.ReplyStockUseCase import ReplyStockUseCase
+
+from src.UseCases.Line.RequestLinkLineWebUseCase import RequestLinkLineWebUseCase
+
 from linebot.models import (
     FollowEvent,
     UnfollowEvent,
@@ -60,27 +65,27 @@ def handle_message(event: Event) -> None:
 
 @handler.add(FollowEvent)
 def handle_follow(event: Event) -> None:
-    handle_event(event, follow_use_case)
+    handle_event(event, FollowUseCase())
 
 
 @handler.add(UnfollowEvent)
 def handle_unfollow(event: Event) -> None:
-    handle_event(event, unfollow_use_case)
+    handle_event(event, UnfollowUseCase())
 
 
 @handler.add(JoinEvent)
 def handle_join(event: Event) -> None:
-    handle_event(event, join_use_case)
+    handle_event(event, JoinUseCase())
 
 
 @handler.add(MessageEvent, message=ImageMessage)
 def handle_image_message(event: Event) -> None:
-    handle_event(event, image_message_use_case)
+    handle_event(event, ImageMessageUseCase())
 
 
 @handler.add(PostbackEvent)
 def handle_postback(event: Event) -> None:
-    handle_event(event, postback_use_case)
+    handle_event(event, PostbackUseCase())
 
 
 def handle_event(event: Event, use_case: IUseCase):
@@ -99,17 +104,17 @@ def handle_event(event: Event, use_case: IUseCase):
 def get_text_message_use_case(event: Event):
 
     train_keywords: Dict[str, Callable] = {
-        '遅延': reply_train_delay_use_case,
+        '遅延': ReplyTrainDelayUseCase(),
     }
     weather_keywords: Dict[str, Callable] = {
-        '天気': reply_weather_use_case,
+        '天気': ReplyWeatherUseCase(),
     }
     stock_keywords: Dict[str, Callable] = {
-        '食材登録': register_stock_use_case,
-        '食材一覧': reply_stock_use_case,
+        '食材登録': RegisterStockUseCase(),
+        '食材一覧': ReplyStockUseCase(),
     }
     system_keywords: Dict[str, Callable] = {
-        'ユーザー連携': request_link_line_web_use_case,
+        'ユーザー連携': RequestLinkLineWebUseCase(),
     }
 
     keyword = event.message.text.split()[0]
@@ -125,4 +130,4 @@ def get_text_message_use_case(event: Event):
     elif keyword in system_keywords:
         return system_keywords[keyword]
     else:
-        return text_message_use_case
+        return TextMessageUseCase
