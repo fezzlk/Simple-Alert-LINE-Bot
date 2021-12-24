@@ -33,7 +33,7 @@ Endpoints for Web
 @views_blueprint.route('/', methods=['GET'])
 def index():
     page_contents = dict(session)
-    page_contents['title'] = 'Home'
+    page_contents['title'] = 'ホーム'
     page_contents['message'] = request.args.get('message', '')
 
     return render_template('pages/index.html', page_contents=page_contents)
@@ -42,7 +42,7 @@ def index():
 @views_blueprint.route('/register', methods=['GET'])
 def view_register():
     page_contents = dict(session)
-    page_contents['title'] = 'Register Web User'
+    page_contents['title'] = 'ユーザー登録'
 
     return render_template('pages/register.html', page_contents=page_contents)
 
@@ -63,7 +63,7 @@ def register():
 @login_required
 def view_approve_line_account():
     page_contents = dict(session)
-    page_contents['title'] = 'Applove LINE Account'
+    page_contents['title'] = 'LINEアカウント連携'
 
     web_user: WebUser = page_contents['login_user']
     line_users = line_user_repository.find(
@@ -73,7 +73,6 @@ def view_approve_line_account():
     if len(line_users) != 0:
         page_contents['line_user_name'] = line_users[0].line_user_name
 
-    print(page_contents)
     return render_template(
         'pages/line/approve.html',
         page_contents=page_contents,
@@ -95,6 +94,7 @@ def approve_line_account():
 @login_required
 def view_stock_list():
     page_contents = dict(session)
+    page_contents['title']
     web_user: WebUser = page_contents['login_user']
     stocks = stock_repository.find({
         '$and': [
@@ -166,6 +166,8 @@ def delete_stock():
 @views_blueprint.route('/weather')
 @login_required
 def view_weather():
+    page_contents = dict(session)
+    page_contents['title'] = '天気情報'
     page_contents = ViewWeatherUseCase().execute()
     return render_template(
         'pages/weather/index.html',
