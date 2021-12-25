@@ -1,33 +1,89 @@
 {% macro render(page_contents) -%}
-  <div class="modal fade" id="AddStockModal" tabindex="-1" aria-labelledby="AddStockModal" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <form action="{{ url_for('views_blueprint.create_stock') }}" method="post">
-          <div class="modal-header">
-            <h5 class="modal-title" id="AddStockModal">アイテム追加</h5>
+<div
+  class="modal fade"
+  id="AddStockModal"
+  tabindex="-1"
+  aria-labelledby="AddStockModal"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form
+        id="add-stock-form"
+        action="{{ url_for('views_blueprint.create_stock') }}"
+        method="post"
+      >
+        <div class="modal-header">
+          <h5 class="modal-title" id="AddStockModal">アイテム追加</h5>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="ItemNameInput" class="form-label">アイテム名*</label>
+            <input
+              type="text"
+              name="item_name"
+              class="form-control"
+              id="ItemNameInput"
+              autofocus
+            />
           </div>
-          <div class="modal-body">
-            <div class="mb-3">
-              <label for="ItemNameInput" class="form-label">アイテム名*</label>
-              <input type="text" name="item_name" class="form-control" id="ItemNameInput" autofocus>
-            </div>
-            <div class="mb-3">
-              <label for="ItemExpiryDateInput" class="form-label">賞味期限</label>
-              <input type="date" name="expiry_date" class="form-control" id="ItemExpiryDateInput">
-            </div>
+          <div class="mb-3">
+            <label for="ItemExpiryDateInput" class="form-label">賞味期限</label>
+            <input
+              type="date"
+              name="expiry_date"
+              class="form-control"
+              id="ItemExpiryDateInput"
+            />
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
-            <button type="submit" class="btn btn-primary" onClick>追加</button>
-          </div>
-        </form>
-      </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            閉じる
+          </button>
+          <button type="submit" class="btn btn-primary" onClick>追加</button>
+        </div>
+      </form>
+      <script>
+        $("#add-stock-form").submit(function (event) {
+          event.preventDefault();
+          var $form = $(this);
+          var $button = $form.find("button");
+
+          // POST リクエスト送信
+          $.ajax({
+            url: $form.attr("action"),
+            type: $form.attr("method"),
+            data: $form.serialize(),
+            timeout: 5000,
+            beforeSend: function (xhr, settings) {
+              // 二重送信を防止
+              $button.attr("disabled", true);
+            },
+            complete: function (xhr, textStatus) {
+              $button.attr("disabled", false);
+            },
+            success: function (result, textStatus, xhr) {
+              toastr.success(result);
+              location.href = "/stock";
+            },
+            error: function (xhr, textStatus, error) {
+              toastr.error(error);
+            },
+          });
+        });
+      </script>
     </div>
   </div>
-  <script>
-    $("#AddStockModal").on("shown.bs.modal", function(){
-      $("#ItemNameInput").focus();
-    })
-  </script>
+</div>
+<script>
+  $("#AddStockModal").on("shown.bs.modal", function () {
+    $("#ItemNameInput").focus();
+  });
+</script>
 
 {%- endmacro %}

@@ -129,8 +129,7 @@ def create_stock():
     item_name = request.form.get('item_name', '')
 
     if item_name == '':
-        flash('アイテム名は必須です', 'error')
-        return redirect(url_for('views_blueprint.view_stock_list'))
+        raise ValueError('アイテム名は必須です')
 
     str_expiry_date = request.form.get('expiry_date', '')
 
@@ -146,8 +145,7 @@ def create_stock():
     )
 
     result = stock_repository.create(new_stock=new_stock)
-    flash(f'"{result.item_name}" を追加しました', 'success')
-    return redirect(url_for('views_blueprint.view_stock_list'))
+    return f'"{result.item_name}" を追加しました'
 
 
 @views_blueprint.route('/stock/delete', methods=['POST'])
@@ -155,19 +153,16 @@ def create_stock():
 def delete_stock():
     stock_id = request.form.get('stock_id', '')
     if stock_id == '':
-        flash('アイテムIDは必須です', 'error')
-        return redirect(url_for('views_blueprint.view_stock_list'))
-    print(stock_id)
+        raise ValueError('アイテムIDは必須です')
+
     result = stock_repository.update(
         {'_id': ObjectId(stock_id)},
         {'status': 0},
     )
     if result == 0:
-        flash('削除対象のアイテムが見つかりません', 'error')
-        return redirect(url_for('views_blueprint.view_stock_list'))
+        raise ValueError('削除対象のアイテムが見つかりません')
 
-    flash('アイテムを削除しました', 'success')
-    return redirect(url_for('views_blueprint.view_stock_list'))
+    return 'アイテムを削除しました'
 
 
 @views_blueprint.route('/weather')
