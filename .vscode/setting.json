@@ -1,6 +1,9 @@
 {
     "files.autoSave": "afterDelay",
     "files.autoSaveDelay": 1000,
+    "files.associations": {
+        "*.html": "jinja-html"
+    },
     "python.linting.lintOnSave": true,
     "python.linting.pylintEnabled": false,
     "python.linting.pep8Enabled": false,
