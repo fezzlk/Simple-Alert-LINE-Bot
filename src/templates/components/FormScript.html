@@ -1,0 +1,30 @@
+{% macro render(form_id, redirect_on_success) -%}
+<script>
+  $("#{{form_id}}").submit(function (event) {
+    event.preventDefault();
+    var $form = $(this);
+    var $button = $form.find("button");
+
+    // POST リクエスト送信
+    $.ajax({
+      url: $form.attr("action"),
+      type: $form.attr("method"),
+      data: $form.serialize(),
+      timeout: 5000,
+      beforeSend: function (xhr, settings) {
+        // 二重送信を防止
+        $button.attr("disabled", true);
+      },
+      complete: function (xhr, textStatus) {
+        $button.attr("disabled", false);
+      },
+      success: function (result, textStatus, xhr) {
+        location.href = `{{ redirect_on_success }}?message=${result}`;
+      },
+      error: function (xhr, textStatus, error) {
+        toastr.error(error);
+      },
+    });
+  });
+</script>
+{%- endmacro %}

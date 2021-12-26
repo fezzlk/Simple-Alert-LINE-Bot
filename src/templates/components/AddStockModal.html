@@ -48,35 +48,8 @@
           <button type="submit" class="btn btn-primary" onClick>追加</button>
         </div>
       </form>
-      <script>
-        $("#add-stock-form").submit(function (event) {
-          event.preventDefault();
-          var $form = $(this);
-          var $button = $form.find("button");
-
-          // POST リクエスト送信
-          $.ajax({
-            url: $form.attr("action"),
-            type: $form.attr("method"),
-            data: $form.serialize(),
-            timeout: 5000,
-            beforeSend: function (xhr, settings) {
-              // 二重送信を防止
-              $button.attr("disabled", true);
-            },
-            complete: function (xhr, textStatus) {
-              $button.attr("disabled", false);
-            },
-            success: function (result, textStatus, xhr) {
-              toastr.success(result);
-              location.href = "/stock";
-            },
-            error: function (xhr, textStatus, error) {
-              toastr.error(error);
-            },
-          });
-        });
-      </script>
+      {% import 'components/FormScript.html' as FormSctipt %} 
+      {{ FormSctipt.render(form_id="add-stock-form", redirect_on_success="/stock") }}
     </div>
   </div>
 </div>
