@@ -11,7 +11,7 @@ from src.Domains.Entities.Stock import Stock
 from src.Domains.Entities.WebUser import WebUser
 from src.oauth_client import oauth
 from src.UseCases.Web.ViewWeatherUseCase import ViewWeatherUseCase
-from src.middlewares import login_required
+from src.middlewares import login_required, set_message
 from datetime import datetime
 from bson.objectid import ObjectId
 
@@ -31,6 +31,7 @@ Endpoints for Web
 
 
 @views_blueprint.route('/', methods=['GET'])
+@set_message
 def index():
     page_contents = dict(session)
     page_contents['title'] = 'ホーム'
@@ -38,6 +39,7 @@ def index():
 
 
 @views_blueprint.route('/register', methods=['GET'])
+@set_message
 def view_register():
     page_contents = dict(session)
     page_contents['title'] = 'ユーザー登録'
@@ -68,6 +70,7 @@ def register():
 
 @views_blueprint.route('/line/approve', methods=['GET'])
 @login_required
+@set_message
 def view_approve_line_account():
     page_contents = dict(session)
     page_contents['title'] = 'LINEアカウント連携'
@@ -99,6 +102,7 @@ def approve_line_account():
 
 @views_blueprint.route('/stock', methods=['GET'])
 @login_required
+@set_message
 def view_stock_list():
     page_contents = dict(session)
     page_contents['title'] = 'アイテム一覧'
@@ -167,6 +171,7 @@ def delete_stock():
 
 @views_blueprint.route('/weather')
 @login_required
+@set_message
 def view_weather():
     page_contents = dict(session)
     page_contents['title'] = '天気情報'
@@ -218,6 +223,7 @@ def authorize():
 
 
 @views_blueprint.route('/logout')
+@set_message
 def logout():
     session.clear()
     return redirect('/')

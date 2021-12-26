@@ -1,13 +1,9 @@
 {% macro render(page_contents) -%}
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <div class="container">
-        {% for category, message in messages %}
-          <script>
-            toastr["{{category}}"]("{{ message }}");
-          </script>
-         {% endfor %}
-      </div>
-    {% endif %}
-  {% endwith %}
+  {% if page_contents.get('message', '') != '' %}
+    <div class="container">
+      <script>
+        toastr.success("{{ page_contents.message }}");
+      </script>
+    </div>
+  {% endif %}
 {%- endmacro %}

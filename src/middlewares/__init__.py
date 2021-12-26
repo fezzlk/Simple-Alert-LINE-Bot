@@ -5,7 +5,7 @@ from src.Infrastructure.Repositories import web_user_repository
 
 def login_required(f):
     @wraps(f)
-    def decorated_function(*args, **kwargs):
+    def decorated_login_required(*args, **kwargs):
         print('call login required')
 
         # メールアドレスがわからない(認証を通っていない)場合はログイン画面に遷移
@@ -24,4 +24,22 @@ def login_required(f):
         session['login_user'] = web_users[0]
         return f(*args, **kwargs)
 
-    return decorated_function
+    return decorated_login_required
+
+
+def set_message(f):
+    @wraps(f)
+    def decorated_set_message(*args, **kwargs):
+        print('call set message')
+
+        messages = [value for key, value in request.args.items()
+                    if key == 'message']
+        if len(messages) > 0:
+            print(messages[0])
+            session['message'] = messages[0]
+        else:
+            session['message'] = ''
+
+        return f(*args, **kwargs)
+
+    return decorated_set_message
