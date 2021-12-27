@@ -3,6 +3,7 @@ from typing import Callable, Dict
 from flask import Blueprint, request, abort
 from linebot.exceptions import InvalidSignatureError
 from linebot.models.events import Event
+from src.Infrastructure.Repositories import line_user_repository
 from src.UseCases.Interface.IUseCase import IUseCase
 from src.services import line_request_service, line_response_service
 from src.line_bot_api import handler
@@ -65,7 +66,16 @@ def handle_message(event: Event) -> None:
 
 @handler.add(FollowEvent)
 def handle_follow(event: Event) -> None:
-    handle_event(event, FollowUseCase())
+    try:
+        line_request_service.set_req_info(event)
+        FollowUseCase().execute()
+    except BaseException as err:
+        print(traceback.format_exc())
+        line_response_service.reset()
+        line_response_service.add_message('サーバーエラーが発生しました。')
+        line_response_service.add_message(str(err))
+    line_response_service.reply(event)
+    line_request_service.delete_req_info()
 
 
 @handler.add(UnfollowEvent)
@@ -91,7 +101,14 @@ def handle_postback(event: Event) -> None:
 def handle_event(event: Event, use_case: IUseCase):
     try:
         line_request_service.set_req_info(event)
-        use_case.execute()
+        line_users = line_user_repository.find({
+            'line_user_id': line_request_service.req_line_user_id,
+        })
+        if len(line_users) == 0:
+            line_response_service.add_message(
+                'ユーザーが登録されていません。一度本アカウントをブロックし、解除してください。')
+        else:
+            use_case.execute()
     except BaseException as err:
         print(traceback.format_exc())
         line_response_service.reset()
