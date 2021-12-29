@@ -52,24 +52,24 @@ def register():
     web_user_name = request.form.get('web_user_name')
     if web_user_name == '':
         flash('名前は必須項目です', 'error')
-        return redirect(url_for('views_blueprint.index'))
+        return render_template('pages/error.html')
 
     if web_user_email == '':
         flash('メールアドレスは必須項目です', 'error')
-        return redirect(url_for('views_blueprint.index'))
+        return render_template('pages/error.html')
 
     new_web_user = WebUser(
         web_user_email=web_user_email,
         web_user_name=web_user_name,
     )
     web_user_service.find_or_create(new_web_user)
-    flash(f'Hi, {web_user_name}! Welcome to SALB!', 'success')
 
-    return redirect(url_for('views_blueprint.index'))  # ユーザー画面作ったらユーザー画面に遷移する
+    # ユーザー画面作ったらユーザー画面に遷移するようにする
+    return redirect(url_for('views_blueprint.index', message=f'Hi, {web_user_name}! Welcome to SALB!'))
 
 
-@views_blueprint.route('/line/approve', methods=['GET'])
-@login_required
+@ views_blueprint.route('/line/approve', methods=['GET'])
+@ login_required
 @set_message
 def view_approve_line_account():
     page_contents = dict(session)
@@ -89,7 +89,7 @@ def view_approve_line_account():
     )
 
 
-@views_blueprint.route('/line/approve', methods=['POST'])
+@ views_blueprint.route('/line/approve', methods=['POST'])
 def approve_line_account():
     page_contents = dict(session)
     web_user_repository.update(
@@ -100,12 +100,12 @@ def approve_line_account():
     return redirect(url_for('views_blueprint.view_approve_line_account'))
 
 
-@views_blueprint.route('/stock', methods=['GET'])
-@login_required
+@ views_blueprint.route('/stock', methods=['GET'])
+@ login_required
 @set_message
 def view_stock_list():
     page_contents = dict(session)
-    page_contents['title'] = 'アイテム一覧'
+    page_contents['title'] = '食材一覧'
     web_user: WebUser = page_contents['login_user']
     stocks = stock_repository.find({
         '$and': [
@@ -124,8 +124,8 @@ def view_stock_list():
     )
 
 
-@views_blueprint.route('/stock', methods=['POST'])
-@login_required
+@ views_blueprint.route('/stock', methods=['POST'])
+@ login_required
 def create_stock():
     page_contents = dict(session)
     web_user: WebUser = page_contents['login_user']
@@ -133,7 +133,8 @@ def create_stock():
     item_name = request.form.get('item_name', '')
 
     if item_name == '':
-        raise ValueError('アイテム名は必須です')
+        flash('アイテム名は必須です', 'error')
+        return render_template('pages/error.html')
 
     str_expiry_date = request.form.get('expiry_date', '')
 
@@ -149,28 +150,31 @@ def create_stock():
     )
 
     result = stock_repository.create(new_stock=new_stock)
-    return f'"{result.item_name}" を追加しました'
+    return redirect(url_for('views_blueprint.view_approve_line_account', message=f'"{result.item_name}" を追加しました'))
 
 
-@views_blueprint.route('/stock/delete', methods=['POST'])
-@login_required
+@ views_blueprint.route('/stock/delete', methods=['POST'])
+@ login_required
+@set_message
 def delete_stock():
     stock_id = request.form.get('stock_id', '')
     if stock_id == '':
-        raise ValueError('アイテムIDは必須です')
+        flash('アイテムIDは必須です', 'error')
+        return render_template('pages/error.html')
 
     result = stock_repository.update(
         {'_id': ObjectId(stock_id)},
         {'status': 0},
     )
     if result == 0:
-        raise ValueError('削除対象のアイテムが見つかりません')
+        flash('削除対象のアイテムが見つかりません', 'error')
+        return render_template('pages/error.html')
 
-    return 'アイテムを削除しました'
+    return redirect(url_for('views_blueprint.view_approve_line_account', message='アイテムを削除しました'))
 
 
-@views_blueprint.route('/weather')
-@login_required
+@ views_blueprint.route('/weather', methods=['GET'])
+@ login_required
 @set_message
 def view_weather():
     page_contents = dict(session)
@@ -187,7 +191,7 @@ Auth
 '''
 
 
-@views_blueprint.route('/login')
+@ views_blueprint.route('/login')
 def login():
     email = dict(session).get('login_email', None)
     if email is not None:
@@ -198,7 +202,7 @@ def login():
     return google.authorize_redirect(redirect_uri)
 
 
-@views_blueprint.route('/authorize')
+@ views_blueprint.route('/authorize')
 def authorize():
     google = oauth.create_client('google')
     token = google.authorize_access_token()
@@ -222,8 +226,7 @@ def authorize():
     return redirect('/')  # [TODO] 引数からリダイレクト先を指定する
 
 
-@views_blueprint.route('/logout')
-@set_message
+@ views_blueprint.route('/logout')
 def logout():
     session.clear()
-    return redirect('/')
+    return redirect(url_for('views_blueprint.index', message='ログアウトしました'))
