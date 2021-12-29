@@ -1,3 +1,4 @@
+from src import config
 from bson.objectid import ObjectId
 from src.services import line_request_service, line_response_service
 from src.Infrastructure.Repositories import web_user_repository
@@ -17,15 +18,17 @@ class RequestLinkLineWebUseCase(IUseCase):
         web_users = web_user_repository.find({'web_user_email': email})
 
         if len(web_users) == 0:
-            # URLも送るようにする
             line_response_service.add_message(
                 f'{email} は登録されていません。一度ブラウザでログインしてください。')
+            line_response_service.add_message(
+                f'{config.SERVER_URL}/line/approve?openExternalBrowser=1')
             return
 
         if web_users[0].is_linked_line_user:
-            # 紐付け中 LINE アカウント確認画面のURLも送るようにする
             line_response_service.add_message(
                 f'{email} はすでにLINEアカウントと紐付けされています。')
+            line_response_service.add_message(
+                f'{config.SERVER_URL}/line/approve?openExternalBrowser=1')
             return
 
         result = web_user_repository.update(
@@ -39,3 +42,5 @@ class RequestLinkLineWebUseCase(IUseCase):
 
         line_response_service.add_message(
             'ユーザー連携リクエストを送信しました。ブラウザでログインし、承認してください。')
+        line_response_service.add_message(
+            f'{config.SERVER_URL}/line/approve?openExternalBrowser=1')
