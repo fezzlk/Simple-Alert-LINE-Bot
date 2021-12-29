@@ -22,6 +22,7 @@ from src.Infrastructure.Repositories import (
 )
 from src.services import web_user_service
 from src.models.StockViewModel import StockViewModel
+from werkzeug.exceptions import BadRequest
 
 views_blueprint = Blueprint('views_blueprint', __name__, url_prefix='/')
 
@@ -51,12 +52,10 @@ def register():
     web_user_email = request.form.get('web_user_email')
     web_user_name = request.form.get('web_user_name')
     if web_user_name == '':
-        flash('名前は必須項目です', 'error')
-        return render_template('pages/error.html')
+        raise BadRequest('名前は必須項目です')
 
     if web_user_email == '':
-        flash('メールアドレスは必須項目です', 'error')
-        return render_template('pages/error.html')
+        raise BadRequest('メールアドレスは必須項目です')
 
     new_web_user = WebUser(
         web_user_email=web_user_email,
@@ -133,8 +132,7 @@ def create_stock():
     item_name = request.form.get('item_name', '')
 
     if item_name == '':
-        flash('アイテム名は必須です', 'error')
-        return render_template('pages/error.html')
+        raise BadRequest('アイテム名は必須です')
 
     str_expiry_date = request.form.get('expiry_date', '')
 
@@ -150,7 +148,7 @@ def create_stock():
     )
 
     result = stock_repository.create(new_stock=new_stock)
-    return redirect(url_for('views_blueprint.view_approve_line_account', message=f'"{result.item_name}" を追加しました'))
+    return redirect(url_for('views_blueprint.view_stock_list', message=f'"{result.item_name}" を追加しました'))
 
 
 @ views_blueprint.route('/stock/delete', methods=['POST'])
@@ -159,18 +157,16 @@ def create_stock():
 def delete_stock():
     stock_id = request.form.get('stock_id', '')
     if stock_id == '':
-        flash('アイテムIDは必須です', 'error')
-        return render_template('pages/error.html')
+        raise BadRequest('アイテムIDは必須です')
 
     result = stock_repository.update(
         {'_id': ObjectId(stock_id)},
         {'status': 0},
     )
     if result == 0:
-        flash('削除対象のアイテムが見つかりません', 'error')
-        return render_template('pages/error.html')
+        raise NotFound('削除対象のアイテムが見つかりません')
 
-    return redirect(url_for('views_blueprint.view_approve_line_account', message='アイテムを削除しました'))
+    return redirect(url_for('views_blueprint.view_stock_list', message='アイテムを削除しました'))
 
 
 @ views_blueprint.route('/weather', methods=['GET'])
@@ -230,3 +226,16 @@ def authorize():
 def logout():
     session.clear()
     return redirect(url_for('views_blueprint.index', message='ログアウトしました'))
+
+
+'''
+error handling
+'''
+
+
+@views_blueprint.errorhandler(Exception)
+def handle_bad_request(e):
+    page_contents = dict(session)
+    page_contents['title'] = 'サーバーエラー'
+    flash(e, 'danger')
+    return render_template('pages/error.html', page_contents=page_contents)
