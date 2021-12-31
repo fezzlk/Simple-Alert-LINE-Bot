@@ -2,7 +2,6 @@
     "recommendations": [
       "kevinglasson.cornflakes-linter",
       "njpwerner.autodocstring",
-      "streetsidesoftware.code-spell-checker",
-      "samuelcolvin.jinjahtml"
+      "streetsidesoftware.code-spell-checker"
     ]
   }
