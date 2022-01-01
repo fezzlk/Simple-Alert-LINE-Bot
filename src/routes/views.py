@@ -72,7 +72,7 @@ def register():
 @set_message
 def view_approve_line_account():
     page_contents = dict(session)
-    page_contents['title'] = 'LINEアカウント連携'
+    page_contents['title'] = 'LINEユーザー連携'
 
     web_user: WebUser = page_contents['login_user']
     line_users = line_user_repository.find(

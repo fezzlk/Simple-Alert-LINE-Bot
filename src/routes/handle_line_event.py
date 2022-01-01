@@ -106,7 +106,7 @@ def handle_event(event: Event, use_case: IUseCase):
         })
         if len(line_users) == 0:
             line_response_service.add_message(
-                'ユーザーが登録されていません。一度本アカウントをブロックし、解除してください。')
+                'ユーザーが登録されていません。一度本ユーザーをブロックし、解除してください。')
         else:
             use_case.execute()
     except BaseException as err:
