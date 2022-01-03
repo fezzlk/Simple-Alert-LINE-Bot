@@ -70,7 +70,7 @@ def register():
 @ views_blueprint.route('/line/approve', methods=['GET'])
 @ login_required
 @set_message
-def view_approve_line_account():
+def view_approve_line_user():
     page_contents = dict(session)
     page_contents['title'] = 'LINEユーザー連携'
 
@@ -89,14 +89,14 @@ def view_approve_line_account():
 
 
 @ views_blueprint.route('/line/approve', methods=['POST'])
-def approve_line_account():
+def approve_line_user():
     page_contents = dict(session)
     web_user_repository.update(
         {'web_user_email': page_contents['login_email']},
         {'is_linked_line_user': True},
     )
 
-    return redirect(url_for('views_blueprint.view_approve_line_account'))
+    return redirect(url_for('views_blueprint.view_approve_line_user'))
 
 
 @ views_blueprint.route('/stock', methods=['GET'])
