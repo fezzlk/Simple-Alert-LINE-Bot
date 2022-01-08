@@ -22,7 +22,7 @@ from src.Infrastructure.Repositories import (
 )
 from src.services import web_user_service
 from src.models.StockViewModel import StockViewModel
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import BadRequest, NotFound
 
 views_blueprint = Blueprint('views_blueprint', __name__, url_prefix='/')
 
