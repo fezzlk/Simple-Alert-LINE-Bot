@@ -11,6 +11,8 @@ class CheckExpiredStockUseCase(IUseCase):
     def execute(self) -> None:
         line_users = line_user_repository.find()
         for line_user in line_users:
+            print('# line_user_name')
+            print(line_user.line_user_name)
             # [TODO] LINE ユーザー取得時に関連する web ユーザー id もまとめて取得するようにする
             web_users = line_user_repository.find({
                 '$and': [
@@ -19,6 +21,8 @@ class CheckExpiredStockUseCase(IUseCase):
                 ],
             })
             web_user_id = '' if len(web_users) == 0 else web_users[0]._id
+            print('# web_user_id')
+            print(web_user_id)
             stocks = stock_repository.find({
                 '$and': [
                     {'$or': [
@@ -28,20 +32,30 @@ class CheckExpiredStockUseCase(IUseCase):
                     {'status': 1},
                 ],
             })
+
             messages = []
             for stock in stocks:
+                print('# stock')
+                print(stock.item_name)
+                print('# expiry_date')
+                print(stock.expiry_date)
                 if stock.expiry_date is None:
                     continue
                 days_until_expire = (
                     stock.expiry_date - datetime.now()
                 ).days
+                print('# days_until_expire')
+                print(days_until_expire)
                 if days_until_expire < 0:
+                    print('# 賞味期限切れ')
                     messages.append(
                         f'{stock.item_name}: x ({days_until_expire * -1}日超過)')
                 elif days_until_expire == 0:
+                    print('# 当日')
                     messages.append(
                         f'{stock.item_name}: 今日まで')
                 elif days_until_expire < 7:
+                    print('# 賞味期限ない')
                     messages.append(
                         f'{stock.item_name}: あと{days_until_expire}日')
             if len(messages) == 0:
