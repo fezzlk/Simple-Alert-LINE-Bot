@@ -17,22 +17,34 @@ class RegisterStockUseCase(IUseCase):
 
         if item_name is None:
             line_response_service.add_message(
-                '"食材登録 [食材名] [賞味期限YYMMDD]" と送ってください。')
+                '"食材登録 [食材名] [賞味期限]" と送ってください。')
+            line_response_service.add_message(
+                '賞味期限のフォーマットは\nYYYY年MM月DD日: YYYYMMDD\n20YY年MM月DD日: YYMMDD\n今年MM月DD日: MMDD\n今月DD日: DD')
             return
 
         expiry_date = None
         if date_str is not None:
-            if len(date_str) != 6 and len(date_str) != 8:
-                line_response_service.add_message(
-                    '賞味期限のフォーマットは YYYYMMDD または YYMMDD')
-                return
-
+            if len(date_str) == 8:
+                year = int(date_str[:4])
+                month = int(date_str[-4:-2])
+                day = int(date_str[-2:])
             if len(date_str) == 6:
                 year = 2000 + int(date_str[:2])
+                month = int(date_str[-4:-2])
+                day = int(date_str[-2:])
+            if len(date_str) == 4:
+                year = datetime.now().year
+                month = int(date_str[-4:-2])
+                day = int(date_str[-2:])
+            if len(date_str) == 2:
+                year = datetime.now().year
+                month = datetime.now().month
+                day = int(date_str[-2:])
             else:
-                year = int(date_str[:4])
-            month = int(date_str[-4:-2])
-            day = int(date_str[-2:])
+                line_response_service.add_message(
+                    '賞味期限のフォーマットは\nYYYY年MM月DD日: YYYYMMDD\n20YY年MM月DD日: YYMMDD\n今年MM月DD日: MMDD\n今月DD日: DD')
+                return
+
             expiry_date = datetime(year, month, day)
 
         new_stock = Stock(
