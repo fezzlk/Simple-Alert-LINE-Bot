@@ -43,7 +43,7 @@ class CheckExpiredStockUseCase(IUseCase):
                     continue
                 days_until_expire = (
                     stock.expiry_date - datetime.now()
-                ).days
+                ).days + 1
                 print('# days_until_expire')
                 print(days_until_expire)
                 if days_until_expire < 0:
