@@ -11,7 +11,6 @@ from src.Infrastructure.Repositories import stock_repository
 class RegisterStockUseCase(IUseCase):
     def execute(self) -> None:
         args = line_request_service.message.split()
-        # [TODO] 4桁の場合年、2桁の場合年月に現在年月を適用する
         item_name = args[1] if len(args) >= 2 else None
         date_str = args[2] if len(args) >= 3 else None
 

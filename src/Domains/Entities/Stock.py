@@ -17,8 +17,8 @@ class Stock:
     def __init__(
         self,
         _id: str = None,
-        item_name: str = None,  # item_name がいいかも
-        owner_id: str = None,  # owner_id で web user も対応させる
+        item_name: str = None,
+        owner_id: str = None,
         expiry_date: datetime = None,
         status: int = 0,
         created_at: datetime = datetime.now(),
