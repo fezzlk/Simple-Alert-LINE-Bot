@@ -1,0 +1,10 @@
+{% extends "layout.html" %} {% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col">
+      {% import 'components/StockTable.html' as StockTable %} {{
+      StockTable.render(page_contents) }}
+    </div>
+  </div>
+</div>
+{% endblock %}

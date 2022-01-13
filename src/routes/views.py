@@ -169,6 +169,30 @@ def delete_stock():
     return redirect(url_for('views_blueprint.view_stock_list', message='アイテムを削除しました'))
 
 
+@ views_blueprint.route('/stock/delete', methods=['GET'])
+@ login_required
+@set_message
+def view_stock_list():
+    page_contents = dict(session)
+    page_contents['title'] = '削除済み食材一覧'
+    web_user: WebUser = page_contents['login_user']
+    stocks = stock_repository.find({
+        '$and': [
+            {'$or': [
+                {'owner_id': web_user.linked_line_user_id},
+                {'owner_id': web_user._id},
+            ]},
+            {'status': 2},
+        ],
+    })
+    page_contents['stocks'] = [StockViewModel(stock) for stock in stocks]
+    page_contents['labels'] = ['名前', '賞味期限', '登録日']
+    return render_template(
+        'pages/stock/trash.html',
+        page_contents=page_contents,
+    )
+
+
 @ views_blueprint.route('/weather', methods=['GET'])
 @ login_required
 @set_message
