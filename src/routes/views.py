@@ -161,7 +161,7 @@ def delete_stock():
 
     result = stock_repository.update(
         {'_id': ObjectId(stock_id)},
-        {'status': 0},
+        {'status': 2},
     )
     if result == 0:
         raise NotFound('削除対象のアイテムが見つかりません')
