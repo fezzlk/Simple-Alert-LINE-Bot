@@ -193,6 +193,26 @@ def view_deleted_stock_list():
     )
 
 
+@ views_blueprint.route('/stock/complete_delete', methods=['POST'])
+@ login_required
+@set_message
+def complete_delete_stock():
+    stock_id = request.form.get('stock_id', '')
+    if stock_id == '':
+        raise BadRequest('アイテムIDは必須です')
+
+    result = stock_repository.delete({
+        '$and': [
+            {'_id': ObjectId(stock_id)},
+            {'status': 2},
+        ],
+    })
+    if result == 0:
+        raise NotFound('削除対象のアイテムが見つかりません')
+
+    return redirect(url_for('views_blueprint.view_deleted_stock_list', message='アイテムを削除しました'))
+
+
 @ views_blueprint.route('/weather', methods=['GET'])
 @ login_required
 @set_message
