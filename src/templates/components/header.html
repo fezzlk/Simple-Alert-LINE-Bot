@@ -8,40 +8,70 @@
       <!-- PC, タブレット画面 -->
       <div class="d-none d-sm-block">
         {% if 'login_email' not in page_contents %}
-          <a class="nav-link text-dark" href='/login'>ログイン</a>
+        <a class="nav-link text-dark" href="/login">ログイン</a>
         {% else %}
-          <div class="nav-item dropdown">
-            <div class="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              {{ page_contents.login_email }}
-            </div>
-            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-              <li><a class="dropdown-item" href='/stock'>アイテム一覧</a></li>
-              <li><a class="dropdown-item" href='/line/approve'>LINE 連携</a></li>
-              <li><a class="dropdown-item" href='/logout'>ログアウト</a></li>
-            </ul>
+        <div class="nav-item dropdown">
+          <div
+            class="nav-link dropdown-toggle"
+            id="navbarDropdown"
+            role="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            {{ page_contents.login_email }}
           </div>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <li><a class="dropdown-item" href="/stock">アイテム一覧</a></li>
+            <li>
+              <a class="dropdown-item" href="/stock/delete"
+                >削除済みアイテム一覧</a
+              >
+            </li>
+            <li><a class="dropdown-item" href="/line/approve">LINE 連携</a></li>
+            <li><a class="dropdown-item" href="/logout">ログアウト</a></li>
+          </ul>
+        </div>
         {% endif %}
       </div>
       <!-- スマートフォン画面 -->
       <div class="d-block d-sm-none">
         <div class="nav-item dropdown">
-          <div class="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <div
+            class="nav-link dropdown-toggle"
+            id="navbarDropdown"
+            role="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
             <i class="fas fa-bars"></i>
           </div>
           {% if 'login_email' not in page_contents %}
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-              <li><a class="nav-link text-dark" href='/login'>ログイン</a></li>
-            </ul>
+          <ul
+            class="dropdown-menu dropdown-menu-end"
+            aria-labelledby="navbarDropdown"
+          >
+            <li><a class="nav-link text-dark" href="/login">ログイン</a></li>
+          </ul>
           {% else %}
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-              <li><a class="dropdown-item">{{ page_contents.login_email }}</a></li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item" href='/stock'>アイテム一覧</a></li>
-              <li><a class="dropdown-item" href='/line/approve'>LINE 連携</a></li>
-              <li><a class="dropdown-item" href='/logout'>ログアウト</a></li>
-            </ul>
+          <ul
+            class="dropdown-menu dropdown-menu-end"
+            aria-labelledby="navbarDropdown"
+          >
+            <li>
+              <a class="dropdown-item">{{ page_contents.login_email }}</a>
+            </li>
+            <li><hr class="dropdown-divider" /></li>
+            <li><a class="dropdown-item" href="/stock">アイテム一覧</a></li>
+            <li>
+              <a class="dropdown-item" href="/stock/delete"
+                >削除済みアイテム一覧</a
+              >
+            </li>
+            <li><a class="dropdown-item" href="/line/approve">LINE 連携</a></li>
+            <li><a class="dropdown-item" href="/logout">ログアウト</a></li>
+          </ul>
           {% endif %}
-      </div>
+        </div>
       </div>
     </div>
   </div>
