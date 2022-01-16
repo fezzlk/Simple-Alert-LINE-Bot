@@ -172,7 +172,7 @@ def delete_stock():
 @ views_blueprint.route('/stock/delete', methods=['GET'])
 @ login_required
 @set_message
-def view_stock_list():
+def view_deleted_stock_list():
     page_contents = dict(session)
     page_contents['title'] = '削除済み食材一覧'
     web_user: WebUser = page_contents['login_user']
