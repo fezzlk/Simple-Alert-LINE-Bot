@@ -3,7 +3,7 @@ from datetime import datetime
 
 
 @dataclass()
-class Setting:
+class UserSetting:
     _id: str
     web_user_id: str
     is_notify_when_nothing_near_expiry: int
