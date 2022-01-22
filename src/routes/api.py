@@ -1,17 +1,10 @@
 from flask import Blueprint
-from src.UseCases.Line.NotifyStockUseCase import NotifyStockUseCase
 from src.UseCases.Line.CheckExpiredStockUseCase import CheckExpiredStockUseCase
 api_blueprint = Blueprint('api_blueprint', __name__, url_prefix='/_api/v1')
 
 '''
 Endpoints for line push message
 '''
-
-
-@api_blueprint.route('/push_stock_info', methods=['post'])
-def push_stock_info():
-    NotifyStockUseCase().execute()
-    return 'done'
 
 
 @api_blueprint.route('/check_expire', methods=['post'])
