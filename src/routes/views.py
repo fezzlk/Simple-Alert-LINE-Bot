@@ -7,6 +7,7 @@ from flask import (
     session,
     flash,
 )
+from src.UseCases.Web.ApproveLinkLineUserUseCase import ApproveLinkLineUserUseCase
 from src.UseCases.Web.RegisterWebUserUseCase import RegisterWebUserUseCase
 from src.UseCases.Web.ViewApproveLinkLineUseCase import ViewApproveLinkLineUseCase
 from src.UseCases.Web.ViewRegisterUseCase import ViewRegisterUseCase
@@ -67,12 +68,7 @@ def view_approve_link_line_user():
 
 @ views_blueprint.route('/line/approve', methods=['POST'])
 def approve_line_user():
-    page_contents = dict(session)
-    web_user_repository.update(
-        {'web_user_email': page_contents['login_email']},
-        {'is_linked_line_user': True},
-    )
-
+    ApproveLinkLineUserUseCase().execute()
     return redirect(url_for('views_blueprint.view_approve_link_line_user'))
 
 
