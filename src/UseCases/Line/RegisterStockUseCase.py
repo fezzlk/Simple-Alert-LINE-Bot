@@ -16,9 +16,9 @@ class RegisterStockUseCase(IUseCase):
 
         if item_name is None:
             line_response_service.add_message(
-                '"食材登録 [食材名] [賞味期限]" と送ってください。')
+                '"ストック登録 [品名] [期限(任意)]" と送ってください。')
             line_response_service.add_message(
-                '賞味期限のフォーマットは\nYYYY年MM月DD日: YYYYMMDD\n20YY年MM月DD日: YYMMDD\n今年MM月DD日: MMDD\n今月DD日: DD')
+                '期限のフォーマットは\nYYYY年MM月DD日: YYYYMMDD\n20YY年MM月DD日: YYMMDD\n今年MM月DD日: MMDD\n今月DD日: DD')
             return
 
         expiry_date = None
@@ -41,7 +41,7 @@ class RegisterStockUseCase(IUseCase):
                 day = int(date_str[-2:])
             else:
                 line_response_service.add_message(
-                    '賞味期限のフォーマットは\nYYYY年MM月DD日: YYYYMMDD\n20YY年MM月DD日: YYMMDD\n今年MM月DD日: MMDD\n今月DD日: DD')
+                    '期限のフォーマットは\nYYYY年MM月DD日: YYYYMMDD\n20YY年MM月DD日: YYMMDD\n今年MM月DD日: MMDD\n今月DD日: DD')
                 return
 
             expiry_date = datetime(year, month, day)

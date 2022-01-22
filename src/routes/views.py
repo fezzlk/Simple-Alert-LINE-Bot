@@ -104,7 +104,7 @@ def approve_line_user():
 @set_message
 def view_stock_list():
     page_contents = dict(session)
-    page_contents['title'] = '食材一覧'
+    page_contents['title'] = 'ストック一覧'
     web_user: WebUser = page_contents['login_user']
     stocks = stock_repository.find({
         '$and': [
@@ -116,7 +116,7 @@ def view_stock_list():
         ],
     })
     page_contents['stocks'] = [StockViewModel(stock) for stock in stocks]
-    page_contents['labels'] = ['名前', '賞味期限', '登録日']
+    page_contents['labels'] = ['名前', '期限', '登録日']
     return render_template(
         'pages/stock/index.html',
         page_contents=page_contents,
@@ -174,7 +174,7 @@ def delete_stock():
 @set_message
 def view_deleted_stock_list():
     page_contents = dict(session)
-    page_contents['title'] = '削除済み食材一覧'
+    page_contents['title'] = '削除済みストック一覧'
     web_user: WebUser = page_contents['login_user']
     stocks = stock_repository.find({
         '$and': [
@@ -186,7 +186,7 @@ def view_deleted_stock_list():
         ],
     })
     page_contents['stocks'] = [StockViewModel(stock) for stock in stocks]
-    page_contents['labels'] = ['名前', '賞味期限', '登録日']
+    page_contents['labels'] = ['名前', '期限', '登録日']
     return render_template(
         'pages/stock/trash.html',
         page_contents=page_contents,

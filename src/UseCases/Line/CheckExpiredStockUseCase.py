@@ -47,7 +47,7 @@ class CheckExpiredStockUseCase(IUseCase):
                 print('# days_until_expire')
                 print(days_until_expire)
                 if days_until_expire < 0:
-                    print('# 賞味期限切れ')
+                    print('# 期限切れ')
                     messages.append(
                         f'{stock.item_name}: x ({days_until_expire * -1}日超過)')
                 elif days_until_expire == 0:
@@ -55,12 +55,12 @@ class CheckExpiredStockUseCase(IUseCase):
                     messages.append(
                         f'{stock.item_name}: 今日まで')
                 elif days_until_expire < 7:
-                    print('# 賞味期限ない')
+                    print('# 期限内')
                     messages.append(
                         f'{stock.item_name}: あと{days_until_expire}日')
             if len(messages) == 0:
                 messages.append(
-                    '賞味期限が近づいている食材はありません。[TODO]このような場合は通知しないように設定できる')
+                    '期限が近づいているストックはありません。[TODO]このような場合は通知しないように設定できる')
             line_response_service.add_message('\n'.join(messages))
             line_response_service.add_message(
                 f'webで確認する→ {config.SERVER_URL}/stock?openExternalBrowser=1')
