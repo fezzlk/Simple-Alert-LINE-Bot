@@ -8,9 +8,7 @@ from src.services import (
 
 class ViewWeatherUseCase(IUseCase):
     def execute(self) -> Dict:
-        page_contents = {
-            'title': 'weather',
-            'login_email': dict(session).get('login_email', ''),
-            'data': weather_service.get_weather(),
-        }
+        page_contents = dict(session)
+        page_contents['title'] = '天気情報'
+        page_contents['data'] = weather_service.get_weather()
         return page_contents

@@ -123,13 +123,9 @@ def restore_stock():
 @ login_required
 @ set_message
 def view_weather():
-    page_contents = dict(session)
-    page_contents['title'] = '天気情報'
     page_contents = ViewWeatherUseCase().execute()
-    return render_template(
-        'pages/weather/index.html',
-        page_contents=page_contents,
-    )
+    print(page_contents)
+    return render_template('pages/weather/index.html', page_contents=page_contents)
 
 
 '''
