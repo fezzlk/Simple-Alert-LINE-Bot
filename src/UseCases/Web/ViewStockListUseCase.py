@@ -9,7 +9,7 @@ from src.models.StockViewModel import StockViewModel
 
 
 class ViewStockListUseCase(IUseCase):
-    def execute(self):
+    def execute(self) -> Dict:
         page_contents = dict(session)
         page_contents['title'] = 'ストック一覧'
 
