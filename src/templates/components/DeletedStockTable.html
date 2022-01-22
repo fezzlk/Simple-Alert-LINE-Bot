@@ -2,6 +2,7 @@
 <table class="table table-hover table-sm">
   <thead>
     <tr class="table-light">
+      <th scope="col"></th>
       {% for label in page_contents['labels'] %}
       <th scope="col">{{ label }}</th>
       {% endfor %}
@@ -13,6 +14,17 @@
   <tbody>
     {% for stock in page_contents.stocks %}
     <tr>
+      <td>
+        <form
+          action="{{ url_for('views_blueprint.restore_stock') }}"
+          method="post"
+        >
+          <input type="hidden" name="stock_id" value="{{ stock._id }}" />
+          <button type="submit" class="btn btn-sm">
+            <i class="fas fa-reply"></i>
+          </button>
+        </form>
+      </td>
       {% for key in page_contents.stocks[0].__dict__ if key != '_id' %}
       <td class="align-middle">{{ stock.__dict__[key] }}</td>
       {% endfor %}

@@ -12,6 +12,7 @@ from src.UseCases.Web.ApproveLinkLineUserUseCase import ApproveLinkLineUserUseCa
 from src.UseCases.Web.CompleteDeleteStockUseCase import CompleteDeleteStockUseCase
 from src.UseCases.Web.DeleteStockUseCase import DeleteStockUseCase
 from src.UseCases.Web.RegisterWebUserUseCase import RegisterWebUserUseCase
+from src.UseCases.Web.RestoreStockUseCase import RestoreStockUseCase
 from src.UseCases.Web.ViewApproveLinkLineUseCase import ViewApproveLinkLineUseCase
 from src.UseCases.Web.ViewDeletedStockListUseCase import ViewDeletedStockListUseCase
 from src.UseCases.Web.ViewRegisterUseCase import ViewRegisterUseCase
@@ -78,11 +79,7 @@ def approve_line_user():
 @ set_message
 def view_stock_list():
     page_contents, forms = ViewStockListUseCase().execute()
-    return render_template(
-        'pages/stock/index.html',
-        page_contents=page_contents,
-        form=forms,
-    )
+    return render_template('pages/stock/index.html', page_contents=page_contents, form=forms)
 
 
 @ views_blueprint.route('/stock', methods=['POST'])
@@ -113,6 +110,13 @@ def view_deleted_stock_list():
 def complete_delete_stock():
     CompleteDeleteStockUseCase().execute()
     return redirect(url_for('views_blueprint.view_deleted_stock_list', message='アイテムを完全削除しました'))
+
+
+@ views_blueprint.route('/stock/restore', methods=['POST'])
+@ login_required
+def restore_stock():
+    RestoreStockUseCase().execute()
+    return redirect(url_for('views_blueprint.view_deleted_stock_list', message='アイテムを復元しました'))
 
 
 @ views_blueprint.route('/weather', methods=['GET'])
