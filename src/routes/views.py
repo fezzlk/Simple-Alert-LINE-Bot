@@ -54,9 +54,6 @@ def view_register():
 def register():
     web_user_name = RegisterWebUserUseCase().execute()
 
-    if web_user_name == '':
-        return redirect(url_for('views_blueprint.view_register'))
-
     # ユーザー画面作ったらユーザー画面に遷移するようにする
     return redirect(url_for('views_blueprint.index', message=f'Hi, {web_user_name}! Welcome to SALB!'))
 
