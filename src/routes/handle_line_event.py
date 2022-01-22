@@ -58,64 +58,72 @@ def callback() -> str:
 handle event
 '''
 
+# 共通処理
+
+
+def handle_event_decorater(function):
+    def handle_event(*args, **kwargs):
+        try:
+            line_request_service.set_req_info(args[0])
+
+            # LINE ユーザーの存在チェック
+            line_users = line_user_repository.find({
+                'line_user_id': line_request_service.req_line_user_id,
+            })
+            if len(line_users) == 0 and line_request_service.event_type != 'follow':
+                line_response_service.add_message(
+                    'まずは友達登録してください！')
+            else:
+                function(*args, **kwargs)
+
+        except BaseException as err:
+            print(traceback.format_exc())
+            line_response_service.reset()
+            line_response_service.add_message(
+                'エラーが発生しました。もしよければ Bug として起票してください。')
+            line_response_service.add_message(
+                'https://github.com/fezzlk/Simple-Alert-LINE-Bot/issues/new')
+
+        line_response_service.reply(args[0])
+        line_request_service.delete_req_info()
+
+    return handle_event
+
 
 @handler.add(MessageEvent, message=TextMessage)
-def handle_message(event: Event) -> None:
-    handle_event(event, get_text_message_use_case(event))
+@handle_event_decorater
+def handle_message(event: Event, destination: str) -> None:
+    get_text_message_use_case(event).execute()
 
 
 @handler.add(FollowEvent)
-def handle_follow(event: Event) -> None:
-    try:
-        line_request_service.set_req_info(event)
-        FollowUseCase().execute()
-    except BaseException as err:
-        print(traceback.format_exc())
-        line_response_service.reset()
-        line_response_service.add_message('サーバーエラーが発生しました。')
-        line_response_service.add_message(str(err))
-    line_response_service.reply(event)
-    line_request_service.delete_req_info()
+@handle_event_decorater
+def handle_follow(event: Event, destination: str) -> None:
+    FollowUseCase().execute()
 
 
 @handler.add(UnfollowEvent)
-def handle_unfollow(event: Event) -> None:
-    handle_event(event, UnfollowUseCase())
+@handle_event_decorater
+def handle_unfollow(event: Event, destination: str) -> None:
+    UnfollowUseCase().execute()
 
 
 @handler.add(JoinEvent)
-def handle_join(event: Event) -> None:
-    handle_event(event, JoinUseCase())
+@handle_event_decorater
+def handle_join(event: Event, destination: str) -> None:
+    JoinUseCase().execute()
 
 
 @handler.add(MessageEvent, message=ImageMessage)
-def handle_image_message(event: Event) -> None:
-    handle_event(event, ImageMessageUseCase())
+@handle_event_decorater
+def handle_image_message(event: Event, destination: str) -> None:
+    ImageMessageUseCase().execute()
 
 
 @handler.add(PostbackEvent)
-def handle_postback(event: Event) -> None:
-    handle_event(event, PostbackUseCase())
-
-
-def handle_event(event: Event, use_case: IUseCase):
-    try:
-        line_request_service.set_req_info(event)
-        line_users = line_user_repository.find({
-            'line_user_id': line_request_service.req_line_user_id,
-        })
-        if len(line_users) == 0:
-            line_response_service.add_message(
-                'ユーザーが登録されていません。一度本ユーザーをブロックし、解除してください。')
-        else:
-            use_case.execute()
-    except BaseException as err:
-        print(traceback.format_exc())
-        line_response_service.reset()
-        line_response_service.add_message('サーバーエラーが発生しました。')
-        line_response_service.add_message(str(err))
-    line_response_service.reply(event)
-    line_request_service.delete_req_info()
+@handle_event_decorater
+def handle_postback(event: Event, destination: str) -> None:
+    PostbackUseCase().execute()
 
 
 def get_text_message_use_case(event: Event):
@@ -127,8 +135,8 @@ def get_text_message_use_case(event: Event):
         '天気': ReplyWeatherUseCase(),
     }
     stock_keywords: Dict[str, Callable] = {
-        '食材登録': RegisterStockUseCase(),
-        '食材一覧': ReplyStockUseCase(),
+        'ストック登録': RegisterStockUseCase(),
+        'ストック一覧': ReplyStockUseCase(),
     }
     system_keywords: Dict[str, Callable] = {
         'ユーザー連携': RequestLinkLineWebUseCase(),
@@ -141,7 +149,7 @@ def get_text_message_use_case(event: Event):
     # 天気情報
     elif keyword in weather_keywords:
         return weather_keywords[keyword]
-    # 食材情報
+    # ストック情報
     elif keyword in stock_keywords:
         return stock_keywords[keyword]
     elif keyword in system_keywords:
