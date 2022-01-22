@@ -1,7 +1,7 @@
 from wtforms import Form, StringField, validators, SubmitField
 
 
-class RegistrationForm(Form):
+class RegisterWebUserForm(Form):
     web_user_email = StringField(
         label='名前',
         validators=[validators.DataRequired(message='名前は必須です')],

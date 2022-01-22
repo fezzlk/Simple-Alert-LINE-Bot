@@ -4,13 +4,13 @@ from flask import (
 )
 from src.Domains.Entities.WebUser import WebUser
 from src.UseCases.Interface.IUseCase import IUseCase
-from src.routes.Forms.RegistrationForm import RegistrationForm
+from src.routes.Forms.RegisterWebUserForm import RegisterWebUserForm
 from src.services import web_user_service
 
 
 class RegisterWebUserUseCase(IUseCase):
     def execute(self) -> str:
-        form = RegistrationForm(request.form)
+        form = RegisterWebUserForm(request.form)
 
         if not form.validate():
             return ''
