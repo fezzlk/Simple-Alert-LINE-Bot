@@ -13,7 +13,6 @@ from src.services import web_user_service
 class RegisterWebUserUseCase(IUseCase):
     def execute(self) -> str:
         form = RegisterWebUserForm(request.form)
-        form.web_user_email.data = None
 
         if not form.validate():
             raise BadRequest(
