@@ -8,6 +8,7 @@ from flask import (
     flash,
 )
 from src.UseCases.Web.RegisterWebUserUseCase import RegisterWebUserUseCase
+from src.UseCases.Web.ViewApproveLinkLineUseCase import ViewApproveLinkLineUseCase
 from src.UseCases.Web.ViewRegisterUseCase import ViewRegisterUseCase
 
 from src.Domains.Entities.Stock import Stock
@@ -21,7 +22,6 @@ from bson.objectid import ObjectId
 
 from src.Infrastructure.Repositories import (
     web_user_repository,
-    line_user_repository,
     stock_repository,
 )
 from src.models.StockViewModel import StockViewModel
@@ -53,7 +53,6 @@ def view_register():
 @views_blueprint.route('/register', methods=['POST'])
 def register():
     web_user_name = RegisterWebUserUseCase().execute()
-
     # ユーザー画面作ったらユーザー画面に遷移するようにする
     return redirect(url_for('views_blueprint.index', message=f'Hi, {web_user_name}! Welcome to SALB!'))
 
@@ -61,22 +60,9 @@ def register():
 @ views_blueprint.route('/line/approve', methods=['GET'])
 @ login_required
 @ set_message
-def view_approve_line_user():
-    page_contents = dict(session)
-    page_contents['title'] = 'LINEユーザー連携'
-
-    web_user: WebUser = page_contents['login_user']
-    line_users = line_user_repository.find(
-        {'line_user_id': web_user.linked_line_user_id}
-    )
-
-    if len(line_users) != 0:
-        page_contents['line_user_name'] = line_users[0].line_user_name
-
-    return render_template(
-        'pages/line/approve.html',
-        page_contents=page_contents,
-    )
+def view_approve_link_line_user():
+    page_contents = ViewApproveLinkLineUseCase().execute()
+    return render_template('pages/line/approve.html', page_contents=page_contents)
 
 
 @ views_blueprint.route('/line/approve', methods=['POST'])
@@ -87,7 +73,7 @@ def approve_line_user():
         {'is_linked_line_user': True},
     )
 
-    return redirect(url_for('views_blueprint.view_approve_line_user'))
+    return redirect(url_for('views_blueprint.view_approve_link_line_user'))
 
 
 @ views_blueprint.route('/stock', methods=['GET'])

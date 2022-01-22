@@ -3,7 +3,7 @@
 <div>
   {% if page_contents.login_user.is_linked_line_user %}
   <p>連携中 LINE ユーザー名: {{ page_contents.line_user_name }}</p>
-  {% elif 'line_user_name' in page_contents %}
+  {% elif page_contents.get('line_user_name', '') != '' %}
   <p>
     {{ page_contents.line_user_name }}
     さんからユーザー連携のリクエストが来ています。
@@ -17,7 +17,7 @@
   {% else %}
   <p>ユーザー連携リクエストが来ていません。</p>
   <p>
-    連携したい LINE ユーザーから Bot に 「ユーザー連携 {{
+    連携したい LINE アカウントから Bot に 「ユーザー連携 {{
     page_contents.login_user.web_user_email }}」と送信してください。
   </p>
   {% endif %}
