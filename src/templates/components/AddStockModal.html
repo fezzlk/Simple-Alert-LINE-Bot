@@ -1,4 +1,5 @@
-{% macro render(page_contents) -%}
+{% macro render(page_contents, form) -%} {% from "components/_formhelpers.html"
+import render_field %}
 <div
   class="modal fade"
   id="AddStockModal"
@@ -10,7 +11,7 @@
     <div class="modal-content">
       <form
         id="add-stock-form"
-        action="{{ url_for('views_blueprint.create_stock') }}"
+        action="{{ url_for('views_blueprint.add_stock') }}"
         method="post"
       >
         <div class="modal-header">
@@ -18,23 +19,10 @@
         </div>
         <div class="modal-body">
           <div class="mb-3">
-            <label for="ItemNameInput" class="form-label">アイテム名*</label>
-            <input
-              type="text"
-              name="item_name"
-              class="form-control"
-              id="ItemNameInput"
-              autofocus
-            />
+            <p>{{ render_field(form.item_name) }}</p>
           </div>
           <div class="mb-3">
-            <label for="ItemExpiryDateInput" class="form-label">期限</label>
-            <input
-              type="date"
-              name="expiry_date"
-              class="form-control"
-              id="ItemExpiryDateInput"
-            />
+            <p>{{ render_field(form.expiry_date) }}</p>
           </div>
         </div>
         <div class="modal-footer">
@@ -45,7 +33,7 @@
           >
             閉じる
           </button>
-          <button type="submit" class="btn btn-primary" onClick>追加</button>
+          {{ form.csrf_token }} {{ form.submit() }}
         </div>
       </form>
     </div>
@@ -53,7 +41,7 @@
 </div>
 <script>
   $("#AddStockModal").on("shown.bs.modal", function () {
-    $("#ItemNameInput").focus();
+    $("#item_name").focus();
   });
 </script>
 

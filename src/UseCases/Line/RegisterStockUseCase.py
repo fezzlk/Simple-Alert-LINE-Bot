@@ -16,7 +16,7 @@ class RegisterStockUseCase(IUseCase):
 
         if item_name is None:
             line_response_service.add_message(
-                '"ストック登録 [品名] [期限(任意)]" と送ってください。')
+                '"ストック登録 [アイテム名] [期限(任意)]" と送ってください。')
             line_response_service.add_message(
                 '期限のフォーマットは\nYYYY年MM月DD日: YYYYMMDD\n20YY年MM月DD日: YYMMDD\n今年MM月DD日: MMDD\n今月DD日: DD')
             return

@@ -7,18 +7,16 @@ from flask import (
     session,
     flash,
 )
+from src.UseCases.Web.AddStockUseCase import AddStockUseCase
 from src.UseCases.Web.ApproveLinkLineUserUseCase import ApproveLinkLineUserUseCase
 from src.UseCases.Web.RegisterWebUserUseCase import RegisterWebUserUseCase
 from src.UseCases.Web.ViewApproveLinkLineUseCase import ViewApproveLinkLineUseCase
 from src.UseCases.Web.ViewRegisterUseCase import ViewRegisterUseCase
 
-from src.Domains.Entities.Stock import Stock
-from src.Domains.Entities.WebUser import WebUser
 from src.UseCases.Web.ViewStockListUseCase import ViewStockListUseCase
 from src.oauth_client import oauth
 from src.UseCases.Web.ViewWeatherUseCase import ViewWeatherUseCase
 from src.middlewares import login_required, set_message
-from datetime import datetime
 from bson.objectid import ObjectId
 
 from src.Infrastructure.Repositories import (
@@ -76,39 +74,20 @@ def approve_line_user():
 @ login_required
 @ set_message
 def view_stock_list():
-    page_contents = ViewStockListUseCase().execute()
+    page_contents, forms = ViewStockListUseCase().execute()
+    print(forms)
     return render_template(
         'pages/stock/index.html',
         page_contents=page_contents,
+        form=forms,
     )
 
 
 @ views_blueprint.route('/stock', methods=['POST'])
 @ login_required
-def create_stock():
-    page_contents = dict(session)
-    web_user: WebUser = page_contents['login_user']
-
-    item_name = request.form.get('item_name', '')
-
-    if item_name == '':
-        raise BadRequest('アイテム名は必須です')
-
-    str_expiry_date = request.form.get('expiry_date', '')
-
-    expiry_date = datetime.strptime(
-        str_expiry_date, '%Y-%m-%d'
-    ) if str_expiry_date != '' else None
-
-    new_stock = Stock(
-        item_name=item_name,
-        expiry_date=expiry_date,
-        owner_id=web_user._id,
-        status=1,
-    )
-
-    result = stock_repository.create(new_stock=new_stock)
-    return redirect(url_for('views_blueprint.view_stock_list', message=f'"{result.item_name}" を追加しました'))
+def add_stock():
+    item_name = AddStockUseCase().execute()
+    return redirect(url_for('views_blueprint.view_stock_list', message=f'"{item_name}" を追加しました'))
 
 
 @ views_blueprint.route('/stock/delete', methods=['POST'])

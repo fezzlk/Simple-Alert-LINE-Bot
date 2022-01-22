@@ -1,15 +1,19 @@
-from flask import session
-from typing import Dict
+from flask import (
+    session,
+    request,
+)
+from typing import Dict, Tuple
 from src.Domains.Entities.WebUser import WebUser
 from src.UseCases.Interface.IUseCase import IUseCase
 from src.Infrastructure.Repositories import (
     stock_repository,
 )
 from src.models.StockViewModel import StockViewModel
+from src.routes.Forms.AddStockForm import AddStockForm
 
 
 class ViewStockListUseCase(IUseCase):
-    def execute(self) -> Dict:
+    def execute(self) -> Tuple[Dict, AddStockForm]:
         page_contents = dict(session)
         page_contents['title'] = 'ストック一覧'
 
@@ -23,7 +27,9 @@ class ViewStockListUseCase(IUseCase):
                 {'status': 1},
             ],
         })
-
         page_contents['stocks'] = [StockViewModel(stock) for stock in stocks]
         page_contents['labels'] = ['名前', '期限', '登録日']
-        return page_contents
+
+        form = AddStockForm(request.form)
+
+        return page_contents, form

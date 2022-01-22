@@ -1,45 +1,51 @@
-{% macro render(page_contents) -%}
-  {% import 'components/AddStockModal.html' as AddStockModal %}
-  {{ AddStockModal.render(page_contents) }}
+{% macro render(page_contents, form) -%} {% import
+'components/AddStockModal.html' as AddStockModal %} {{
+AddStockModal.render(page_contents, form) }}
 
-  <table class="table table-hover table-sm">
+<table class="table table-hover table-sm">
+  <thead>
+    <tr class="table-light">
+      {% for label in page_contents['labels'] %}
+      <th scope="col">{{ label }}</th>
+      {% endfor %}
+      <th scope="col">
+        <div class="text-end">
+          <button
+            type="button"
+            class="btn btn-sm"
+            data-bs-toggle="modal"
+            data-bs-target="#AddStockModal"
+          >
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+      </th>
+    </tr>
+  </thead>
 
-    <thead>
-      <tr class="table-light">
-        {% for label in page_contents['labels'] %}
-          <th scope="col">{{ label }}</th>
-        {% endfor %}
-        <th scope="col">
+  {% if page_contents.stocks|length != 0 %}
+  <tbody>
+    {% for stock in page_contents.stocks %}
+    <tr>
+      {% for key in page_contents.stocks[0].__dict__ if key != '_id' %}
+      <td class="align-middle">{{ stock.__dict__[key] }}</td>
+      {% endfor %}
+      <td>
+        <form
+          action="{{ url_for('views_blueprint.delete_stock') }}"
+          method="post"
+        >
           <div class="text-end">
-            <button type="button" class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#AddStockModal">
-              <i class="fas fa-plus"></i>
+            <input type="hidden" name="stock_id" value="{{ stock._id }}" />
+            <button type="submit" class="btn btn-sm text-danger">
+              <i class="far fa-trash-alt"></i>
             </button>
           </div>
-        </th> 
-      </tr>
-    </thead>
-
-    {% if page_contents.stocks|length != 0 %}
-      <tbody>
-        {% for stock in page_contents.stocks %}
-        <tr>
-          {% for key in page_contents.stocks[0].__dict__ if key != '_id' %}
-            <td class="align-middle">{{ stock.__dict__[key] }}</td>
-          {% endfor %}
-          <td>
-            <form action="{{ url_for('views_blueprint.delete_stock') }}" method="post">
-            <div class="text-end">
-              <input type="hidden" name="stock_id" value="{{ stock._id }}">
-              <button type="submit" class="btn btn-sm text-danger">
-                <i class="far fa-trash-alt"></i>
-              </button>
-            </div>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    {% endif %}
-    
-  </table>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  {% endif %}
+</table>
 {%- endmacro %}
