@@ -9,6 +9,7 @@ from flask import (
 )
 from src.UseCases.Web.AddStockUseCase import AddStockUseCase
 from src.UseCases.Web.ApproveLinkLineUserUseCase import ApproveLinkLineUserUseCase
+from src.UseCases.Web.CompleteDeleteStockUseCase import CompleteDeleteStockUseCase
 from src.UseCases.Web.DeleteStockUseCase import DeleteStockUseCase
 from src.UseCases.Web.RegisterWebUserUseCase import RegisterWebUserUseCase
 from src.UseCases.Web.ViewApproveLinkLineUseCase import ViewApproveLinkLineUseCase
@@ -104,30 +105,14 @@ def delete_stock():
 @ set_message
 def view_deleted_stock_list():
     page_contents = ViewDeletedStockListUseCase().execute()
-    return render_template(
-        'pages/stock/trash.html',
-        page_contents=page_contents,
-    )
+    return render_template('pages/stock/trash.html', page_contents=page_contents)
 
 
 @ views_blueprint.route('/stock/complete_delete', methods=['POST'])
 @ login_required
-@ set_message
 def complete_delete_stock():
-    stock_id = request.form.get('stock_id', '')
-    if stock_id == '':
-        raise BadRequest('アイテムIDは必須です')
-
-    result = stock_repository.delete({
-        '$and': [
-            {'_id': ObjectId(stock_id)},
-            {'status': 2},
-        ],
-    })
-    if result == 0:
-        raise NotFound('削除対象のアイテムが見つかりません')
-
-    return redirect(url_for('views_blueprint.view_deleted_stock_list', message='アイテムを削除しました'))
+    CompleteDeleteStockUseCase().execute()
+    return redirect(url_for('views_blueprint.view_deleted_stock_list', message='アイテムを完全削除しました'))
 
 
 @ views_blueprint.route('/weather', methods=['GET'])
