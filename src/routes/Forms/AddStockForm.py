@@ -1,4 +1,5 @@
 from wtforms import Form, StringField, validators, SubmitField, DateField
+from wtforms.validators import Optional
 
 
 class AddStockForm(Form):
@@ -9,6 +10,8 @@ class AddStockForm(Form):
     )
     expiry_date = DateField(
         label='期限',
+        format="%Y-%b-%d",
+        validators=[validators.Optional()],
         render_kw={'class': 'form-control'},
     )
     submit = SubmitField(

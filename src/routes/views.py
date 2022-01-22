@@ -75,7 +75,6 @@ def approve_line_user():
 @ set_message
 def view_stock_list():
     page_contents, forms = ViewStockListUseCase().execute()
-    print(forms)
     return render_template(
         'pages/stock/index.html',
         page_contents=page_contents,
