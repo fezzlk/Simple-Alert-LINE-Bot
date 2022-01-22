@@ -8,7 +8,7 @@ from src.services import (
 from src.Infrastructure.Repositories import stock_repository
 
 
-class RegisterStockUseCase(IUseCase):
+class AddStockUseCase(IUseCase):
     def execute(self) -> None:
         args = line_request_service.message.split()
         item_name = args[1] if len(args) >= 2 else None

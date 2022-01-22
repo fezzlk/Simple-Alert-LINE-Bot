@@ -6,4 +6,4 @@ from src.services import (
 
 class TextMessageUseCase(IUseCase):
     def execute(self) -> None:
-        line_response_service.add_message('テキストメッセージを受け取りました。')
+        line_response_service.add_message('使い方がわからない場合は「ヘルプ」と送ってください')

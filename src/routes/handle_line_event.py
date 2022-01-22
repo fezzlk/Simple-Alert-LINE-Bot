@@ -1,10 +1,8 @@
 import traceback
-from typing import Callable, Dict
 from flask import Blueprint, request, abort
 from linebot.exceptions import InvalidSignatureError
 from linebot.models.events import Event
 from src.Infrastructure.Repositories import line_user_repository
-from src.UseCases.Interface.IUseCase import IUseCase
 from src.services import line_request_service, line_response_service
 from src.line_bot_api import handler
 
@@ -16,14 +14,8 @@ from src.UseCases.Line.TextMessageUseCase import TextMessageUseCase
 from src.UseCases.Line.ImageMessageUseCase import ImageMessageUseCase
 from src.UseCases.Line.PostbackUseCase import PostbackUseCase
 
-from src.UseCases.Line.ReplyTrainDelayUseCase import ReplyTrainDelayUseCase
-
-from src.UseCases.Line.ReplyWeatherUseCase import ReplyWeatherUseCase
-
-from src.UseCases.Line.RegisterStockUseCase import RegisterStockUseCase
-from src.UseCases.Line.ReplyStockUseCase import ReplyStockUseCase
-
-from src.UseCases.Line.RequestLinkLineWebUseCase import RequestLinkLineWebUseCase
+from src.UseCases.get_line_command_use_case_list import get_line_command_use_case_list
+from src.UseCases.Line.ReplyHelpUseCase import ReplyHelpUseCase
 
 from linebot.models import (
     FollowEvent,
@@ -93,7 +85,7 @@ def handle_event_decorater(function):
 @handler.add(MessageEvent, message=TextMessage)
 @handle_event_decorater
 def handle_message(event: Event, destination: str) -> None:
-    get_text_message_use_case(event).execute()
+    get_use_case_text_message(event).execute()
 
 
 @handler.add(FollowEvent)
@@ -126,33 +118,21 @@ def handle_postback(event: Event, destination: str) -> None:
     PostbackUseCase().execute()
 
 
-def get_text_message_use_case(event: Event):
-
-    train_keywords: Dict[str, Callable] = {
-        '遅延': ReplyTrainDelayUseCase(),
-    }
-    weather_keywords: Dict[str, Callable] = {
-        '天気': ReplyWeatherUseCase(),
-    }
-    stock_keywords: Dict[str, Callable] = {
-        'ストック登録': RegisterStockUseCase(),
-        'ストック一覧': ReplyStockUseCase(),
-    }
-    system_keywords: Dict[str, Callable] = {
-        'ユーザー連携': RequestLinkLineWebUseCase(),
-    }
+def get_use_case_text_message(event: Event):
+    use_case_list = get_line_command_use_case_list()
+    use_case_list['system_keywords']['ヘルプ'] = ReplyHelpUseCase()
 
     keyword = event.message.text.split()[0]
     # 電車情報
-    if keyword in train_keywords:
-        return train_keywords[keyword]
+    if keyword in use_case_list['train_keywords']:
+        return use_case_list['train_keywords'][keyword]
     # 天気情報
-    elif keyword in weather_keywords:
-        return weather_keywords[keyword]
+    elif keyword in use_case_list['weather_keywords']:
+        return use_case_list['weather_keywords'][keyword]
     # ストック情報
-    elif keyword in stock_keywords:
-        return stock_keywords[keyword]
-    elif keyword in system_keywords:
-        return system_keywords[keyword]
+    elif keyword in use_case_list['stock_keywords']:
+        return use_case_list['stock_keywords'][keyword]
+    elif keyword in use_case_list['system_keywords']:
+        return use_case_list['system_keywords'][keyword]
     else:
         return TextMessageUseCase
