@@ -9,6 +9,7 @@ from flask import (
 )
 from src.Domains.Entities.Stock import Stock
 from src.Domains.Entities.WebUser import WebUser
+from src.UseCases.Web.ViewStockListUseCase import ViewStockListUseCase
 from src.oauth_client import oauth
 from src.UseCases.Web.ViewWeatherUseCase import ViewWeatherUseCase
 from src.middlewares import login_required, set_message
@@ -103,20 +104,8 @@ def approve_line_user():
 @ login_required
 @set_message
 def view_stock_list():
-    page_contents = dict(session)
-    page_contents['title'] = 'ストック一覧'
-    web_user: WebUser = page_contents['login_user']
-    stocks = stock_repository.find({
-        '$and': [
-            {'$or': [
-                {'owner_id': web_user.linked_line_user_id},
-                {'owner_id': web_user._id},
-            ]},
-            {'status': 1},
-        ],
-    })
-    page_contents['stocks'] = [StockViewModel(stock) for stock in stocks]
-    page_contents['labels'] = ['名前', '期限', '登録日']
+    page_contents = ViewStockListUseCase().execute()
+
     return render_template(
         'pages/stock/index.html',
         page_contents=page_contents,
