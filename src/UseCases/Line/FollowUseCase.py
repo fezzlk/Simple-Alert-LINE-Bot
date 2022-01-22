@@ -1,3 +1,4 @@
+from src import config
 from src.UseCases.Interface.IUseCase import IUseCase
 from src.services import (
     line_request_service,
@@ -16,3 +17,6 @@ class FollowUseCase(IUseCase):
         )
         line_user_service.find_or_create(new_line_user=new_line_user)
         line_response_service.add_message(f'{name}さん、友達登録ありがとうございます！')
+        line_response_service.add_message('「ヘルプ」と送ると使えるコマンドが表示されます。')
+        line_response_service.add_message(
+            f'web で確認する→ {config.SERVER_URL}/stock?openExternalBrowser=1')
