@@ -31,7 +31,7 @@ class ReplyStockUseCase(IUseCase):
                 messages.append(
                     f'{stock.item_name}: {stock.expiry_date.date()}')
             else:
-                elapsed_time = (datetime.now() - stock.created_at).days
+                elapsed_time = (datetime.now() - stock.created_at).days + 1
                 messages.append(f'{stock.item_name}: 登録から{elapsed_time}日')
 
         line_response_service.add_message('\n'.join(messages))
