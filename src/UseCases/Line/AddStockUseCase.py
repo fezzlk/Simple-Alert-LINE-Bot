@@ -27,15 +27,15 @@ class AddStockUseCase(IUseCase):
                 year = int(date_str[:4])
                 month = int(date_str[-4:-2])
                 day = int(date_str[-2:])
-            if len(date_str) == 6:
+            elif len(date_str) == 6:
                 year = 2000 + int(date_str[:2])
                 month = int(date_str[-4:-2])
                 day = int(date_str[-2:])
-            if len(date_str) == 4:
+            elif len(date_str) == 4:
                 year = datetime.now().year
                 month = int(date_str[-4:-2])
                 day = int(date_str[-2:])
-            if len(date_str) == 2:
+            elif len(date_str) == 2:
                 year = datetime.now().year
                 month = datetime.now().month
                 day = int(date_str[-2:])
