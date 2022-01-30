@@ -23,6 +23,9 @@ class AddStockUseCase(IUseCase):
 
         expiry_date = None
         if date_str is not None:
+            if len(date_str) % 2 == 1:
+                date_str = '0' + date_str
+
             if len(date_str) == 8:
                 year = int(date_str[:4])
                 month = int(date_str[-4:-2])
@@ -53,4 +56,9 @@ class AddStockUseCase(IUseCase):
             status=1,
         )
         stock_repository.create(new_stock)
-        line_response_service.add_message(f'"{item_name}"を登録しました')
+
+        if expiry_date is None:
+            line_response_service.add_message(f'"{item_name}"を登録しました')
+        else:
+            line_response_service.add_message(
+                f'"{item_name}"を期限{expiry_date.strftime("%Y年%m月%d日")}登録しました')
