@@ -20,7 +20,6 @@ class AddStockUseCase(IUseCase):
         form.expiry_date.data = form.expiry_date.raw_data[
             0] if form.expiry_date.raw_data[0] != '' else '0001-01-01'
 
-        print(form.expiry_date.__dict__)
         if not form.validate():
             raise BadRequest(
                 ', '.join([f'{k}: {v}' for k, v in form.errors.items()]))
