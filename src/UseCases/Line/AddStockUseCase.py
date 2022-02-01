@@ -61,4 +61,4 @@ class AddStockUseCase(IUseCase):
             line_response_service.add_message(f'"{item_name}"を登録しました')
         else:
             line_response_service.add_message(
-                f'"{item_name}"を期限{expiry_date.strftime("%Y年%m月%d日")}登録しました')
+                f'"{item_name}"を期限{expiry_date.strftime("%Y年%m月%d日")}で登録しました')
