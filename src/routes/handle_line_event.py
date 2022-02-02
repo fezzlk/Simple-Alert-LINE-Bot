@@ -122,7 +122,7 @@ def get_use_case_text_message(event: Event):
     use_case_list = get_line_command_use_case_list()
     use_case_list['system_keywords']['ヘルプ'] = ReplyHelpUseCase()
 
-    keyword = event.message.text.split()[0]
+    keyword = event.message.text.split()[0].upper()
     # 電車情報
     if keyword in use_case_list['train_keywords']:
         return use_case_list['train_keywords'][keyword]
