@@ -57,8 +57,7 @@ def view_register():
 def register():
     web_user_name = RegisterWebUserUseCase().execute()
     # ユーザー画面作ったらユーザー画面に遷移するようにする
-    redirect_to = session.get('next', '/')
-    session.pop('next', None)
+    redirect_to = session.pop('next', '/')
     return redirect(f'{redirect_to}?message=Hi, {web_user_name}! Welcome to SALB!')
 
 
@@ -167,8 +166,7 @@ def authorize():
     if len(web_users) == 0:
         return redirect('/register')
 
-    redirect_to = session.get('next', '/')
-    session.pop('next', None)
+    redirect_to = session.pop('next', '/')
 
     return redirect(redirect_to)
 
