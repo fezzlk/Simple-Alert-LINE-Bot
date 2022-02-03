@@ -10,6 +10,7 @@ def login_required(f):
 
         # メールアドレスがわからない(認証を通っていない)場合はログイン画面に遷移
         if 'login_email' not in session:
+            session['next'] = request.url
             return redirect(url_for('views_blueprint.login', next=request.url))
 
         web_users = web_user_repository.find(
@@ -18,7 +19,10 @@ def login_required(f):
 
         # メールアドレスが一致する web user がいなければ新規作成画面に遷移
         if len(web_users) == 0:
+            session['next'] = request.url
             return redirect(url_for('views_blueprint.register', next=request.url))
+
+        session.pop('next', None)
 
         # web user をログイン中ユーザーとしてセッションに保存し、通過
         session['login_user'] = web_users[0]

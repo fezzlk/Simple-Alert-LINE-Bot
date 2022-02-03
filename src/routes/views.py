@@ -57,7 +57,9 @@ def view_register():
 def register():
     web_user_name = RegisterWebUserUseCase().execute()
     # ユーザー画面作ったらユーザー画面に遷移するようにする
-    return redirect(url_for('views_blueprint.index', message=f'Hi, {web_user_name}! Welcome to SALB!'))
+    redirect_to = session.get('next', '/')
+    session.pop('next', None)
+    return redirect(f'{redirect_to}?message=Hi, {web_user_name}! Welcome to SALB!')
 
 
 @ views_blueprint.route('/line/approve', methods=['GET'])
@@ -165,7 +167,10 @@ def authorize():
     if len(web_users) == 0:
         return redirect('/register')
 
-    return redirect('/')  # [TODO] 引数からリダイレクト先を指定する
+    redirect_to = session.get('next', '/')
+    session.pop('next', None)
+
+    return redirect(redirect_to)
 
 
 @ views_blueprint.route('/logout')
