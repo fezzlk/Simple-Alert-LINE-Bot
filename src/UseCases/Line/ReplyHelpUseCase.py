@@ -41,7 +41,7 @@ def get_description(keyword) -> List[str]:
             '食材やポイントカードなどの期限を管理できます',
             '期限が近づいている場合、毎日12時に通知がきます',
             '"ストック登録 [アイテム名] [期限(任意)]"\nと送ってください。',
-            '[日付の入力方法]\nYYYY年MM月DD日: YYYYMMDD\n20YY年MM月DD日: YYMMDD\n今年MM月DD日: MMDD\n今月DD日: DD',
+            '[日付の入力方法]\n\nYYYY年MM月DD日\n→ YYYYMMDD\n\n20YY年MM月DD日\n→ YYMMDD\n\n今年MM月DD日\n→ MMDD\n\n今月DD日\n→ DD',
         ]
     elif keyword == 'ユーザー連携':
         return [

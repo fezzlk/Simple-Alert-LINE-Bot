@@ -44,7 +44,7 @@ class AddStockUseCase(IUseCase):
                 day = int(date_str[-2:])
             else:
                 line_response_service.add_message(
-                    '期限のフォーマットは\nYYYY年MM月DD日: YYYYMMDD\n20YY年MM月DD日: YYMMDD\n今年MM月DD日: MMDD\n今月DD日: DD')
+                    '[日付の入力方法]\n\nYYYY年MM月DD日\n→ YYYYMMDD\n\n20YY年MM月DD日\n→ YYMMDD\n\n今年MM月DD日\n→ MMDD\n\n今月DD日\n→ DD')
                 return
 
             expiry_date = datetime(year, month, day)
