@@ -28,7 +28,30 @@ AddStockModal.render(page_contents, form) }}
     {% for stock in page_contents.stocks %}
     <tr>
       {% for key in page_contents.stocks[0].__dict__ if key != '_id' %}
-      <td class="align-middle">{{ stock.__dict__[key] }}</td>
+      <td class="align-middle">
+        <div id="{{stock._id}}_{{key}}">{{ stock.__dict__[key] }}</div>
+        <form
+          action="{{ url_for('views_blueprint.update_stock') }}"
+          method="POST"
+        >
+          <input
+            type="hidden"
+            id="{{stock._id}}_{{key}}_input"
+            value="{{ stock.__dict__[key] }}"
+          />
+        </form>
+        <script>
+          $("#{{stock._id}}_{{key}}").on("click", (e) => {
+            $("#{{stock._id}}_{{key}}").addClass("invisible");
+            $("#{{stock._id}}_{{key}}_input").attr("type", "text").focus();
+          });
+
+          $("#{{stock._id}}_{{key}}_input").on("blur", (e) => {
+            $("#{{stock._id}}_{{key}}").removeClass("invisible");
+            $("#{{stock._id}}_{{key}}_input").attr("type", "hidden").focus();
+          });
+        </script>
+      </td>
       {% endfor %}
       <td>
         <form
