@@ -90,10 +90,11 @@ def add_stock():
     return redirect(url_for('views_blueprint.view_stock_list', message=f'"{item_name}" を追加しました'))
 
 
-@ views_blueprint.route('/stock', methods=['PUT'])
+@ views_blueprint.route('/stock/update', methods=['POST'])
 @ login_required
 def update_stock():
     print("call update stock")
+    print(request.get_data)
     return redirect(url_for('views_blueprint.view_stock_list', message=f'更新しました'))
 
 

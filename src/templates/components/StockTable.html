@@ -29,7 +29,10 @@ AddStockModal.render(page_contents, form) }}
     <tr>
       {% for key in page_contents.stocks[0].__dict__ if key != '_id' %}
       <td class="align-middle">
-        <div id="{{stock._id}}_{{key}}">{{ stock.__dict__[key] }}</div>
+        <div id="{{stock._id}}_{{key}}">
+          {% if stock.__dict__[key] == '' %} &nbsp; {% else %} {{
+          stock.__dict__[key] }} {% endif %}
+        </div>
         <form
           action="{{ url_for('views_blueprint.update_stock') }}"
           method="POST"
