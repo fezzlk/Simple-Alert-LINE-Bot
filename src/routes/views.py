@@ -21,7 +21,6 @@ from src.UseCases.Web.ViewStockListUseCase import ViewStockListUseCase
 from src.oauth_client import oauth
 from src.UseCases.Web.ViewWeatherUseCase import ViewWeatherUseCase
 from src.middlewares import login_required, set_message
-from bson.objectid import ObjectId
 
 from src.Infrastructure.Repositories import (
     web_user_repository,
