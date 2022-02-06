@@ -36,6 +36,8 @@ AddStockModal.render(page_contents, form) }}
         <form
           action="{{ url_for('views_blueprint.update_stock') }}"
           method="POST"
+          id="{{stock._id}}_{{key}}_form"
+          name="{{key}}"
         >
           <input
             type="hidden"
@@ -52,6 +54,42 @@ AddStockModal.render(page_contents, form) }}
           $("#{{stock._id}}_{{key}}_input").on("blur", (e) => {
             $("#{{stock._id}}_{{key}}").removeClass("complete-invisible");
             $("#{{stock._id}}_{{key}}_input").attr("type", "hidden");
+          });
+
+          form = $("#{{stock._id}}_{{key}}_form").submit((ele) => {
+            if (ele.target.name == "item_name") {
+              const item_name = $("#{{stock._id}}_item_name_input").val();
+              if (item_name == "") {
+                toastr.error("名前は必須です。");
+                return false;
+              }
+            }
+
+            if (ele.target.name == "str_expiry_date") {
+              const str_expiry_date = $(
+                "#{{stock._id}}_str_expiry_date_input"
+              ).val();
+              if (
+                str_expiry_date !== "" &&
+                isNaN(Date.parse(str_expiry_date))
+              ) {
+                toastr.error("日付として不適切です。");
+                return false;
+              }
+            }
+
+            if (ele.target.name == "str_created_at") {
+              const str_created_at = $(
+                "#{{stock._id}}_str_created_at_input"
+              ).val();
+              if (str_created_at === "") {
+                toastr.error("登録日は必須です。");
+                return false;
+              } else if (isNaN(Date.parse(str_created_at))) {
+                toastr.error("日付として不適切です。");
+                return false;
+              }
+            }
           });
         </script>
       </td>
