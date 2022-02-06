@@ -45,6 +45,7 @@ AddStockModal.render(page_contents, form) }}
             name="{{key}}"
             value="{{ stock.__dict__[key] }}"
           />
+          <input type="hidden" name="stock_id" value="{{ stock._id }}" />
         </form>
         <script>
           $("#{{stock._id}}_{{key}}").on("click", (e) => {
