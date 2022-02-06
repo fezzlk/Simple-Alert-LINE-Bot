@@ -34,17 +34,16 @@ class UpdateStockUseCase(IUseCase):
 
             elif key == 'str_expiry_date':
                 if val != '':
-                    new_values[key] = datetime.strptime(val, '%Y-%m-%d')
+                    new_values['expiry_date'] = datetime.strptime(
+                        val, '%Y-%m-%d')
                 else:
-                    new_values[key] = None
+                    new_values['expiry_date'] = None
 
             elif key == 'str_created_at':
                 if val == '':
                     raise BadRequest("日付は必須です。")
-                new_values[key] = datetime.strptime(val, '%Y-%m-%d')
+                new_values['created_at'] = datetime.strptime(val, '%Y-%m-%d')
 
-        print(stock_id)
-        print(new_values)
         res = stock_repository.update(
             query={
                 '$and': [
@@ -57,5 +56,3 @@ class UpdateStockUseCase(IUseCase):
             },
             new_values=new_values,
         )
-
-        print(res)
