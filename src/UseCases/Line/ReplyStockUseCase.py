@@ -29,10 +29,10 @@ class ReplyStockUseCase(IUseCase):
         for stock in stocks:
             if stock.expiry_date is not None:
                 messages.append(
-                    f'{stock.item_name}: {stock.expiry_date.date()}')
+                    f'{stock.item_name}: {stock.expiry_date.strftime("%Y年%m月%d日")}')
             else:
                 elapsed_time = (datetime.now() - stock.created_at).days + 1
-                messages.append(f'{stock.item_name}: 登録から{elapsed_time}日')
+                messages.append(f'{stock.item_name}: 登録から{elapsed_time}日目')
 
         line_response_service.add_message('\n'.join(messages))
         line_response_service.add_message(
