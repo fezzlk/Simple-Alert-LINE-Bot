@@ -1,6 +1,5 @@
 from flask import (
     Blueprint,
-    request,
     render_template,
     url_for,
     redirect,
@@ -13,6 +12,7 @@ from src.UseCases.Web.CompleteDeleteStockUseCase import CompleteDeleteStockUseCa
 from src.UseCases.Web.DeleteStockUseCase import DeleteStockUseCase
 from src.UseCases.Web.RegisterWebUserUseCase import RegisterWebUserUseCase
 from src.UseCases.Web.RestoreStockUseCase import RestoreStockUseCase
+from src.UseCases.Web.UpdateStockUseCase import UpdateStockUseCase
 from src.UseCases.Web.ViewApproveLinkLineUseCase import ViewApproveLinkLineUseCase
 from src.UseCases.Web.ViewDeletedStockListUseCase import ViewDeletedStockListUseCase
 from src.UseCases.Web.ViewRegisterUseCase import ViewRegisterUseCase
@@ -27,8 +27,6 @@ from src.Infrastructure.Repositories import (
     web_user_repository,
     stock_repository,
 )
-from src.models.StockViewModel import StockViewModel
-from werkzeug.exceptions import BadRequest, NotFound
 
 views_blueprint = Blueprint('views_blueprint', __name__, url_prefix='/')
 
@@ -93,8 +91,7 @@ def add_stock():
 @ views_blueprint.route('/stock/update', methods=['POST'])
 @ login_required
 def update_stock():
-    print("call update stock")
-    print(request.get_data)
+    UpdateStockUseCase().execute()
     return redirect(url_for('views_blueprint.view_stock_list', message=f'更新しました'))
 
 
