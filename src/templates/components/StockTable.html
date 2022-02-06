@@ -42,13 +42,13 @@ AddStockModal.render(page_contents, form) }}
         </form>
         <script>
           $("#{{stock._id}}_{{key}}").on("click", (e) => {
-            $("#{{stock._id}}_{{key}}").addClass("invisible");
+            $("#{{stock._id}}_{{key}}").addClass("complete-invisible");
             $("#{{stock._id}}_{{key}}_input").attr("type", "text").focus();
           });
 
           $("#{{stock._id}}_{{key}}_input").on("blur", (e) => {
-            $("#{{stock._id}}_{{key}}").removeClass("invisible");
-            $("#{{stock._id}}_{{key}}_input").attr("type", "hidden").focus();
+            $("#{{stock._id}}_{{key}}").removeClass("complete-invisible");
+            $("#{{stock._id}}_{{key}}_input").attr("type", "hidden");
           });
         </script>
       </td>
