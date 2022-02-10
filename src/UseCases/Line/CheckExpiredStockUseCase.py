@@ -33,34 +33,49 @@ class CheckExpiredStockUseCase(IUseCase):
                 ],
             })
 
-            messages = []
+            expired_stocks = []
+            stocks_with_expire_date = []
+            stocks_without_expire_date = []
             for stock in stocks:
+
                 print('# stock')
                 print(stock.item_name)
+
                 print('# expiry_date')
                 print(stock.expiry_date)
+
                 if stock.expiry_date is None:
+                    elapsed_time = (datetime.now() - stock.created_at).days + 1
+                    stocks_without_expire_date.append(
+                        f'{stock.item_name}: 登録から{elapsed_time}日目')
                     continue
+
                 days_until_expire = (
                     stock.expiry_date - datetime.now()
                 ).days + 1
+
                 print('# days_until_expire')
                 print(days_until_expire)
                 if days_until_expire < 0:
                     print('# 期限切れ')
-                    messages.append(
+                    expired_stocks.append(
                         f'{stock.item_name}: x ({days_until_expire * -1}日超過)')
                 elif days_until_expire == 0:
                     print('# 当日')
-                    messages.append(
+                    stocks_with_expire_date.append(
                         f'{stock.item_name}: 今日まで')
                 elif days_until_expire < 7:
                     print('# 期限内')
-                    messages.append(
+                    stocks_with_expire_date.append(
                         f'{stock.item_name}: あと{days_until_expire}日')
+
+            messages = len(expired_stocks)\
+                + len(stocks_with_expire_date)\
+                + len(stocks_without_expire_date)
             if len(messages) == 0:
                 messages.append(
                     '期限が近づいているストックはありません。[TODO]このような場合は通知しないように設定できる')
+
             line_response_service.add_message('\n'.join(messages))
             line_response_service.add_message(
                 f'webで確認する→ {config.SERVER_URL}/stock?openExternalBrowser=1')

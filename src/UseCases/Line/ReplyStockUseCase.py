@@ -25,15 +25,19 @@ class ReplyStockUseCase(IUseCase):
                 {'status': 1},
             ],
         })
-        messages = []
+
+        stocks_with_expire_date = []
+        stocks_without_expire_date = []
         for stock in stocks:
             if stock.expiry_date is not None:
-                messages.append(
+                stocks_with_expire_date.append(
                     f'{stock.item_name}: {stock.expiry_date.strftime("%Y年%m月%d日")}')
             else:
                 elapsed_time = (datetime.now() - stock.created_at).days + 1
-                messages.append(f'{stock.item_name}: 登録から{elapsed_time}日目')
+                stocks_without_expire_date.append(
+                    f'{stock.item_name}: 登録から{elapsed_time}日目')
 
-        line_response_service.add_message('\n'.join(messages))
+        line_response_service.add_message(
+            '\n'.join(stocks_without_expire_date) + '\n'.join(stocks_with_expire_date))
         line_response_service.add_message(
             f'web で確認する→ {config.SERVER_URL}/stock?openExternalBrowser=1')
