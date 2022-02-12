@@ -51,6 +51,11 @@ AddStockModal.render(page_contents, form) }}
           $("#{{stock._id}}_{{key}}").on("click", (e) => {
             $("#{{stock._id}}_{{key}}").addClass("complete-invisible");
             $("#{{stock._id}}_{{key}}_input").attr("type", "text").focus();
+            var form = $("#{{stock._id}}_{{key}}_input").get(0);
+            // HACK: 　テキストカーソルを末尾に移動
+            tmp = form.value;
+            form.value = "";
+            form.value = tmp;
           });
 
           $("#{{stock._id}}_{{key}}_input").on("blur", (e) => {
