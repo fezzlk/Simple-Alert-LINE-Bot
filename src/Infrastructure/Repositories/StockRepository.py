@@ -1,7 +1,8 @@
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from src.Domains.Entities.Stock import Stock
 from src.mongo_client import mongo_client
 from src.Domains.IRepositories.IStockRepository import IStockRepository
+from pymongo import ASCENDING, DESCENDING
 
 
 class StockRepository(IStockRepository):
@@ -28,8 +29,11 @@ class StockRepository(IStockRepository):
     def find(
         self,
         query: Dict[str, any] = {},
+        sort: List[Tuple[str, any]] = [('id', ASCENDING)],
     ) -> List[Stock]:
-        records = mongo_client.db.stocks.find(filter=query)
+        records = mongo_client.db.stocks\
+            .find(filter=query)\
+            .sort(sort)
         stocks = []
         for record in records:
             record['_id'] = str(record['_id'])
