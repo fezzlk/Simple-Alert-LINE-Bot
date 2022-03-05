@@ -3,6 +3,7 @@ from src.Domains.Entities.Stock import Stock
 from src.mongo_client import mongo_client
 from src.Domains.IRepositories.IStockRepository import IStockRepository
 from pymongo import ASCENDING, DESCENDING
+from datetime import datetime
 
 
 class StockRepository(IStockRepository):
@@ -23,6 +24,7 @@ class StockRepository(IStockRepository):
         query: Dict[str, any],
         new_values: Dict[str, any],
     ) -> int:
+        new_values['updated_at'] = datetime.now()
         result = mongo_client.db.stocks.update_one(query, {'$set': new_values})
         return result.matched_count
 

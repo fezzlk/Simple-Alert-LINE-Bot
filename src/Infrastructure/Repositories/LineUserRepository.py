@@ -2,6 +2,7 @@ from typing import Dict, List
 from src.Domains.Entities.LineUser import LineUser
 from src.mongo_client import mongo_client
 from src.Domains.IRepositories.ILineUserRepository import ILineUserRepository
+from datetime import datetime
 
 
 class LineUserRepository(ILineUserRepository):
@@ -22,6 +23,7 @@ class LineUserRepository(ILineUserRepository):
         query: Dict[str, any],
         new_values: Dict[str, any],
     ) -> int:
+        new_values['updated_at'] = datetime.now()
         result = mongo_client.db.line_users.update_one(
             query, {'$set': new_values})
         return result.matched_count
