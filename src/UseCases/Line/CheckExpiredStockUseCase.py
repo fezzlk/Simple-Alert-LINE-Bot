@@ -69,9 +69,9 @@ class CheckExpiredStockUseCase(IUseCase):
                     stocks_with_expire_date.append(
                         f'{stock.item_name}: あと{days_until_expire}日')
 
-            messages = len(expired_stocks)\
-                + len(stocks_with_expire_date)\
-                + len(stocks_without_expire_date)
+            messages = expired_stocks\
+                + stocks_with_expire_date\
+                + stocks_without_expire_date
             if len(messages) == 0:
                 messages.append(
                     '期限が近づいているストックはありません。[TODO]このような場合は通知しないように設定できる')
