@@ -34,5 +34,11 @@ class ViewDeletedStockListUseCase(IUseCase):
             ],
         )
         page_contents['stocks'] = [StockViewModel(stock) for stock in stocks]
-        page_contents['labels'] = ['名前', '期限', '登録日']
+        page_contents['keys'] = [
+            'item_name',
+            'str_created_at',
+            'str_expiry_date',
+        ]
+        page_contents['labels'] = ['名前', '登録日', '期限']
+
         return page_contents

@@ -27,7 +27,7 @@ AddStockModal.render(page_contents, form) }}
   <tbody>
     {% for stock in page_contents.stocks %}
     <tr>
-      {% for key in page_contents.stocks[0].__dict__ if key != '_id' %}
+      {% for key in page_contents['keys'] %}
       <td class="align-middle">
         <div id="{{stock._id}}_{{key}}">
           {% if stock.__dict__[key] == '' %} &nbsp; {% else %} {{
