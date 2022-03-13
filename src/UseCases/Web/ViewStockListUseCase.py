@@ -1,5 +1,4 @@
 from flask import (
-    session,
     request,
 )
 from typing import Dict, Tuple
@@ -8,13 +7,12 @@ from src.UseCases.Interface.IUseCase import IUseCase
 from src.Infrastructure.Repositories import (
     stock_repository,
 )
-from src.models.StockViewModel import StockViewModel
+from src.models.StockViewModel import StockViewModel, keys, labels
 from src.routes.Forms.AddStockForm import AddStockForm
 
 
 class ViewStockListUseCase(IUseCase):
-    def execute(self) -> Tuple[Dict, AddStockForm]:
-        page_contents = dict(session)
+    def execute(self, page_contents: dict) -> Tuple[Dict, AddStockForm]:
         page_contents['title'] = 'ストック一覧'
 
         web_user: WebUser = page_contents['login_user']
@@ -28,12 +26,8 @@ class ViewStockListUseCase(IUseCase):
             ],
         })
         page_contents['stocks'] = [StockViewModel(stock) for stock in stocks]
-        page_contents['keys'] = [
-            'item_name',
-            'str_created_at',
-            'str_expiry_date',
-        ]
-        page_contents['labels'] = ['名前', '登録日', '期限']
+        page_contents['keys'] = keys
+        page_contents['labels'] = labels
 
         form = AddStockForm(request.form)
 

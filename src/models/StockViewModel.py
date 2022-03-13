@@ -1,6 +1,13 @@
 from dataclasses import dataclass
 from src.Domains.Entities.Stock import Stock
 
+keys = [
+    'item_name',
+    'str_created_at',
+    'str_expiry_date',
+]
+labels = ['名前', '登録日', '期限']
+
 
 @dataclass()
 class StockViewModel:
