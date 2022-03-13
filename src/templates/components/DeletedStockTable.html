@@ -3,7 +3,7 @@
   <thead>
     <tr class="table-light">
       <th scope="col"></th>
-      {% for label in page_contents['labels'] %}
+      {% for label in page_contents.labels %}
       <th scope="col">{{ label }}</th>
       {% endfor %}
       <th scope="col"></th>
@@ -25,7 +25,7 @@
           </button>
         </form>
       </td>
-      {% for key in page_contents['keys'] %}
+      {% for key in page_contents.keys %}
       <td class="align-middle">{{ stock.__dict__[key] }}</td>
       {% endfor %}
       <td>

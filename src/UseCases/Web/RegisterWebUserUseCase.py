@@ -7,11 +7,12 @@ from src.Domains.Entities.WebUser import WebUser
 from src.UseCases.Interface.IUseCase import IUseCase
 from src.routes.Forms.RegisterWebUserForm import RegisterWebUserForm
 from src.services import web_user_service
+from src.models.PageContents import PageContents
 
 
 class RegisterWebUserUseCase(IUseCase):
-    def execute(self, page_contents: dict) -> str:
-        request = page_contents['request']
+    def execute(self, page_contents: PageContents) -> str:
+        request = page_contents.request
         form = RegisterWebUserForm(request.form)
 
         if not form.validate():

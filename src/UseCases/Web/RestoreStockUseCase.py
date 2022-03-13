@@ -7,11 +7,12 @@ from src.Infrastructure.Repositories import (
     stock_repository,
 )
 from bson.objectid import ObjectId
+from src.models.PageContents import PageContents
 
 
 class RestoreStockUseCase(IUseCase):
-    def execute(self, page_contents: dict) -> str:
-        request: Request = page_contents['request']
+    def execute(self, page_contents: PageContents) -> str:
+        request: Request = page_contents.request
         stock_id = request.form.get('stock_id', '')
         if stock_id == '':
             raise BadRequest('アイテムIDは必須です')

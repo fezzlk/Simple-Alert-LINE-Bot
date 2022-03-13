@@ -8,11 +8,12 @@ from src.Infrastructure.Repositories import (
     stock_repository,
 )
 from bson.objectid import ObjectId
+from src.models.PageContents import PageContents
 
 
 class UpdateStockUseCase(IUseCase):
-    def execute(self, page_contents: dict) -> None:
-        request: Request = page_contents['request']
+    def execute(self, page_contents: PageContents) -> None:
+        request: Request = page_contents.request
         form = request.form
         owner_web: WebUser = page_contents.get('login_user')
         owner_line_id = owner_web.linked_line_user_id if owner_web.is_linked_line_user else ''
