@@ -1,6 +1,5 @@
 from flask import (
     request,
-    session,
 )
 from werkzeug.exceptions import BadRequest
 
@@ -14,8 +13,7 @@ from src.Infrastructure.Repositories import (
 
 
 class ApproveLinkLineUserUseCase(IUseCase):
-    def execute(self) -> None:
-        page_contents = dict(session)
+    def execute(self, page_contents: dict) -> None:
         web_user_repository.update(
             {'web_user_email': page_contents['login_email']},
             {'is_linked_line_user': True},

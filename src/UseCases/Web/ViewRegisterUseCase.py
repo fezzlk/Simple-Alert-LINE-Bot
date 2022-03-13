@@ -1,6 +1,5 @@
 from flask import (
     request,
-    session,
 )
 from typing import Dict, Tuple
 from src.UseCases.Interface.IUseCase import IUseCase
@@ -8,8 +7,7 @@ from src.routes.Forms.RegisterWebUserForm import RegisterWebUserForm
 
 
 class ViewRegisterUseCase(IUseCase):
-    def execute(self) -> Tuple[Dict, RegisterWebUserForm]:
-        page_contents = dict(session)
+    def execute(self, page_contents: dict) -> Tuple[Dict, RegisterWebUserForm]:
         page_contents['title'] = 'ユーザー登録'
 
         form = RegisterWebUserForm(request.form)

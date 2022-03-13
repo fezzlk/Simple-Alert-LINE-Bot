@@ -1,6 +1,5 @@
 from flask import (
     request,
-    session,
 )
 from werkzeug.exceptions import BadRequest
 
@@ -11,8 +10,8 @@ from src.services import web_user_service
 
 
 class RegisterWebUserUseCase(IUseCase):
-    def execute(self) -> str:
-        form = RegisterWebUserForm(request.form)
+    def execute(self, page_contents: dict) -> str:
+        form: RegisterWebUserForm = page_contents['form']
 
         if not form.validate():
             raise BadRequest(

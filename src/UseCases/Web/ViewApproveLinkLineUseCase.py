@@ -1,7 +1,3 @@
-from flask import (
-    request,
-    session,
-)
 from typing import Dict, Tuple
 from src.UseCases.Interface.IUseCase import IUseCase
 from src.Domains.Entities.WebUser import WebUser
@@ -12,8 +8,7 @@ from src.Infrastructure.Repositories import (
 
 
 class ViewApproveLinkLineUseCase(IUseCase):
-    def execute(self) -> Tuple[Dict, RegisterWebUserForm]:
-        page_contents = dict(session)
+    def execute(self, page_contents: dict) -> Tuple[Dict, RegisterWebUserForm]:
         page_contents['title'] = 'LINEユーザー連携'
 
         web_user: WebUser = page_contents['login_user']

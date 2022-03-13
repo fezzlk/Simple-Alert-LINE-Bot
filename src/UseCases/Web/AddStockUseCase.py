@@ -1,7 +1,3 @@
-from flask import (
-    request,
-    session,
-)
 from src.UseCases.Interface.IUseCase import IUseCase
 from src.Domains.Entities.Stock import Stock
 from src.Domains.Entities.WebUser import WebUser
@@ -14,8 +10,8 @@ from src.routes.Forms.AddStockForm import AddStockForm
 
 
 class AddStockUseCase(IUseCase):
-    def execute(self) -> str:
-        form = AddStockForm(request.form)
+    def execute(self, page_contents: dict) -> str:
+        form: AddStockForm = page_contents['form']
         form.expiry_date.data = form.expiry_date.raw_data[
             0] if form.expiry_date.raw_data[0] != '' else '0001-01-01'
 
@@ -23,7 +19,6 @@ class AddStockUseCase(IUseCase):
             raise BadRequest(
                 ', '.join([f'{k}: {v}' for k, v in form.errors.items()]))
 
-        page_contents = dict(session)
         web_user: WebUser = page_contents['login_user']
 
         item_name = form.item_name.data
