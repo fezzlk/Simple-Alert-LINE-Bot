@@ -1,3 +1,4 @@
+from flask import Request
 from src.UseCases.Interface.IUseCase import IUseCase
 from src.Domains.Entities.Stock import Stock
 from src.Domains.Entities.WebUser import WebUser
@@ -11,7 +12,8 @@ from src.routes.Forms.AddStockForm import AddStockForm
 
 class AddStockUseCase(IUseCase):
     def execute(self, page_contents: dict) -> str:
-        form: AddStockForm = page_contents['form']
+        request: Request = page_contents['request']
+        form = AddStockForm(request.form)
         form.expiry_date.data = form.expiry_date.raw_data[
             0] if form.expiry_date.raw_data[0] != '' else '0001-01-01'
 

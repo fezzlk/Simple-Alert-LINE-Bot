@@ -23,9 +23,6 @@ from src.oauth_client import oauth
 from src.UseCases.Web.ViewWeatherUseCase import ViewWeatherUseCase
 from src.middlewares import login_required, set_message
 
-from src.routes.Forms.AddStockForm import AddStockForm
-from src.routes.Forms.RegisterWebUserForm import RegisterWebUserForm
-
 from src.Infrastructure.Repositories import (
     web_user_repository,
 )
@@ -57,7 +54,7 @@ def view_register():
 @views_blueprint.route('/register', methods=['POST'])
 def register():
     page_contents = dict(session)
-    page_contents['form'] = RegisterWebUserForm(request.form)
+    page_contents['request'] = request
     web_user_name = RegisterWebUserUseCase().execute(page_contents=page_contents)
     # ユーザー画面作ったらユーザー画面に遷移するようにする
     redirect_to = session.pop('next', '/')
@@ -92,7 +89,7 @@ def view_stock_list():
 @ login_required
 def add_stock():
     page_contents = dict(session)
-    page_contents['form'] = AddStockForm(request.form)
+    page_contents['request'] = request
     item_name = AddStockUseCase().execute(page_contents=page_contents)
     return redirect(url_for('views_blueprint.view_stock_list', message=f'"{item_name}" を追加しました'))
 

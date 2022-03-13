@@ -11,7 +11,8 @@ from src.services import web_user_service
 
 class RegisterWebUserUseCase(IUseCase):
     def execute(self, page_contents: dict) -> str:
-        form: RegisterWebUserForm = page_contents['form']
+        request = page_contents['request']
+        form = RegisterWebUserForm(request.form)
 
         if not form.validate():
             raise BadRequest(
