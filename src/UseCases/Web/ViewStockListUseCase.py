@@ -8,11 +8,11 @@ from src.Infrastructure.Repositories import (
 )
 from src.models.StockViewModel import StockViewModel, keys, labels
 from src.routes.Forms.AddStockForm import AddStockForm
-from src.models.PageContents import PageContents
+from src.models.PageContents import PageContents, StockListData
 
 
 class ViewStockListUseCase(IUseCase):
-    def execute(self, page_contents: PageContents) -> Tuple[Dict, AddStockForm]:
+    def execute(self, page_contents: PageContents[StockListData]) -> Tuple[PageContents[StockListData], AddStockForm]:
         page_contents.page_title = 'ストック一覧'
 
         web_user = page_contents.login_user
@@ -25,9 +25,9 @@ class ViewStockListUseCase(IUseCase):
                 {'status': 1},
             ],
         })
-        page_contents.stocks = [StockViewModel(stock) for stock in stocks]
-        page_contents.keys = keys
-        page_contents.labels = labels
+        page_contents.data.stocks = [StockViewModel(stock=stock) for stock in stocks]
+        page_contents.data.keys = keys
+        page_contents.data.labels = labels
 
         form = AddStockForm(request.form)
 

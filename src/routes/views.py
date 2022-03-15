@@ -19,7 +19,7 @@ from src.UseCases.Web.ViewDeletedStockListUseCase import ViewDeletedStockListUse
 from src.UseCases.Web.ViewRegisterUseCase import ViewRegisterUseCase
 
 from src.UseCases.Web.ViewStockListUseCase import ViewStockListUseCase
-from src.models.PageContents import PageContents
+from src.models.PageContents import PageContents, StockListData
 from src.oauth_client import oauth
 from src.UseCases.Web.ViewWeatherUseCase import ViewWeatherUseCase
 from src.middlewares import login_required, set_message
@@ -80,7 +80,7 @@ def approve_line_user():
 @ login_required
 @ set_message
 def view_stock_list():
-    page_contents = PageContents(session, request)
+    page_contents = PageContents[StockListData](session, request, StockListData)
     page_contents, forms = ViewStockListUseCase().execute(page_contents=page_contents)
     return render_template('pages/stock/index.html', page_contents=page_contents, form=forms)
 

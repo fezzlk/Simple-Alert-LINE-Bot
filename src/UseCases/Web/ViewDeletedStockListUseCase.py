@@ -27,7 +27,7 @@ class ViewDeletedStockListUseCase(IUseCase):
                 ('updated_at', DESCENDING),
             ],
         )
-        page_contents.stocks = [StockViewModel(stock) for stock in stocks]
+        page_contents.stocks = [StockViewModel(stock=stock) for stock in stocks]
         page_contents.keys = keys
         page_contents.labels = labels
 
