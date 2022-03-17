@@ -152,10 +152,6 @@ Auth
 
 @ views_blueprint.route('/login')
 def login():
-    email = dict(session).get('login_email', None)
-    if email is not None:
-        return redirect('/')
-
     google = oauth.create_client('google')
     redirect_uri = url_for('views_blueprint.authorize', _external=True)
     return google.authorize_redirect(redirect_uri)
