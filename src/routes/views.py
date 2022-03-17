@@ -19,7 +19,7 @@ from src.UseCases.Web.ViewDeletedStockListUseCase import ViewDeletedStockListUse
 from src.UseCases.Web.ViewRegisterUseCase import ViewRegisterUseCase
 
 from src.UseCases.Web.ViewStockListUseCase import ViewStockListUseCase
-from src.models.PageContents import PageContents, StockListData
+from src.models.PageContents import PageContents, RegisterFormData, StockListData
 from src.oauth_client import oauth
 from src.UseCases.Web.ViewWeatherUseCase import ViewWeatherUseCase
 from src.middlewares import login_required, set_message
@@ -46,7 +46,7 @@ def index():
 @views_blueprint.route('/register', methods=['GET'])
 @set_message
 def view_register():
-    page_contents = PageContents(session, request)
+    page_contents = PageContents[RegisterFormData](session, request, RegisterFormData)
     page_contents, forms = ViewRegisterUseCase().execute(page_contents=page_contents)
     return render_template('pages/register.html', page_contents=page_contents, form=forms)
 
