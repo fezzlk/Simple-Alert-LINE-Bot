@@ -8,6 +8,6 @@ from src.Infrastructure.Repositories import (
 class ApproveLinkLineUserUseCase(IUseCase):
     def execute(self, page_contents: PageContents) -> None:
         web_user_repository.update(
-            {'web_user_email': page_contents.login_email},
+            {'web_user_email': page_contents.login_user.web_user_email},
             {'is_linked_line_user': True},
         )
