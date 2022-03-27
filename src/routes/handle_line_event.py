@@ -135,4 +135,4 @@ def get_use_case_text_message(event: Event):
     elif keyword in use_case_list['system_keywords']:
         return use_case_list['system_keywords'][keyword]
     else:
-        return TextMessageUseCase
+        return TextMessageUseCase()
