@@ -3,7 +3,7 @@
 <div>
   {% if page_contents.login_user.is_linked_line_user %}
   <p>連携中 LINE ユーザー名: {{ page_contents.line_user_name }}</p>
-  {% elif page_contents.get('line_user_name', '') != '' %}
+  {% elif page_contents.line_user_name %}
   <p>
     {{ page_contents.line_user_name }}
     さんからユーザー連携のリクエストが来ています。

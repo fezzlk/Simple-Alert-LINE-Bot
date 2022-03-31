@@ -1,23 +1,21 @@
 from flask import (
-    session,
     request,
 )
 from typing import Dict, Tuple
-from src.Domains.Entities.WebUser import WebUser
 from src.UseCases.Interface.IUseCase import IUseCase
 from src.Infrastructure.Repositories import (
     stock_repository,
 )
-from src.models.StockViewModel import StockViewModel
+from src.models.StockViewModel import StockViewModel, keys, labels
 from src.routes.Forms.AddStockForm import AddStockForm
+from src.models.PageContents import PageContents, StockListData
 
 
 class ViewStockListUseCase(IUseCase):
-    def execute(self) -> Tuple[Dict, AddStockForm]:
-        page_contents = dict(session)
-        page_contents['title'] = 'ストック一覧'
+    def execute(self, page_contents: PageContents[StockListData]) -> Tuple[PageContents[StockListData], AddStockForm]:
+        page_contents.page_title = 'ストック一覧'
 
-        web_user: WebUser = page_contents['login_user']
+        web_user = page_contents.login_user
         stocks = stock_repository.find({
             '$and': [
                 {'$or': [
@@ -27,13 +25,9 @@ class ViewStockListUseCase(IUseCase):
                 {'status': 1},
             ],
         })
-        page_contents['stocks'] = [StockViewModel(stock) for stock in stocks]
-        page_contents['keys'] = [
-            'item_name',
-            'str_created_at',
-            'str_expiry_date',
-        ]
-        page_contents['labels'] = ['名前', '登録日', '期限']
+        page_contents.data.stocks = [StockViewModel(stock=stock) for stock in stocks]
+        page_contents.data.keys = keys
+        page_contents.data.labels = labels
 
         form = AddStockForm(request.form)
 

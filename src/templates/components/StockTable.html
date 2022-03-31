@@ -5,7 +5,7 @@ AddStockModal.render(page_contents, form) }}
 <table class="table table-hover table-sm">
   <thead>
     <tr class="table-light">
-      {% for label in page_contents['labels'] %}
+      {% for label in page_contents.data.labels %}
       <th scope="col">{{ label }}</th>
       {% endfor %}
       <th scope="col">
@@ -23,11 +23,11 @@ AddStockModal.render(page_contents, form) }}
     </tr>
   </thead>
 
-  {% if page_contents.stocks|length != 0 %}
+  {% if page_contents.data.stocks|length != 0 %}
   <tbody>
-    {% for stock in page_contents.stocks %}
+    {% for stock in page_contents.data.stocks %}
     <tr>
-      {% for key in page_contents['keys'] %}
+      {% for key in page_contents.data.keys %}
       <td class="align-middle">
         <div id="{{stock._id}}_{{key}}">
           {% if stock.__dict__[key] == '' %} &nbsp; {% else %} {{

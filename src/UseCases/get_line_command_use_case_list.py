@@ -20,8 +20,8 @@ def get_line_command_use_case_list() -> Dict[str, Dict[str, Callable]]:
             '天気': ReplyWeatherUseCase(),
         },
         'stock_keywords': {
-            'ストック登録': AddStockUseCase(),
-            'ストック一覧': ReplyStockUseCase(),
+            '登録': AddStockUseCase(),
+            '一覧': ReplyStockUseCase(),
         },
         'system_keywords': {
             'ユーザー連携': RequestLinkLineWebUseCase(),

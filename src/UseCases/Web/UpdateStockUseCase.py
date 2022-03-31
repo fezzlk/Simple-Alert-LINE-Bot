@@ -1,9 +1,6 @@
 from datetime import datetime
-from hashlib import new
-from flask import (
-    request,
-    session,
-)
+
+from flask import Request, request
 from src.Domains.Entities.WebUser import WebUser
 from src.UseCases.Interface.IUseCase import IUseCase
 from werkzeug.exceptions import BadRequest
@@ -11,15 +8,17 @@ from src.Infrastructure.Repositories import (
     stock_repository,
 )
 from bson.objectid import ObjectId
+from src.models.PageContents import PageContents
 
 
 class UpdateStockUseCase(IUseCase):
-    def execute(self) -> None:
+    def execute(self, page_contents: PageContents) -> None:
+        request: Request = page_contents.request
         form = request.form
-        owner_web: WebUser = session.get('login_user')
+        owner_web: WebUser = page_contents.get('login_user')
         owner_line_id = owner_web.linked_line_user_id if owner_web.is_linked_line_user else ''
 
-        stock_id = request.form.get('stock_id', None)
+        stock_id = form.get('stock_id', None)
         if stock_id is None:
             raise BadRequest('stock_id が指定されていません。')
         new_values = {}

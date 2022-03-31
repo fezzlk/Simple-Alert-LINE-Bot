@@ -1,16 +1,16 @@
 from wtforms import Form, StringField, validators, SubmitField, DateField
-from wtforms.validators import Optional
+from wtforms.validators import Optional, DataRequired
 
 
 class AddStockForm(Form):
     item_name = StringField(
         label='アイテム名*',
-        validators=[validators.DataRequired(message='アイテム名は必須です')],
+        validators=[DataRequired(message='アイテム名は必須です')],
         render_kw={'class': 'form-control'},
     )
     expiry_date = DateField(
         label='期限',
-        validators=[validators.Optional()],
+        validators=[Optional()],
         render_kw={'class': 'form-control'},
     )
     submit = SubmitField(

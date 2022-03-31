@@ -31,17 +31,17 @@ def get_description(keyword) -> List[str]:
         return ['京浜東北線と横須賀線の運行情報を表示します']
     elif keyword == '天気':
         return ['横浜の天気を表示します']
-    elif keyword == 'ストック一覧':
+    elif keyword == '一覧':
         return [
-            '登録したストックを一覧で表示します',
-            '新規登録する場合は\n"ストック登録 [アイテム名] [期限(任意)]"\nと送ってください。',
+            '登録したアイテムを一覧で表示します',
+            '新規登録する場合は\n"登録 [アイテム名] [期限(任意)]"\nと送ってください。',
         ]
-    elif keyword == 'ストック登録':
+    elif keyword == '登録':
         return [
             '食材やポイントカードなどの期限を管理できます',
-            '期限が近づいている場合、毎日12時に通知がきます',
-            '"ストック登録 [アイテム名] [期限(任意)]"\nと送ってください。',
-            '[日付の入力方法]\n\nYYYY年MM月DD日\n→ YYYYMMDD\n\n20YY年MM月DD日\n→ YYMMDD\n\n今年MM月DD日\n→ MMDD\n\n今月DD日\n→ DD',
+            '期限が1週間前までに近づいている場合、毎日12時に通知がきます',
+            '"登録 [アイテム名] [期限(任意)]"\nと送ってください。',
+            '[期限の入力方法]\n\nYYYY年MM月DD日\n→ YYYYMMDD\n\n20YY年MM月DD日\n→ YYMMDD\n\n今年MM月DD日\n→ MMDD\n\n今月DD日\n→ DD',
         ]
     elif keyword == 'ユーザー連携':
         return [

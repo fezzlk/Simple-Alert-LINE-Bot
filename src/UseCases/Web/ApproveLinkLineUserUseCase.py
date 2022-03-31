@@ -1,22 +1,13 @@
-from flask import (
-    request,
-    session,
-)
-from werkzeug.exceptions import BadRequest
-
-from src.Domains.Entities.WebUser import WebUser
 from src.UseCases.Interface.IUseCase import IUseCase
-from src.routes.Forms.RegisterWebUserForm import RegisterWebUserForm
-from src.services import web_user_service
+from src.models.PageContents import PageContents
 from src.Infrastructure.Repositories import (
     web_user_repository,
 )
 
 
 class ApproveLinkLineUserUseCase(IUseCase):
-    def execute(self) -> None:
-        page_contents = dict(session)
+    def execute(self, page_contents: PageContents) -> None:
         web_user_repository.update(
-            {'web_user_email': page_contents['login_email']},
+            {'web_user_email': page_contents.login_user.web_user_email},
             {'is_linked_line_user': True},
         )
