@@ -17,6 +17,7 @@ from src.UseCases.Line.PostbackUseCase import PostbackUseCase
 from src.UseCases.get_line_command_use_case_list import get_line_command_use_case_list
 from src.UseCases.Line.ReplyHelpUseCase import ReplyHelpUseCase
 
+from src import config
 from linebot.models import (
     FollowEvent,
     UnfollowEvent,
@@ -69,12 +70,13 @@ def handle_event_decorater(function):
                 function(*args, **kwargs)
 
         except BaseException as err:
-            print(traceback.format_exc())
+            traceback.print_exc()
+            line_response_service.push_a_message(
+                to=config.SERVER_ADMIN_LINE_USER_ID,
+                message=str(err),
+            )
             line_response_service.reset()
-            line_response_service.add_message(
-                'エラーが発生しました。もしよければ Bug として起票してください。')
-            line_response_service.add_message(
-                'https://github.com/fezzlk/Simple-Alert-LINE-Bot/issues/new')
+            line_response_service.add_message(text='システムエラーが発生しました。')
 
         line_response_service.reply(args[0])
         line_request_service.delete_req_info()
