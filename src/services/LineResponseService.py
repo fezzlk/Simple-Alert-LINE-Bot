@@ -82,3 +82,6 @@ class LineResponseService:
         self.texts = []
         self.buttons = []
         self.images = []
+
+    def push_a_message(self, to: str, message: str) -> None:
+        line_bot_api.push_message(to, [TextSendMessage(text=message)])

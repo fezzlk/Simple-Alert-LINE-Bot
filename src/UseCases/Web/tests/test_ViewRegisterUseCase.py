@@ -1,4 +1,3 @@
-import pytest
 from typing import List
 from flask import session, request
 from src.UseCases.Web.ViewRegisterUseCase import ViewRegisterUseCase
@@ -6,6 +5,7 @@ from src.models.PageContents import PageContents, RegisterFormData
 from src.Domains.Entities.WebUser import WebUser
 
 from src.routes.Forms.RegisterWebUserForm import RegisterWebUserForm
+
 
 def generate_dummy_web_user_list() -> List[WebUser]:
     return [
@@ -16,6 +16,7 @@ def generate_dummy_web_user_list() -> List[WebUser]:
         ),
     ]
 
+
 def test_success(dummy_app):
     with dummy_app.test_request_context():
         # Arrange
@@ -23,7 +24,8 @@ def test_success(dummy_app):
         dummy_user = generate_dummy_web_user_list()[0]
         session['login_name'] = dummy_user.web_user_name
         session['login_email'] = dummy_user.web_user_email
-        page_contents = PageContents[RegisterFormData](session, request, RegisterFormData)
+        page_contents = PageContents[RegisterFormData](
+            session, request, RegisterFormData)
 
         # Act
         page_contents, form = use_case.execute(page_contents=page_contents)
