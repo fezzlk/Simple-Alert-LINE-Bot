@@ -1,14 +1,12 @@
 version: "3.1"
 
 services:
-  app:
-    build: .
-    ports:
-      - 5000:5000
-    container_name: app
+  python:
+    build: ..
+    user: root
     volumes:
-      - ./:/app
-    command: flask run --host=0.0.0.0
+      - ../:/app
+    tty: true
 
   mongo:
     image: mongo:4.4

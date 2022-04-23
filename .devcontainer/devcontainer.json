@@ -1,0 +1,21 @@
+{
+	"name": "salb-dev-container",
+	"dockerComposeFile": [
+		"./docker-compose.yml"
+	],
+	"service": "python",
+	"remoteUser": "root", // デフォルトユーザをrootから切り替える
+	"workspaceFolder": "/app", // Workspaceのフォルダを指定
+	"extensions": [ // コンテナ内でインストールするVS Codeの拡張機能ID
+		"ms-python.python",
+		"esbenp.prettier-vscode",
+        "kevinglasson.cornflakes-linter",
+        "njpwerner.autodocstring",
+        "streetsidesoftware.code-spell-checker",
+        "mhutchie.git-graph",
+        "eamodio.gitlens"
+	],
+	"settings": { // コンテナ内に追加するVS Codeの設定
+		"editor.formatOnSave": true,
+	}
+}
