@@ -7,7 +7,7 @@ from src.Infrastructure.Repositories import (
     stock_repository,
 )
 from src.models.StockViewModel import StockViewModel, keys, labels
-from src.routes.Forms.AddStockForm import AddStockForm
+from src.models.Forms.AddStockForm import AddStockForm
 from src.models.PageContents import PageContents, StockListData
 
 
@@ -25,7 +25,8 @@ class ViewStockListUseCase(IUseCase):
                 {'status': 1},
             ],
         })
-        page_contents.data.stocks = [StockViewModel(stock=stock) for stock in stocks]
+        page_contents.data.stocks = [
+            StockViewModel(stock=stock) for stock in stocks]
         page_contents.data.keys = keys
         page_contents.data.labels = labels
 

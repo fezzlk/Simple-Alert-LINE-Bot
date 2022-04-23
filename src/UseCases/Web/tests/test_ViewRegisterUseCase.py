@@ -4,7 +4,7 @@ from src.UseCases.Web.ViewRegisterUseCase import ViewRegisterUseCase
 from src.models.PageContents import PageContents, RegisterFormData
 from src.Domains.Entities.WebUser import WebUser
 
-from src.routes.Forms.RegisterWebUserForm import RegisterWebUserForm
+from src.models.Forms.RegisterWebUserForm import RegisterWebUserForm
 
 
 def generate_dummy_web_user_list() -> List[WebUser]:

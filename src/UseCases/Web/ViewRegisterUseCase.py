@@ -3,7 +3,7 @@ from flask import (
 )
 from typing import Dict, Tuple
 from src.UseCases.Interface.IUseCase import IUseCase
-from src.routes.Forms.RegisterWebUserForm import RegisterWebUserForm
+from src.models.Forms.RegisterWebUserForm import RegisterWebUserForm
 from src.models.PageContents import PageContents, RegisterFormData
 
 

@@ -5,7 +5,7 @@ from werkzeug.exceptions import BadRequest
 
 from src.Domains.Entities.WebUser import WebUser
 from src.UseCases.Interface.IUseCase import IUseCase
-from src.routes.Forms.RegisterWebUserForm import RegisterWebUserForm
+from src.models.Forms.RegisterWebUserForm import RegisterWebUserForm
 from src.services import web_user_service
 from src.models.PageContents import PageContents
 

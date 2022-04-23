@@ -4,7 +4,7 @@ from src.Infrastructure.Repositories import (
     stock_repository,
 )
 from src.models.StockViewModel import StockViewModel, keys, labels
-from src.routes.Forms.AddStockForm import AddStockForm
+from src.models.Forms.AddStockForm import AddStockForm
 from src.models.PageContents import PageContents
 from pymongo import DESCENDING
 
@@ -27,7 +27,8 @@ class ViewDeletedStockListUseCase(IUseCase):
                 ('updated_at', DESCENDING),
             ],
         )
-        page_contents.stocks = [StockViewModel(stock=stock) for stock in stocks]
+        page_contents.stocks = [StockViewModel(
+            stock=stock) for stock in stocks]
         page_contents.keys = keys
         page_contents.labels = labels
 

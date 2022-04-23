@@ -9,7 +9,8 @@ from src.Domains.Entities.Stock import Stock
 from datetime import datetime
 from src.models.StockViewModel import StockViewModel
 
-from src.routes.Forms.AddStockForm import AddStockForm
+from src.models.Forms.AddStockForm import AddStockForm
+
 
 def generate_dummy_web_user_list() -> List[WebUser]:
     return [
@@ -19,6 +20,7 @@ def generate_dummy_web_user_list() -> List[WebUser]:
             web_user_email='dummy1@example.com',
         ),
     ]
+
 
 def generate_dummy_stock_list() -> List[Stock]:
     return [
@@ -48,6 +50,7 @@ def generate_dummy_stock_list() -> List[Stock]:
         ),
     ]
 
+
 def generate_expected_stock_list() -> List[StockViewModel]:
     return [
         StockViewModel(
@@ -60,12 +63,14 @@ def generate_expected_stock_list() -> List[StockViewModel]:
         ),
     ]
 
+
 def test_success(dummy_app):
     with dummy_app.test_request_context():
         # Arrange
         use_case = ViewStockListUseCase()
         session['login_user'] = generate_dummy_web_user_list()[0]
-        page_contents = PageContents[StockListData](session, request, StockListData)
+        page_contents = PageContents[StockListData](
+            session, request, StockListData)
 
         stock_repository = StockRepository()
         dummy_stocks = generate_dummy_stock_list()
@@ -93,10 +98,10 @@ def test_success(dummy_app):
             assert page_contents.data.keys[i] == expected_keys[i]
         for i in range(len(expected_labels)):
             assert page_contents.data.labels[i] == expected_labels[i]
-         
+
         for i in range(len(expected_stocks)):
             assert isinstance(page_contents.data.stocks[i], StockViewModel)
             assert page_contents.data.stocks[i].item_name == expected_stocks[i].item_name
             assert page_contents.data.stocks[i].str_expiry_date == expected_stocks[i].str_expiry_date
-         
+
         assert isinstance(form, AddStockForm)

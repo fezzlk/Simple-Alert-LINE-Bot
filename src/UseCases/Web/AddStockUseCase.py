@@ -6,7 +6,7 @@ from datetime import datetime
 from src.Infrastructure.Repositories import (
     stock_repository,
 )
-from src.routes.Forms.AddStockForm import AddStockForm
+from src.models.Forms.AddStockForm import AddStockForm
 from src.models.PageContents import PageContents
 
 
