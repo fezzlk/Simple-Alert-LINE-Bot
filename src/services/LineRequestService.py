@@ -1,4 +1,3 @@
-from logging import captureWarnings
 from linebot.models.events import Event
 from src.line_bot_api import line_bot_api
 
@@ -34,7 +33,8 @@ class LineRequestService:
                 self.req_line_user_id
             ).display_name
         except BaseException:
-            print(f'Failed to get LINE profile "{self.req_line_user_id}"')
+            raise ValueError(
+                f'Failed to get LINE profile "{self.req_line_user_id}"')
 
         if event.source.type == 'room':
             self.req_line_group_id = event.source.room_id
