@@ -59,7 +59,7 @@ def handle_event_decorater(function):
         try:
             line_request_service.set_req_info(args[0])
 
-            # LINE ユーザーの存在チェック
+            # LINE アカウントの存在チェック
             line_users = line_user_repository.find({
                 'line_user_id': line_request_service.req_line_user_id,
             })

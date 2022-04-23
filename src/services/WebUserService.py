@@ -6,7 +6,7 @@ class WebUserService:
 
     def find_or_create(self, new_web_user: WebUser) -> WebUser:
         """
-            email で存在チェックし、同一ユーザーが存在しなければ追加
+            email で存在チェックし、同一アカウントが存在しなければ追加
         """
 
         record = web_user_repository.find(

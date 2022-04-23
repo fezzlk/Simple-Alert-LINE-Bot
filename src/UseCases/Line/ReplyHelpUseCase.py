@@ -43,12 +43,12 @@ def get_description(keyword) -> List[str]:
             '"登録 [アイテム名] [期限(任意)]"\nと送ってください。',
             '[期限の入力方法]\n\nYYYY年MM月DD日\n→ YYYYMMDD\n\n20YY年MM月DD日\n→ YYMMDD\n\n今年MM月DD日\n→ MMDD\n\n今月DD日\n→ DD',
         ]
-    elif keyword == 'ユーザー連携':
+    elif keyword == 'アカウント連携':
         return [
             'Web 上のアカウントと LINE アカウントを紐付けます',
             '紐付けが完了すると LINE で登録したストックを Web 上で確認できるようになります',
             f'まずは web 上でログインしてください → {config.SERVER_URL}/stock?openExternalBrowser=1',
-            '次にこのチャットにて\n"ユーザー連携 [メールアドレス]"\nと送ってください。',
+            '次にこのチャットにて\n"アカウント連携 [メールアドレス]"\nと送ってください。',
         ]
     elif keyword == 'URL':
         return [

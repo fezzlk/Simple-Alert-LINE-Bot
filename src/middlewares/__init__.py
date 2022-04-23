@@ -24,7 +24,7 @@ def login_required(f):
 
         session.pop('next_page_url', None)
 
-        # web user をログイン中ユーザーとしてセッションに保存し、通過
+        # web user をログイン中アカウントとしてセッションに保存し、通過
         session['login_user'] = web_users[0]
         return f(*args, **kwargs)
 

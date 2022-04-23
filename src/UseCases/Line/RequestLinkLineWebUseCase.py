@@ -11,7 +11,7 @@ class RequestLinkLineWebUseCase(IUseCase):
 
         if len(args) != 2:
             line_response_service.add_message(
-                'Web ユーザーと紐付けするには "ユーザー連携 [メールアドレス]" と送ってください。')
+                'Web アカウントと紐付けするには "アカウント連携 [メールアドレス]" と送ってください。')
             return
 
         email = args[1]
@@ -26,7 +26,7 @@ class RequestLinkLineWebUseCase(IUseCase):
 
         if web_users[0].is_linked_line_user:
             line_response_service.add_message(
-                f'{email} はすでにLINEユーザーと紐付けされています。')
+                f'{email} はすでに LINE アカウントと紐付けされています。')
             line_response_service.add_message(
                 f'{config.SERVER_URL}/line/approve?openExternalBrowser=1')
             return
@@ -37,10 +37,10 @@ class RequestLinkLineWebUseCase(IUseCase):
         )
 
         if result == 0:
-            line_response_service.add_message('ユーザー連携リクエストに失敗しました。')
+            line_response_service.add_message('アカウント連携リクエストに失敗しました。')
             return
 
         line_response_service.add_message(
-            'ユーザー連携リクエストを送信しました。ブラウザでログインし、承認してください。')
+            'アカウント連携リクエストを送信しました。ブラウザでログインし、承認してください。')
         line_response_service.add_message(
             f'{config.SERVER_URL}/line/approve?openExternalBrowser=1')

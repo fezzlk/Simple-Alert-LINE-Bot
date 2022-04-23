@@ -24,7 +24,7 @@ def get_line_command_use_case_list() -> Dict[str, Dict[str, Callable]]:
             '一覧': ReplyStockUseCase(),
         },
         'system_keywords': {
-            'ユーザー連携': RequestLinkLineWebUseCase(),
+            'アカウント連携': RequestLinkLineWebUseCase(),
             'URL': ReplyWebAppUrlUseCase()
         }
     }

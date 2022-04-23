@@ -13,7 +13,7 @@ class CheckExpiredStockUseCase(IUseCase):
         for line_user in line_users:
             print('# line_user_name')
             print(line_user.line_user_name)
-            # [TODO] LINE ユーザー取得時に関連する web ユーザー id もまとめて取得するようにする
+            # [TODO] LINE アカウント取得時に関連する web ユーザー id もまとめて取得するようにする
             web_users = line_user_repository.find({
                 '$and': [
                     {'linked_line_user_id': line_user.line_user_id},

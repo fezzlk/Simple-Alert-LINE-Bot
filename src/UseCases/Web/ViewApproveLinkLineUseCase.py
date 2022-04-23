@@ -9,7 +9,7 @@ from src.models.PageContents import PageContents
 
 class ViewApproveLinkLineUseCase(IUseCase):
     def execute(self, page_contents: PageContents) -> Tuple[Dict, RegisterWebUserForm]:
-        page_contents.page_title = 'LINEユーザー連携'
+        page_contents.page_title = 'LINEアカウント連携'
 
         web_user = page_contents.login_user
         line_users = line_user_repository.find(

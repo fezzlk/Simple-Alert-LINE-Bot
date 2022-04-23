@@ -6,7 +6,7 @@ class LineUserService:
 
     def find_or_create(self, new_line_user: LineUser) -> LineUser:
         """
-            line user id で存在チェックし、同一ユーザーが存在しなければ追加
+            line user id で存在チェックし、同一アカウントが存在しなければ追加
         """
 
         record = line_user_repository.find(
