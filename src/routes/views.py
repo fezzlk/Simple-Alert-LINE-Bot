@@ -39,6 +39,8 @@ Endpoints for Web
 @views_blueprint.route('/', methods=['GET'])
 @set_message
 def index():
+    print(session.get('login_user'))
+
     page_contents = PageContents(session, request)
     return render_template('pages/index.html', page_contents=page_contents)
 
@@ -46,7 +48,8 @@ def index():
 @views_blueprint.route('/register', methods=['GET'])
 @set_message
 def view_register():
-    page_contents = PageContents[RegisterFormData](session, request, RegisterFormData)
+    page_contents = PageContents[RegisterFormData](
+        session, request, RegisterFormData)
     page_contents, forms = ViewRegisterUseCase().execute(page_contents=page_contents)
     return render_template('pages/register.html', page_contents=page_contents, form=forms)
 
@@ -80,7 +83,8 @@ def approve_line_user():
 @ login_required
 @ set_message
 def view_stock_list():
-    page_contents = PageContents[StockListData](session, request, StockListData)
+    page_contents = PageContents[StockListData](
+        session, request, StockListData)
     page_contents, forms = ViewStockListUseCase().execute(page_contents=page_contents)
     return render_template('pages/stock/index.html', page_contents=page_contents, form=forms)
 
@@ -176,6 +180,7 @@ def authorize():
 
     if len(web_users) == 0:
         return redirect('/register')
+    session['login_user'] = web_users[0]
 
     redirect_to = session.pop('next_page_url', '/')
 
