@@ -143,7 +143,6 @@ def restore_stock():
 def view_weather():
     page_contents = PageContents(session, request)
     page_contents = ViewWeatherUseCase().execute(page_contents=page_contents)
-    print(page_contents)
     return render_template('pages/weather/index.html', page_contents=page_contents)
 
 
