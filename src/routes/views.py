@@ -39,8 +39,6 @@ Endpoints for Web
 @views_blueprint.route('/', methods=['GET'])
 @set_message
 def index():
-    print(session.get('login_user'))
-
     page_contents = PageContents(session, request)
     return render_template('pages/index.html', page_contents=page_contents)
 
