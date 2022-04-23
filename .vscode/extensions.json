@@ -1,7 +1,5 @@
 {
     "recommendations": [
-      "kevinglasson.cornflakes-linter",
-      "njpwerner.autodocstring",
-      "streetsidesoftware.code-spell-checker"
+      "ms-vscode-remote.remote-containers",
     ]
   }
