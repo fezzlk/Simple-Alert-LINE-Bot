@@ -1,16 +1,14 @@
-from typing import Dict, Tuple
 from src.UseCases.Interface.IUseCase import IUseCase
 from src.Infrastructure.Repositories import (
     stock_repository,
 )
 from src.models.StockViewModel import StockViewModel, keys, labels
-from src.models.Forms.AddStockForm import AddStockForm
-from src.models.PageContents import PageContents
+from src.models.PageContents import PageContents, StockListData
 from pymongo import DESCENDING
 
 
 class ViewDeletedStockListUseCase(IUseCase):
-    def execute(self, page_contents: PageContents) -> Tuple[Dict, AddStockForm]:
+    def execute(self, page_contents: PageContents[StockListData]) -> PageContents[StockListData]:
         page_contents.page_title = '削除済みストック一覧'
         web_user = page_contents.login_user
         stocks = stock_repository.find(
@@ -27,9 +25,9 @@ class ViewDeletedStockListUseCase(IUseCase):
                 ('updated_at', DESCENDING),
             ],
         )
-        page_contents.stocks = [StockViewModel(
-            stock=stock) for stock in stocks]
-        page_contents.keys = keys
-        page_contents.labels = labels
+        page_contents.data.stocks = [
+            StockViewModel(stock=stock) for stock in stocks]
+        page_contents.data.keys = keys
+        page_contents.data.labels = labels
 
         return page_contents
