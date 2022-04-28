@@ -1,7 +1,7 @@
 from flask import (
     request,
 )
-from typing import Dict, Tuple
+from typing import Tuple
 from src.UseCases.Interface.IUseCase import IUseCase
 from src.Infrastructure.Repositories import (
     stock_repository,
