@@ -3,9 +3,9 @@ from linebot.models import (
     TemplateSendMessage,
     ImageSendMessage,
     ButtonsTemplate,
-    PostbackAction,
 )
-
+from typing import List
+from ctypes import Union
 from src.line_bot_api import line_bot_api
 from linebot.models.events import Event
 
@@ -13,9 +13,9 @@ from linebot.models.events import Event
 class LineResponseService:
 
     def __init__(self):
-        self.texts = []
-        self.buttons = []
-        self.images = []
+        self.texts: List[TextSendMessage] = []
+        self.buttons: List[Union[TemplateSendMessage, ButtonsTemplate]] = []
+        self.images: List[ImageSendMessage] = []
 
     def add_message(
         self,
@@ -28,34 +28,6 @@ class LineResponseService:
             ImageSendMessage(
                 original_content_url=image_url,
                 preview_image_url=image_url,
-            )
-        )
-
-    def add_start_menu(self) -> None:
-        self.buttons.append(
-            TemplateSendMessage(
-                alt_text='Start Menu',
-                template=ButtonsTemplate(
-                    title='スタートメニュー',
-                    text='何をしますか？',
-                    actions=[
-                        PostbackAction(
-                            label='天気を確認',
-                            display_text='天気を確認',
-                            data='_weather'
-                        ),
-                        PostbackAction(
-                            label='遅延情報を確認',
-                            display_text='遅延情報を確認',
-                            data='_train'
-                        ),
-                        PostbackAction(
-                            label='ストックを確認',
-                            display_text='ストックを確認',
-                            data='_stock'
-                        ),
-                    ]
-                )
             )
         )
 
