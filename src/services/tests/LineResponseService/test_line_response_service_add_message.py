@@ -1,9 +1,4 @@
 from src.services.LineResponseService import LineResponseService
-from src.tests.dummies import (
-    generate_dummy_follow_event,
-)
-from src.line_bot_api import line_bot_api
-from src.tests.dummies import Profile
 
 
 def test_success():
