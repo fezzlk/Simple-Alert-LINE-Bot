@@ -9,9 +9,6 @@ class Event:
     event_type: str
     event_list = ['follow', 'unfollow', 'message']  # TODO 要調査
 
-    type: str  # source type
-    user_id: str
-    group_id: str
     message_type: str
     text: str
     postback_data: str
@@ -44,11 +41,11 @@ class Event:
 
         self.mode = mode
 
-        if self.type == 'follow':
+        if self.event_type == 'follow':
             self.reply_token = 'dummy_reply_token'
-        if self.type == 'message':
+        if self.event_type == 'message':
             self.reply_token = 'dummy_reply_token'
             self.message = Message(text=text, message_type=message_type)
-        if self.type == 'postback':
+        if self.event_type == 'postback':
             self.reply_token = 'dummy_reply_token'
             self.postback == Postback(data=postback_data)
