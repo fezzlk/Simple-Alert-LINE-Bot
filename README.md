@@ -1,5 +1,3 @@
-(執筆途中)
-
 # Simple-Alert-LINE-Bot
 
 ## LINE友達追加
