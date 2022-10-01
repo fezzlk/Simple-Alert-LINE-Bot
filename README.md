@@ -11,14 +11,15 @@ TBD
 ## 開発環境準備
 
 - python3 のインストール
-- pip3 (^21.2.3) のインストール
+- pip3 のインストール
   - pip を最新バージョンにアップデート `python3 -m pip install --upgrade pip`
 - ngrok のインストール
 
 ## 初回起動および LINE Bot との紐付けまでの手順
 
 1. 仮想環境の作成（必須ではないが推奨）
-   `python3 -m venv venv`
+   `$ python3 -m venv {仮想環境名}`
+   `$ source /{仮想環境名}/bin/activate`
 1. 依存パッケージのインストール
    `$ pip3 install -r requirements.txt`
 1. LINE Devlopers にてプロバイダ及び messaging API のチャンネルを作っておく
