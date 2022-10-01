@@ -14,7 +14,9 @@ from src.UseCases.Line.TextMessageUseCase import TextMessageUseCase
 from src.UseCases.Line.ImageMessageUseCase import ImageMessageUseCase
 from src.UseCases.Line.PostbackUseCase import PostbackUseCase
 
-from src.UseCases.get_line_command_use_case_list import get_line_command_use_case_list
+from src.UseCases.get_line_command_use_case_list import (
+    get_line_command_use_case_list
+)
 from src.UseCases.Line.ReplyHelpUseCase import ReplyHelpUseCase
 
 from src import config
@@ -125,14 +127,8 @@ def get_use_case_text_message(event: Event):
     use_case_list['system_keywords']['ヘルプ'] = ReplyHelpUseCase()
 
     keyword = event.message.text.split()[0].upper()
-    # 電車情報
-    if keyword in use_case_list['train_keywords']:
-        return use_case_list['train_keywords'][keyword]
-    # 天気情報
-    elif keyword in use_case_list['weather_keywords']:
-        return use_case_list['weather_keywords'][keyword]
     # ストック情報
-    elif keyword in use_case_list['stock_keywords']:
+    if keyword in use_case_list['stock_keywords']:
         return use_case_list['stock_keywords'][keyword]
     elif keyword in use_case_list['system_keywords']:
         return use_case_list['system_keywords'][keyword]

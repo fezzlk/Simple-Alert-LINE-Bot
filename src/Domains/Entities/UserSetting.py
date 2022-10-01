@@ -6,7 +6,7 @@ from datetime import datetime
 class UserSetting:
     _id: str
     web_user_id: str
-    is_notify_when_nothing_near_expiry: int
+    is_notify_when_nothing_near_expiry: bool
     created_at: datetime
     updated_at: datetime
 

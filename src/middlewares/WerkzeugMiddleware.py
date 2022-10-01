@@ -1,4 +1,4 @@
-from werkzeug.wrappers import Request, Response
+from werkzeug.wrappers import Request
 
 
 class WerkzeugMiddleware():
@@ -11,7 +11,7 @@ class WerkzeugMiddleware():
 
     def __call__(self, environ, start_response):
         request = Request(environ)
-        print('call middleware')
+        print('call WerkzeugMiddleware')
         print(request)
         print(start_response)
         return self.app(environ, start_response)
