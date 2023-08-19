@@ -5,6 +5,7 @@ from flask.sessions import SessionMixin
 
 from src.Domains.Entities.WebUser import WebUser
 from src.models.StockViewModel import StockViewModel
+from typing import Dict
 
 
 @dataclass()
