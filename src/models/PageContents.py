@@ -54,7 +54,14 @@ class PageContents(Generic[T]):
         page_title: str = '',
     ):
         self.session = dict(session)
-        self.login_user = session.get('login_user', None)
+        login_user = session.get('login_user', None)
+        if isinstance(login_user, Dict):
+            web_user = WebUser()
+            for attr, value in login_user.items():
+                web_user.__setitem__(attr, value)
+            self.login_user = web_user
+        if isinstance(login_user, WebUser):
+            self.login_user = login_user
         self.next_page_url = session.get('next_page_url', '')
         self.line_user_name = ''
         self.page_title = page_title
