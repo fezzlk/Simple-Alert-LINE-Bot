@@ -196,6 +196,6 @@ error handling
 
 @ views_blueprint.errorhandler(Exception)
 def handle_bad_request(e):
-    page_contents = PageContents(session, request, 'サーバーエラー')
+    page_contents = PageContents(session, request, None, 'サーバーエラー')
     flash(e, 'danger')
     return render_template('pages/error.html', page_contents=page_contents)
