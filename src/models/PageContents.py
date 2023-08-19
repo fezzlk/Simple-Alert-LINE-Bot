@@ -57,10 +57,12 @@ class PageContents(Generic[T]):
         self.session = dict(session)
         login_user = session.get('login_user', None)
         if isinstance(login_user, Dict):
-            web_user = WebUser()
-            for attr, value in login_user.items():
-                web_user.__setitem__(attr, value)
-            self.login_user = web_user
+            self.login_user = WebUser(
+                web_user_name=login_user.get("web_user_name"),
+                web_user_email=login_user.get("web_user_email"),
+                linked_line_user_id=login_user.get("linked_line_user_id"),
+                is_linked_line_user=bool(login_user.get("is_linked_line_user")),
+            )
         if isinstance(login_user, WebUser):
             self.login_user = login_user
         self.next_page_url = session.get('next_page_url', '')
