@@ -1,17 +1,18 @@
 from src.UseCases.Interface.IUseCase import IUseCase
-from src.Infrastructure.Repositories import (
-    stock_repository,
-)
+from src.Domains.IRepositories.IStockRepository import IStockRepository
 from src.models.StockViewModel import StockViewModel, keys, labels
 from src.models.PageContents import PageContents, StockListData
 from pymongo import DESCENDING
 
 
 class ViewDeletedStockListUseCase(IUseCase):
+    def __init__(self, stock_repository: IStockRepository):
+        self._stock_repository = stock_repository
+
     def execute(self, page_contents: PageContents[StockListData]) -> PageContents[StockListData]:
         page_contents.page_title = '削除済みストック一覧'
         web_user = page_contents.login_user
-        stocks = stock_repository.find(
+        stocks = self._stock_repository.find(
             query={
                 '$and': [
                     {'$or': [

@@ -1,8 +1,9 @@
 from linebot.models.events import Event
 from src.line_bot_api import line_bot_api
+from src.UseCases.Interface.ILineRequestService import ILineRequestService
 
 
-class LineRequestService:
+class LineRequestService(ILineRequestService):
     """LineRequestService
     メッセージ送信元の LINE ユーザー ID, トークルーム ID を管理
     """
@@ -15,6 +16,46 @@ class LineRequestService:
         self.req_line_user_name: str = None
         self.req_line_user_id: str = None
         self.req_line_group_id: str = None
+
+    @property
+    def message(self) -> str:
+        return self._message
+
+    @message.setter
+    def message(self, value: str) -> None:
+        self._message = value
+
+    @property
+    def event_type(self) -> str:
+        return self._event_type
+
+    @event_type.setter
+    def event_type(self, value: str) -> None:
+        self._event_type = value
+
+    @property
+    def req_line_user_name(self) -> str:
+        return self._req_line_user_name
+
+    @req_line_user_name.setter
+    def req_line_user_name(self, value: str) -> None:
+        self._req_line_user_name = value
+
+    @property
+    def req_line_user_id(self) -> str:
+        return self._req_line_user_id
+
+    @req_line_user_id.setter
+    def req_line_user_id(self, value: str) -> None:
+        self._req_line_user_id = value
+
+    @property
+    def req_line_group_id(self) -> str:
+        return self._req_line_group_id
+
+    @req_line_group_id.setter
+    def req_line_group_id(self, value: str) -> None:
+        self._req_line_group_id = value
 
     """
     メッセージ送信元情報のセット

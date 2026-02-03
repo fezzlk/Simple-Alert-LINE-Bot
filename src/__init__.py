@@ -2,7 +2,7 @@
 
 from src import config
 from flask import Flask
-from flask_assets import Environment, Bundle
+from webassets import Environment, Bundle
 from src.routes.views import views_blueprint
 from src.routes.api import api_blueprint
 from src.routes.handle_line_event import line_blueprint

@@ -1,9 +1,12 @@
 from src.UseCases.Interface.IUseCase import IUseCase
-from src.services import (
-    line_response_service,
-)
+from src.UseCases.Interface.ILineResponseService import ILineResponseService
 
 
 class ImageMessageUseCase(IUseCase):
+    def __init__(self, line_response_service: ILineResponseService):
+        self._line_response_service = line_response_service
+
     def execute(self) -> None:
-        line_response_service.add_message('現在はテキストメッセージのみ対応しています。')
+        self._line_response_service.add_message(
+            '現在はテキストメッセージのみ対応しています。'
+        )

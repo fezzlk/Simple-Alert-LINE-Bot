@@ -6,8 +6,10 @@ from src.Infrastructure.Repositories import WebUserRepository
 
 def test_success_not_exist():
     # Arrange
-    web_user_service = WebUserService()
     web_user_repository = WebUserRepository()
+    web_user_service = WebUserService(
+        web_user_repository=web_user_repository,
+    )
     dummy_web_users = generate_dummy_web_user_list()[:3]
     target_web_user = dummy_web_users[0]
     other_web_users = dummy_web_users[1:]
@@ -30,8 +32,10 @@ def test_success_not_exist():
 
 def test_success_exist():
     # Arrange
-    web_user_service = WebUserService()
     web_user_repository = WebUserRepository()
+    web_user_service = WebUserService(
+        web_user_repository=web_user_repository,
+    )
     dummy_web_users = generate_dummy_web_user_list()[:3]
     for dummy_web_user in dummy_web_users:
         web_user_repository.create(dummy_web_user)

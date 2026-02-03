@@ -1,20 +1,29 @@
 from src import config
 from datetime import datetime
 from src.UseCases.Interface.IUseCase import IUseCase
-from src.services import (
-    line_response_service,
-)
-from src.Infrastructure.Repositories import line_user_repository, stock_repository
+from src.Domains.IRepositories.ILineUserRepository import ILineUserRepository
+from src.Domains.IRepositories.IStockRepository import IStockRepository
+from src.UseCases.Interface.ILineResponseService import ILineResponseService
 
 
 class CheckExpiredStockUseCase(IUseCase):
+    def __init__(
+        self,
+        line_user_repository: ILineUserRepository,
+        stock_repository: IStockRepository,
+        line_response_service: ILineResponseService,
+    ):
+        self._line_user_repository = line_user_repository
+        self._stock_repository = stock_repository
+        self._line_response_service = line_response_service
+
     def execute(self) -> None:
-        line_users = line_user_repository.find()
+        line_users = self._line_user_repository.find()
         for line_user in line_users:
             print('# line_user_name')
             print(line_user.line_user_name)
             # [TODO] LINE アカウント取得時に関連する web ユーザー id もまとめて取得するようにする
-            web_users = line_user_repository.find({
+            web_users = self._line_user_repository.find({
                 '$and': [
                     {'linked_line_user_id': line_user.line_user_id},
                     {'is_linked_line_user': True},
@@ -23,7 +32,7 @@ class CheckExpiredStockUseCase(IUseCase):
             web_user_id = '' if len(web_users) == 0 else web_users[0]._id
             print('# web_user_id')
             print(web_user_id)
-            stocks = stock_repository.find({
+            stocks = self._stock_repository.find({
                 '$and': [
                     {'$or': [
                         {'owner_id': line_user.line_user_id},
@@ -76,8 +85,8 @@ class CheckExpiredStockUseCase(IUseCase):
                 messages.append(
                     '期限が近づいているストックはありません。[TODO]このような場合は通知しないように設定できる')
 
-            line_response_service.add_message('\n'.join(messages))
-            line_response_service.add_message(
+            self._line_response_service.add_message('\n'.join(messages))
+            self._line_response_service.add_message(
                 f'webで確認する→ {config.SERVER_URL}/stock?openExternalBrowser=1')
 
-            line_response_service.push(to=line_user.line_user_id)
+            self._line_response_service.push(to=line_user.line_user_id)

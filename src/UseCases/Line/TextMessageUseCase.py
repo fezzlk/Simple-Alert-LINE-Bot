@@ -1,9 +1,12 @@
 from src.UseCases.Interface.IUseCase import IUseCase
-from src.services import (
-    line_response_service,
-)
+from src.UseCases.Interface.ILineResponseService import ILineResponseService
 
 
 class TextMessageUseCase(IUseCase):
+    def __init__(self, line_response_service: ILineResponseService):
+        self._line_response_service = line_response_service
+
     def execute(self) -> None:
-        line_response_service.add_message('使い方がわからない場合は「ヘルプ」と送ってください')
+        self._line_response_service.add_message(
+            '使い方がわからない場合は「ヘルプ」と送ってください'
+        )

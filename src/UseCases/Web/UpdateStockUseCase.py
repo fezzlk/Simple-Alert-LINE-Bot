@@ -3,15 +3,16 @@ from datetime import datetime
 from flask import Request, request
 from src.Domains.Entities.WebUser import WebUser
 from src.UseCases.Interface.IUseCase import IUseCase
+from src.Domains.IRepositories.IStockRepository import IStockRepository
 from werkzeug.exceptions import BadRequest
-from src.Infrastructure.Repositories import (
-    stock_repository,
-)
 from bson.objectid import ObjectId
 from src.models.PageContents import PageContents
 
 
 class UpdateStockUseCase(IUseCase):
+    def __init__(self, stock_repository: IStockRepository):
+        self._stock_repository = stock_repository
+
     def execute(self, page_contents: PageContents) -> None:
         request: Request = page_contents.request
         form = request.form
@@ -43,7 +44,7 @@ class UpdateStockUseCase(IUseCase):
                     raise BadRequest("日付は必須です。")
                 new_values['created_at'] = datetime.strptime(val, '%Y-%m-%d')
 
-        res = stock_repository.update(
+        res = self._stock_repository.update(
             query={
                 '$and': [
                     {'_id': ObjectId(stock_id)},

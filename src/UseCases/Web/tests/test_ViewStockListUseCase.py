@@ -67,12 +67,12 @@ def generate_expected_stock_list() -> List[StockViewModel]:
 def test_success(dummy_app):
     with dummy_app.test_request_context():
         # Arrange
-        use_case = ViewStockListUseCase()
+        stock_repository = StockRepository()
+        use_case = ViewStockListUseCase(stock_repository=stock_repository)
         session['login_user'] = generate_dummy_web_user_list()[0]
         page_contents = PageContents[StockListData](
             session, request, StockListData)
 
-        stock_repository = StockRepository()
         dummy_stocks = generate_dummy_stock_list()
 
         for dummy_stock in dummy_stocks:

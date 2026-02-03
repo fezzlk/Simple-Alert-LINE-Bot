@@ -6,8 +6,10 @@ from src.Infrastructure.Repositories import LineUserRepository
 
 def test_success_not_exist():
     # Arrange
-    line_user_service = LineUserService()
     line_user_repository = LineUserRepository()
+    line_user_service = LineUserService(
+        line_user_repository=line_user_repository,
+    )
     dummy_line_users = generate_dummy_line_user_list()[:3]
     target_line_user = dummy_line_users[0]
     other_line_users = dummy_line_users[1:]
@@ -30,8 +32,10 @@ def test_success_not_exist():
 
 def test_success_exist():
     # Arrange
-    line_user_service = LineUserService()
     line_user_repository = LineUserRepository()
+    line_user_service = LineUserService(
+        line_user_repository=line_user_repository,
+    )
     dummy_line_users = generate_dummy_line_user_list()[:3]
     for dummy_line_user in dummy_line_users:
         line_user_repository.create(dummy_line_user)

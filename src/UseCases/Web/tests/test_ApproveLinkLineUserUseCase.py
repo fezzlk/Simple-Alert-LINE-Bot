@@ -18,8 +18,8 @@ dummy_web_user = WebUser(
 def test_success(dummy_app):
     with dummy_app.test_request_context():
         # Arrange
-        use_case = ApproveLinkLineUserUseCase()
         repository = WebUserRepository()
+        use_case = ApproveLinkLineUserUseCase(web_user_repository=repository)
         repository.create(dummy_web_user)
         session['login_user'] = dummy_web_user
 
