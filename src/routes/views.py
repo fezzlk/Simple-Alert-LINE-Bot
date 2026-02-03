@@ -159,15 +159,6 @@ def restore_stock():
     return redirect(url_for('views_blueprint.view_deleted_stock_list', message='アイテムを復元しました'))
 
 
-@ views_blueprint.route('/weather', methods=['GET'])
-@ login_required
-@ set_message
-def view_weather():
-    page_contents = PageContents(session, request)
-    page_contents = ViewWeatherUseCase().execute(page_contents=page_contents)
-    return render_template('pages/weather/index.html', page_contents=page_contents)
-
-
 '''
 Auth
 '''

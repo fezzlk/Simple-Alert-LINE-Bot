@@ -3,6 +3,7 @@
 from src import config
 from flask import Flask
 from webassets import Environment, Bundle
+from webassets.ext.jinja2 import AssetsExtension
 from src.routes.views import views_blueprint
 from src.routes.api import api_blueprint
 from src.routes.handle_line_event import line_blueprint
@@ -24,7 +25,7 @@ app.register_blueprint(line_blueprint)
 app.wsgi_app = WerkzeugMiddleware(app.wsgi_app)
 
 # scss
-assets = Environment(app)
-assets.url = app.static_url_path
-scss = Bundle('scss/style.scss', filters='pyscss', output='all.css')
-assets.register('scss_all', scss)
+assets = Environment(directory=app.static_folder, url=app.static_url_path)
+assets.register('scss_all', Bundle('scss/style.scss', filters='pyscss', output='all.css'))
+app.jinja_env.add_extension(AssetsExtension)
+app.jinja_env.assets_environment = assets
