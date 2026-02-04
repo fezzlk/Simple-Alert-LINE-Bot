@@ -2,12 +2,16 @@
 <div class="container">
   <h3>ホーム画面</h3>
   <p>Simple-Alert-LINE-Bot はアイテムを期限つきで管理できます。</p>
-  <a href="https://lin.ee/Ha5GnFv"
+  {% if line_add_friends_url %}
+  <a href="{{ line_add_friends_url }}"
     ><img
       src="https://scdn.line-apps.com/n/line_add_friends/btn/ja.png"
       alt="友だち追加"
       height="36"
       border="0"
   /></a>
+  {% else %}
+  <p>リンクが無効です</p>
+  {% endif %}
 </div>
 {% endblock %}

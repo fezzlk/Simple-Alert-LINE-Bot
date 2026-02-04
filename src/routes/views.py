@@ -22,6 +22,7 @@ from src.UseCases.Web.ViewStockListUseCase import ViewStockListUseCase
 from src.models.PageContents import PageContents, RegisterFormData, StockListData
 from src.oauth_client import oauth
 from src.middlewares import login_required, set_message
+from src import config
 
 from src.Infrastructure.Repositories import (
     web_user_repository,
@@ -42,7 +43,11 @@ Endpoints for Web
 @set_message
 def index():
     page_contents = PageContents(session, request)
-    return render_template('pages/index.html', page_contents=page_contents)
+    return render_template(
+        'pages/index.html',
+        page_contents=page_contents,
+        line_add_friends_url=config.LINE_ADD_FRIENDS_URL,
+    )
 
 
 @views_blueprint.route('/register', methods=['GET'])
