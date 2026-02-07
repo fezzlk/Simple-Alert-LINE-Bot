@@ -6,6 +6,7 @@ from flask import (
     session,
     flash,
     request,
+    abort,
 )
 from src.UseCases.Web.AddStockUseCase import AddStockUseCase
 from src.UseCases.Web.ApproveLinkLineUserUseCase import ApproveLinkLineUserUseCase
@@ -25,6 +26,7 @@ from src.oauth_client import oauth
 from src.middlewares import login_required, set_message
 from src.Domains.Entities.WebUser import WebUser
 from src.models.Forms.LineRegisterForm import LineRegisterForm
+from src.models.Forms.LocalLoginForm import LocalLoginForm
 from src import config
 
 from src.Infrastructure.Repositories import (
@@ -50,7 +52,6 @@ def index():
         'pages/index.html',
         page_contents=page_contents,
         line_add_friends_url=config.LINE_ADD_FRIENDS_URL,
-        line_login_url=f'{config.SERVER_URL.rstrip("/")}/line/login' if config.SERVER_URL else '/line/login',
     )
 
 
@@ -173,9 +174,51 @@ Auth
 '''
 
 
-@ views_blueprint.route('/login')
-@ views_blueprint.route('/line/login')
+@ views_blueprint.route('/login', methods=['GET', 'POST'])
+@ views_blueprint.route('/line/login', methods=['GET', 'POST'])
 def login():
+    if config.IS_DEVELOPMENT:
+        form = LocalLoginForm(request.form)
+        if request.method == 'POST':
+            if not form.validate():
+                page_contents = PageContents(session, request)
+                return render_template('pages/local_login.html', page_contents=page_contents, form=form)
+            if not config.LOCAL_AUTH_USER_CODE or not config.LOCAL_AUTH_PASSWORD:
+                flash('ローカルログインが設定されていません', 'danger')
+            elif (
+                form.user_code.data != config.LOCAL_AUTH_USER_CODE
+                or form.password.data != config.LOCAL_AUTH_PASSWORD
+            ):
+                flash('ユーザーコードまたはパスワードが違います', 'danger')
+            else:
+                web_users = web_user_repository.find(
+                    {'web_user_name': form.user_code.data}
+                )
+                if len(web_users) == 0:
+                    new_web_user = WebUser(
+                        web_user_name=form.user_code.data,
+                        web_user_email=None,
+                        linked_line_user_id=None,
+                        is_linked_line_user=False,
+                    )
+                    web_user = web_user_repository.create(new_web_user=new_web_user)
+                else:
+                    web_user = web_users[0]
+                session['login_user'] = {
+                    '_id': str(web_user._id),
+                    'web_user_name': web_user.web_user_name,
+                    'web_user_email': web_user.web_user_email,
+                    'linked_line_user_id': web_user.linked_line_user_id,
+                    'is_linked_line_user': web_user.is_linked_line_user,
+                }
+                redirect_to = session.pop('next_page_url', '/')
+                return redirect(redirect_to)
+        page_contents = PageContents(session, request)
+        return render_template('pages/local_login.html', page_contents=page_contents, form=form)
+
+    if request.method != 'GET':
+        abort(404)
+
     line = oauth.create_client('line')
     if config.SERVER_URL:
         redirect_uri = f'{config.SERVER_URL.rstrip("/")}/line/authorize'
@@ -187,6 +230,8 @@ def login():
 @ views_blueprint.route('/authorize')
 @ views_blueprint.route('/line/authorize')
 def authorize():
+    if config.IS_DEVELOPMENT:
+        abort(404)
     line = oauth.create_client('line')
     token = line.authorize_access_token()
     profile = line.get('v2/profile', token=token).json()

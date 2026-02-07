@@ -14,8 +14,6 @@ from src.middlewares.WerkzeugMiddleware import WerkzeugMiddleware
 app = Flask(__name__)
 app.debug = bool(config.DEBUG)
 app.secret_key = 'random secret'
-app.config['SESSION_COOKIE_SAMESITE'] = config.SESSION_COOKIE_SAMESITE
-app.config['SESSION_COOKIE_SECURE'] = config.SESSION_COOKIE_SECURE.lower() == 'true'
 oauth.init_app(app)
 
 # set endpoints for views
@@ -34,7 +32,9 @@ app.jinja_env.assets_environment = assets
 
 
 @app.context_processor
-def inject_line_login_url():
+def inject_login_url():
+    if config.IS_DEVELOPMENT:
+        return {'login_url': '/login'}
     if config.SERVER_URL:
-        return {'line_login_url': f'{config.SERVER_URL.rstrip("/")}/line/login'}
-    return {'line_login_url': '/line/login'}
+        return {'login_url': f'{config.SERVER_URL.rstrip("/")}/line/login'}
+    return {'login_url': '/line/login'}

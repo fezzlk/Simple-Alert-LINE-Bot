@@ -1,0 +1,9 @@
+{% extends "layout.html" %} {% block content %} {% from
+"components/_formhelpers.html" import render_field %}
+<h3>ローカルログイン</h3>
+<form action="/login" method="post">
+  <p>{{ render_field(form.user_code) }}</p>
+  <p>{{ render_field(form.password) }}</p>
+  <p>{{ form.csrf_token }} {{ form.submit() }}</p>
+</form>
+{% endblock %}
