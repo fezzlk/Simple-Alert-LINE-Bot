@@ -19,9 +19,12 @@ from src.UseCases.Web.ViewDeletedStockListUseCase import ViewDeletedStockListUse
 from src.UseCases.Web.ViewRegisterUseCase import ViewRegisterUseCase
 
 from src.UseCases.Web.ViewStockListUseCase import ViewStockListUseCase
+from src.UseCases.Web.RegisterLineUserUseCase import RegisterLineUserUseCase
 from src.models.PageContents import PageContents, RegisterFormData, StockListData
 from src.oauth_client import oauth
 from src.middlewares import login_required, set_message
+from src.Domains.Entities.WebUser import WebUser
+from src.models.Forms.LineRegisterForm import LineRegisterForm
 from src import config
 
 from src.Infrastructure.Repositories import (
@@ -47,6 +50,7 @@ def index():
         'pages/index.html',
         page_contents=page_contents,
         line_add_friends_url=config.LINE_ADD_FRIENDS_URL,
+        line_login_url=f'{config.SERVER_URL.rstrip("/")}/line/login' if config.SERVER_URL else '/line/login',
     )
 
 
@@ -170,35 +174,93 @@ Auth
 
 
 @ views_blueprint.route('/login')
+@ views_blueprint.route('/line/login')
 def login():
-    google = oauth.create_client('google')
-    redirect_uri = url_for('views_blueprint.authorize', _external=True)
-    return google.authorize_redirect(redirect_uri)
+    line = oauth.create_client('line')
+    if config.SERVER_URL:
+        redirect_uri = f'{config.SERVER_URL.rstrip("/")}/line/authorize'
+    else:
+        redirect_uri = url_for('views_blueprint.authorize', _external=True)
+    return line.authorize_redirect(redirect_uri)
 
 
 @ views_blueprint.route('/authorize')
+@ views_blueprint.route('/line/authorize')
 def authorize():
-    google = oauth.create_client('google')
-    token = google.authorize_access_token()
-    resp = google.get('userinfo')
-    user_info = resp.json()
-    # do something with the token and profile
-    email = user_info['email']
-    session['login_email'] = email
-    session['login_name'] = user_info['name']
-    session['login_picture'] = user_info['picture']
-    session['access_token'] = token['access_token']
-    session['id_token'] = token['id_token']
+    line = oauth.create_client('line')
+    token = line.authorize_access_token()
+    profile = line.get('v2/profile', token=token).json()
+    line_user_id = profile.get('userId')
+    display_name = profile.get('displayName')
+
+    session['login_line_user_id'] = line_user_id
+    session['login_name'] = display_name
+    session['access_token'] = token.get('access_token')
+    session['id_token'] = token.get('id_token')
 
     web_users = web_user_repository.find(
-        {'web_user_email': email})
+        {'linked_line_user_id': line_user_id})
 
     if len(web_users) == 0:
-        return redirect('/register')
-    session['login_user'] = web_users[0]
+        session['pending_line_user'] = {
+            'line_user_id': line_user_id,
+            'display_name': display_name,
+        }
+        return redirect(url_for('views_blueprint.line_register'))
+    else:
+        user = web_users[0]
+        session['login_user'] = {
+            '_id': str(user._id),
+            'web_user_name': user.web_user_name,
+            'web_user_email': user.web_user_email,
+            'linked_line_user_id': user.linked_line_user_id,
+            'is_linked_line_user': user.is_linked_line_user,
+        }
 
     redirect_to = session.pop('next_page_url', '/')
 
+    return redirect(redirect_to)
+
+
+@ views_blueprint.route('/line/register', methods=['GET'])
+def line_register():
+    pending = session.get('pending_line_user')
+    if not pending:
+        return redirect(url_for('views_blueprint.login'))
+
+    form = LineRegisterForm()
+    form.web_user_name.data = pending.get('display_name') or ''
+    page_contents = PageContents(session, request)
+    return render_template('pages/line/register.html', form=form, page_contents=page_contents)
+
+
+@ views_blueprint.route('/line/register', methods=['POST'])
+def line_register_post():
+    pending = session.get('pending_line_user')
+    if not pending:
+        return redirect(url_for('views_blueprint.login'))
+
+    form = LineRegisterForm(request.form)
+    if not form.validate():
+        page_contents = PageContents(session, request)
+        return render_template('pages/line/register.html', form=form, page_contents=page_contents)
+
+    new_web_user = RegisterLineUserUseCase(
+        web_user_repository=web_user_repository,
+    ).execute(
+        line_user_id=pending.get('line_user_id'),
+        web_user_name=form.web_user_name.data,
+    )
+    session.pop('pending_line_user', None)
+    session['login_user'] = {
+        '_id': str(new_web_user._id),
+        'web_user_name': new_web_user.web_user_name,
+        'web_user_email': new_web_user.web_user_email,
+        'linked_line_user_id': new_web_user.linked_line_user_id,
+        'is_linked_line_user': new_web_user.is_linked_line_user,
+    }
+
+    redirect_to = session.pop('next_page_url', '/')
     return redirect(redirect_to)
 
 

@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% block content %}
+{% from "components/_formhelpers.html" import render_field %}
+<h3>LINE ログイン 初回登録</h3>
+<form action="/line/register" method="post">
+  <p>{{ render_field(form.web_user_name) }}</p>
+  <p>{{ form.csrf_token }} {{ form.submit() }}</p>
+</form>
+{% endblock %}

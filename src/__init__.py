@@ -14,6 +14,8 @@ from src.middlewares.WerkzeugMiddleware import WerkzeugMiddleware
 app = Flask(__name__)
 app.debug = bool(config.DEBUG)
 app.secret_key = 'random secret'
+app.config['SESSION_COOKIE_SAMESITE'] = config.SESSION_COOKIE_SAMESITE
+app.config['SESSION_COOKIE_SECURE'] = config.SESSION_COOKIE_SECURE.lower() == 'true'
 oauth.init_app(app)
 
 # set endpoints for views
@@ -29,3 +31,10 @@ assets = Environment(directory=app.static_folder, url=app.static_url_path)
 assets.register('scss_all', Bundle('scss/style.scss', filters='pyscss', output='all.css'))
 app.jinja_env.add_extension(AssetsExtension)
 app.jinja_env.assets_environment = assets
+
+
+@app.context_processor
+def inject_line_login_url():
+    if config.SERVER_URL:
+        return {'line_login_url': f'{config.SERVER_URL.rstrip("/")}/line/login'}
+    return {'line_login_url': '/line/login'}

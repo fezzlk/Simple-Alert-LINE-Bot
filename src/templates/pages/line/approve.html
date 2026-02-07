@@ -17,8 +17,12 @@
   {% else %}
   <p>アカウント連携リクエストが来ていません。</p>
   <p>
-    連携したい LINE アカウントから Bot に 「アカウント連携 {{
-    page_contents.login_user.web_user_email }}」と送信してください。
+    {% if page_contents.login_user.web_user_email %}
+      連携したい LINE アカウントから Bot に 「アカウント連携 {{
+      page_contents.login_user.web_user_email }}」と送信してください。
+    {% else %}
+      LINEログインを利用しているため、この手順は不要です。
+    {% endif %}
   </p>
   {% endif %}
 </div>

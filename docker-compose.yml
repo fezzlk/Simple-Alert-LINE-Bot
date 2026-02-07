@@ -4,23 +4,16 @@ services:
   app:
     build: .
     ports:
-      - 5000:5000
+      - 5001:5000
     container_name: app
     volumes:
       - ./:/app
+    environment:
+      MONGO_URI: mongodb://mongo:27017/db
     command: flask run --host=0.0.0.0
 
   mongo:
     image: mongo:4.4
     restart: always
     ports:
-      - 27017:27017
-
-  mongo-express:
-    image: mongo-express
-    restart: always
-    ports:
-      - 8081:8081
-    environment:
-      ME_CONFIG_MONGODB_SERVER: mongo
-      ME_CONFIG_MONGODB_PORT: 27017
+      - 27018:27017
