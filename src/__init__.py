@@ -26,7 +26,7 @@ app.wsgi_app = WerkzeugMiddleware(app.wsgi_app)
 
 # scss
 assets = Environment(directory=app.static_folder, url=app.static_url_path)
-assets.register('scss_all', Bundle('scss/style.scss', filters='pyscss', output='all.css'))
+assets.register('scss_all', Bundle('scss/style.scss', filters='libsass', output='all.css'))
 app.jinja_env.add_extension(AssetsExtension)
 app.jinja_env.assets_environment = assets
 
