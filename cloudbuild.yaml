@@ -20,3 +20,5 @@ steps:
       - --allow-unauthenticated
 images:
   - "asia-northeast1-docker.pkg.dev/$PROJECT_ID/simple-alert-line-bot/app:$SHORT_SHA"
+options:
+  logging: CLOUD_LOGGING_ONLY
