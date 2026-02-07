@@ -6,6 +6,7 @@ from flask import (
     session,
     flash,
     request,
+    abort,
 )
 from src.UseCases.Web.AddStockUseCase import AddStockUseCase
 from src.UseCases.Web.ApproveLinkLineUserUseCase import ApproveLinkLineUserUseCase
@@ -19,13 +20,21 @@ from src.UseCases.Web.ViewDeletedStockListUseCase import ViewDeletedStockListUse
 from src.UseCases.Web.ViewRegisterUseCase import ViewRegisterUseCase
 
 from src.UseCases.Web.ViewStockListUseCase import ViewStockListUseCase
+from src.UseCases.Web.RegisterLineUserUseCase import RegisterLineUserUseCase
 from src.models.PageContents import PageContents, RegisterFormData, StockListData
 from src.oauth_client import oauth
 from src.middlewares import login_required, set_message
+from src.Domains.Entities.WebUser import WebUser
+from src.models.Forms.LineRegisterForm import LineRegisterForm
+from src.models.Forms.LocalLoginForm import LocalLoginForm
+from src import config
 
 from src.Infrastructure.Repositories import (
     web_user_repository,
+    stock_repository,
+    line_user_repository,
 )
+from src.services import web_user_service
 
 views_blueprint = Blueprint('views_blueprint', __name__, url_prefix='/')
 
@@ -39,7 +48,11 @@ Endpoints for Web
 @set_message
 def index():
     page_contents = PageContents(session, request)
-    return render_template('pages/index.html', page_contents=page_contents)
+    return render_template(
+        'pages/index.html',
+        page_contents=page_contents,
+        line_add_friends_url=config.LINE_ADD_FRIENDS_URL,
+    )
 
 
 @views_blueprint.route('/register', methods=['GET'])
@@ -54,7 +67,9 @@ def view_register():
 @views_blueprint.route('/register', methods=['POST'])
 def register():
     page_contents = PageContents(session, request)
-    web_user_name = RegisterWebUserUseCase().execute(page_contents=page_contents)
+    web_user_name = RegisterWebUserUseCase(
+        web_user_service=web_user_service,
+    ).execute(page_contents=page_contents)
     # TODO: ユーザー画面作ったらユーザー画面に遷移するようにする
     redirect_to = session.pop('next_page_url', '/')
     return redirect(f'{redirect_to}?message=Hi, {web_user_name}! Welcome to SALB!')
@@ -65,14 +80,18 @@ def register():
 @ set_message
 def view_approve_link_line_user():
     page_contents = PageContents(session, request)
-    page_contents = ViewApproveLinkLineUseCase().execute(page_contents=page_contents)
+    page_contents = ViewApproveLinkLineUseCase(
+        line_user_repository=line_user_repository,
+    ).execute(page_contents=page_contents)
     return render_template('pages/line/approve.html', page_contents=page_contents)
 
 
 @ views_blueprint.route('/line/approve', methods=['POST'])
 def approve_line_user():
     page_contents = PageContents(session, request)
-    ApproveLinkLineUserUseCase().execute(page_contents=page_contents)
+    ApproveLinkLineUserUseCase(
+        web_user_repository=web_user_repository,
+    ).execute(page_contents=page_contents)
     return redirect(url_for('views_blueprint.view_approve_link_line_user'))
 
 
@@ -82,7 +101,9 @@ def approve_line_user():
 def view_stock_list():
     page_contents = PageContents[StockListData](
         session, request, StockListData)
-    page_contents, forms = ViewStockListUseCase().execute(page_contents=page_contents)
+    page_contents, forms = ViewStockListUseCase(
+        stock_repository=stock_repository,
+    ).execute(page_contents=page_contents)
     return render_template('pages/stock/index.html', page_contents=page_contents, form=forms)
 
 
@@ -90,7 +111,9 @@ def view_stock_list():
 @ login_required
 def add_stock():
     page_contents = PageContents(session, request)
-    item_name = AddStockUseCase().execute(page_contents=page_contents)
+    item_name = AddStockUseCase(
+        stock_repository=stock_repository,
+    ).execute(page_contents=page_contents)
     return redirect(url_for('views_blueprint.view_stock_list', message=f'"{item_name}" を追加しました'))
 
 
@@ -98,7 +121,9 @@ def add_stock():
 @ login_required
 def update_stock():
     page_contents = PageContents(session, request)
-    UpdateStockUseCase().execute(page_contents=page_contents)
+    UpdateStockUseCase(
+        stock_repository=stock_repository,
+    ).execute(page_contents=page_contents)
     return redirect(url_for('views_blueprint.view_stock_list', message=f'更新しました'))
 
 
@@ -107,7 +132,9 @@ def update_stock():
 @ set_message
 def delete_stock():
     page_contents = PageContents(session, request)
-    DeleteStockUseCase().execute(page_contents=page_contents)
+    DeleteStockUseCase(
+        stock_repository=stock_repository,
+    ).execute(page_contents=page_contents)
     return redirect(url_for('views_blueprint.view_stock_list', message='アイテムを削除しました'))
 
 
@@ -116,7 +143,9 @@ def delete_stock():
 @ set_message
 def view_deleted_stock_list():
     page_contents = PageContents(session, request)
-    page_contents = ViewDeletedStockListUseCase().execute(page_contents=page_contents)
+    page_contents = ViewDeletedStockListUseCase(
+        stock_repository=stock_repository,
+    ).execute(page_contents=page_contents)
     return render_template('pages/stock/trash.html', page_contents=page_contents)
 
 
@@ -124,7 +153,9 @@ def view_deleted_stock_list():
 @ login_required
 def complete_delete_stock():
     page_contents = PageContents(session, request)
-    CompleteDeleteStockUseCase().execute(page_contents=page_contents)
+    CompleteDeleteStockUseCase(
+        stock_repository=stock_repository,
+    ).execute(page_contents=page_contents)
     return redirect(url_for('views_blueprint.view_deleted_stock_list', message='アイテムを完全削除しました'))
 
 
@@ -132,17 +163,10 @@ def complete_delete_stock():
 @ login_required
 def restore_stock():
     page_contents = PageContents(session, request)
-    RestoreStockUseCase().execute(page_contents=page_contents)
+    RestoreStockUseCase(
+        stock_repository=stock_repository,
+    ).execute(page_contents=page_contents)
     return redirect(url_for('views_blueprint.view_deleted_stock_list', message='アイテムを復元しました'))
-
-
-@ views_blueprint.route('/weather', methods=['GET'])
-@ login_required
-@ set_message
-def view_weather():
-    page_contents = PageContents(session, request)
-    page_contents = ViewWeatherUseCase().execute(page_contents=page_contents)
-    return render_template('pages/weather/index.html', page_contents=page_contents)
 
 
 '''
@@ -150,36 +174,138 @@ Auth
 '''
 
 
-@ views_blueprint.route('/login')
+@ views_blueprint.route('/login', methods=['GET', 'POST'])
+@ views_blueprint.route('/line/login', methods=['GET', 'POST'])
 def login():
-    google = oauth.create_client('google')
-    redirect_uri = url_for('views_blueprint.authorize', _external=True)
-    return google.authorize_redirect(redirect_uri)
+    if config.IS_DEVELOPMENT:
+        form = LocalLoginForm(request.form)
+        if request.method == 'POST':
+            if not form.validate():
+                page_contents = PageContents(session, request)
+                return render_template('pages/local_login.html', page_contents=page_contents, form=form)
+            if not config.LOCAL_AUTH_USER_CODE or not config.LOCAL_AUTH_PASSWORD:
+                flash('ローカルログインが設定されていません', 'danger')
+            elif (
+                form.user_code.data != config.LOCAL_AUTH_USER_CODE
+                or form.password.data != config.LOCAL_AUTH_PASSWORD
+            ):
+                flash('ユーザーコードまたはパスワードが違います', 'danger')
+            else:
+                web_users = web_user_repository.find(
+                    {'web_user_name': form.user_code.data}
+                )
+                if len(web_users) == 0:
+                    new_web_user = WebUser(
+                        web_user_name=form.user_code.data,
+                        web_user_email=None,
+                        linked_line_user_id=None,
+                        is_linked_line_user=False,
+                    )
+                    web_user = web_user_repository.create(new_web_user=new_web_user)
+                else:
+                    web_user = web_users[0]
+                session['login_user'] = {
+                    '_id': str(web_user._id),
+                    'web_user_name': web_user.web_user_name,
+                    'web_user_email': web_user.web_user_email,
+                    'linked_line_user_id': web_user.linked_line_user_id,
+                    'is_linked_line_user': web_user.is_linked_line_user,
+                }
+                redirect_to = session.pop('next_page_url', '/')
+                return redirect(redirect_to)
+        page_contents = PageContents(session, request)
+        return render_template('pages/local_login.html', page_contents=page_contents, form=form)
+
+    if request.method != 'GET':
+        abort(404)
+
+    line = oauth.create_client('line')
+    if config.SERVER_URL:
+        redirect_uri = f'{config.SERVER_URL.rstrip("/")}/line/authorize'
+    else:
+        redirect_uri = url_for('views_blueprint.authorize', _external=True)
+    return line.authorize_redirect(redirect_uri)
 
 
 @ views_blueprint.route('/authorize')
+@ views_blueprint.route('/line/authorize')
 def authorize():
-    google = oauth.create_client('google')
-    token = google.authorize_access_token()
-    resp = google.get('userinfo')
-    user_info = resp.json()
-    # do something with the token and profile
-    email = user_info['email']
-    session['login_email'] = email
-    session['login_name'] = user_info['name']
-    session['login_picture'] = user_info['picture']
-    session['access_token'] = token['access_token']
-    session['id_token'] = token['id_token']
+    if config.IS_DEVELOPMENT:
+        abort(404)
+    line = oauth.create_client('line')
+    token = line.authorize_access_token()
+    profile = line.get('v2/profile', token=token).json()
+    line_user_id = profile.get('userId')
+    display_name = profile.get('displayName')
+
+    session['login_line_user_id'] = line_user_id
+    session['login_name'] = display_name
+    session['access_token'] = token.get('access_token')
+    session['id_token'] = token.get('id_token')
 
     web_users = web_user_repository.find(
-        {'web_user_email': email})
+        {'linked_line_user_id': line_user_id})
 
     if len(web_users) == 0:
-        return redirect('/register')
-    session['login_user'] = web_users[0]
+        session['pending_line_user'] = {
+            'line_user_id': line_user_id,
+            'display_name': display_name,
+        }
+        return redirect(url_for('views_blueprint.line_register'))
+    else:
+        user = web_users[0]
+        session['login_user'] = {
+            '_id': str(user._id),
+            'web_user_name': user.web_user_name,
+            'web_user_email': user.web_user_email,
+            'linked_line_user_id': user.linked_line_user_id,
+            'is_linked_line_user': user.is_linked_line_user,
+        }
 
     redirect_to = session.pop('next_page_url', '/')
 
+    return redirect(redirect_to)
+
+
+@ views_blueprint.route('/line/register', methods=['GET'])
+def line_register():
+    pending = session.get('pending_line_user')
+    if not pending:
+        return redirect(url_for('views_blueprint.login'))
+
+    form = LineRegisterForm()
+    form.web_user_name.data = pending.get('display_name') or ''
+    page_contents = PageContents(session, request)
+    return render_template('pages/line/register.html', form=form, page_contents=page_contents)
+
+
+@ views_blueprint.route('/line/register', methods=['POST'])
+def line_register_post():
+    pending = session.get('pending_line_user')
+    if not pending:
+        return redirect(url_for('views_blueprint.login'))
+
+    form = LineRegisterForm(request.form)
+    if not form.validate():
+        page_contents = PageContents(session, request)
+        return render_template('pages/line/register.html', form=form, page_contents=page_contents)
+
+    new_web_user = RegisterLineUserUseCase(
+        web_user_repository=web_user_repository,
+    ).execute(
+        line_user_id=pending.get('line_user_id'),
+        web_user_name=form.web_user_name.data,
+    )
+    session.pop('pending_line_user', None)
+    session['login_user'] = {
+        '_id': str(new_web_user._id),
+        'web_user_name': new_web_user.web_user_name,
+        'web_user_email': new_web_user.web_user_email,
+        'linked_line_user_id': new_web_user.linked_line_user_id,
+        'is_linked_line_user': new_web_user.is_linked_line_user,
+    }
+
+    redirect_to = session.pop('next_page_url', '/')
     return redirect(redirect_to)
 
 

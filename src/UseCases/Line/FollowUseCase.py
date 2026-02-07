@@ -1,22 +1,30 @@
 from src import config
 from src.UseCases.Interface.IUseCase import IUseCase
-from src.services import (
-    line_request_service,
-    line_response_service,
-)
 from src.Domains.Entities.LineUser import LineUser
-from src.services import line_user_service
+from src.UseCases.Interface.ILineRequestService import ILineRequestService
+from src.UseCases.Interface.ILineResponseService import ILineResponseService
+from src.UseCases.Interface.ILineUserService import ILineUserService
 
 
 class FollowUseCase(IUseCase):
+    def __init__(
+        self,
+        line_request_service: ILineRequestService,
+        line_response_service: ILineResponseService,
+        line_user_service: ILineUserService,
+    ):
+        self._line_request_service = line_request_service
+        self._line_response_service = line_response_service
+        self._line_user_service = line_user_service
+
     def execute(self) -> None:
-        name = line_request_service.req_line_user_name
+        name = self._line_request_service.req_line_user_name
         new_line_user = LineUser(
             line_user_name=name,
-            line_user_id=line_request_service.req_line_user_id,
+            line_user_id=self._line_request_service.req_line_user_id,
         )
-        line_user_service.find_or_create(new_line_user=new_line_user)
-        line_response_service.add_message(f'{name}さん、友達登録ありがとうございます！')
-        line_response_service.add_message('「ヘルプ」と送ると使えるコマンドが表示されます。')
-        line_response_service.add_message(
+        self._line_user_service.find_or_create(new_line_user=new_line_user)
+        self._line_response_service.add_message(f'{name}さん、友達登録ありがとうございます！')
+        self._line_response_service.add_message('「ヘルプ」と送ると使えるコマンドが表示されます。')
+        self._line_response_service.add_message(
             f'web で確認する→ {config.SERVER_URL}/stock?openExternalBrowser=1')

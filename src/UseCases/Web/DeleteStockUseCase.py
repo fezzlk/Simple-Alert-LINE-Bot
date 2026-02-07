@@ -2,22 +2,23 @@ from flask import (
     Request,
 )
 from src.UseCases.Interface.IUseCase import IUseCase
+from src.Domains.IRepositories.IStockRepository import IStockRepository
 from werkzeug.exceptions import BadRequest, NotFound
-from src.Infrastructure.Repositories import (
-    stock_repository,
-)
 from bson.objectid import ObjectId
 from src.models.PageContents import PageContents
 
 
 class DeleteStockUseCase(IUseCase):
+    def __init__(self, stock_repository: IStockRepository):
+        self._stock_repository = stock_repository
+
     def execute(self, page_contents: PageContents) -> None:
         request: Request = page_contents.request
         stock_id = request.form.get('stock_id', '')
         if stock_id == '':
             raise BadRequest('アイテムIDは必須です')
 
-        result = stock_repository.update(
+        result = self._stock_repository.update(
             {'_id': ObjectId(stock_id)},
             {'status': 2},
         )

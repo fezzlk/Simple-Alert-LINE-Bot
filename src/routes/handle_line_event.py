@@ -2,8 +2,16 @@ import traceback
 from flask import Blueprint, request, abort
 from linebot.exceptions import InvalidSignatureError
 from linebot.models.events import Event
-from src.Infrastructure.Repositories import line_user_repository
-from src.services import line_request_service, line_response_service
+from src.Infrastructure.Repositories import (
+    line_user_repository,
+    stock_repository,
+    web_user_repository,
+)
+from src.services import (
+    line_request_service,
+    line_response_service,
+    line_user_service,
+)
 from src.line_bot_api import handler
 
 from src.UseCases.Line.FollowUseCase import FollowUseCase
@@ -95,36 +103,61 @@ def handle_message(event: Event, destination: str) -> None:
 @handler.add(FollowEvent)
 @handle_event_decorater
 def handle_follow(event: Event, destination: str) -> None:
-    FollowUseCase().execute()
+    FollowUseCase(
+        line_request_service=line_request_service,
+        line_response_service=line_response_service,
+        line_user_service=line_user_service,
+    ).execute()
 
 
 @handler.add(UnfollowEvent)
 @handle_event_decorater
 def handle_unfollow(event: Event, destination: str) -> None:
-    UnfollowUseCase().execute()
+    UnfollowUseCase(
+        line_user_repository=line_user_repository,
+        line_request_service=line_request_service,
+    ).execute()
 
 
 @handler.add(JoinEvent)
 @handle_event_decorater
 def handle_join(event: Event, destination: str) -> None:
-    JoinUseCase().execute()
+    JoinUseCase(
+        line_response_service=line_response_service,
+    ).execute()
 
 
 @handler.add(MessageEvent, message=ImageMessage)
 @handle_event_decorater
 def handle_image_message(event: Event, destination: str) -> None:
-    ImageMessageUseCase().execute()
+    ImageMessageUseCase(
+        line_response_service=line_response_service,
+    ).execute()
 
 
 @handler.add(PostbackEvent)
 @handle_event_decorater
 def handle_postback(event: Event, destination: str) -> None:
-    PostbackUseCase().execute()
+    PostbackUseCase(
+        line_response_service=line_response_service,
+    ).execute()
 
 
 def get_use_case_text_message(event: Event):
-    use_case_list = get_line_command_use_case_list()
-    use_case_list['system_keywords']['ヘルプ'] = ReplyHelpUseCase()
+    use_case_list = get_line_command_use_case_list(
+        stock_repository=stock_repository,
+        web_user_repository=web_user_repository,
+        line_request_service=line_request_service,
+        line_response_service=line_response_service,
+    )
+    commands = []
+    for values in use_case_list.values():
+        commands.extend(values.keys())
+    use_case_list['system_keywords']['ヘルプ'] = ReplyHelpUseCase(
+        line_request_service=line_request_service,
+        line_response_service=line_response_service,
+        commands=commands,
+    )
 
     keyword = event.message.text.split()[0].upper()
     # ストック情報
@@ -133,4 +166,6 @@ def get_use_case_text_message(event: Event):
     elif keyword in use_case_list['system_keywords']:
         return use_case_list['system_keywords'][keyword]
     else:
-        return TextMessageUseCase()
+        return TextMessageUseCase(
+            line_response_service=line_response_service,
+        )

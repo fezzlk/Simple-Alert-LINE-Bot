@@ -16,7 +16,13 @@
             data-bs-toggle="dropdown"
             aria-expanded="false"
           >
-            {{ page_contents.login_user.web_user_email }}
+            {% if page_contents.login_user.web_user_name %}
+              {{ page_contents.login_user.web_user_name }}
+            {% elif page_contents.login_user.web_user_email %}
+              {{ page_contents.login_user.web_user_email }}
+            {% else %}
+              {{ page_contents.login_user.linked_line_user_id }}
+            {% endif %}
           </div>
           <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
             <li><a class="dropdown-item" href="/stock">アイテム一覧</a></li>
@@ -30,7 +36,7 @@
           </ul>
         </div>
         {% else %}
-        <a class="nav-link text-dark" href="/login">ログイン</a>
+        <a class="nav-link text-dark" href="{{ login_url }}">ログイン</a>
         {% endif %}
       </div>
       <!-- スマートフォン画面 -->
@@ -51,7 +57,15 @@
             aria-labelledby="navbarDropdown"
           >
             <li>
-              <a class="dropdown-item">{{ page_contents.login_user.web_user_email }}</a>
+              <a class="dropdown-item">
+                {% if page_contents.login_user.web_user_name %}
+                  {{ page_contents.login_user.web_user_name }}
+                {% elif page_contents.login_user.web_user_email %}
+                  {{ page_contents.login_user.web_user_email }}
+                {% else %}
+                  {{ page_contents.login_user.linked_line_user_id }}
+                {% endif %}
+              </a>
             </li>
             <li><hr class="dropdown-divider" /></li>
             <li><a class="dropdown-item" href="/stock">アイテム一覧</a></li>
@@ -68,7 +82,9 @@
             class="dropdown-menu dropdown-menu-end"
             aria-labelledby="navbarDropdown"
           >
-            <li><a class="nav-link text-dark" href="/login">ログイン</a></li>
+            <li>
+              <a class="nav-link text-dark" href="{{ login_url }}">ログイン</a>
+            </li>
           </ul>
           {% endif %}
         </div>

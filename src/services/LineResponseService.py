@@ -8,9 +8,10 @@ from typing import List
 from ctypes import Union
 from src.line_bot_api import line_bot_api
 from linebot.models.events import Event
+from src.UseCases.Interface.ILineResponseService import ILineResponseService
 
 
-class LineResponseService:
+class LineResponseService(ILineResponseService):
 
     def __init__(self):
         self.texts: List[TextSendMessage] = []

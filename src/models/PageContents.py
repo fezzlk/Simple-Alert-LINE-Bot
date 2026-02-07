@@ -5,7 +5,7 @@ from flask.sessions import SessionMixin
 
 from src.Domains.Entities.WebUser import WebUser
 from src.models.StockViewModel import StockViewModel
-
+from typing import Dict
 
 @dataclass()
 class RegisterFormData:
@@ -54,7 +54,17 @@ class PageContents(Generic[T]):
         page_title: str = '',
     ):
         self.session = dict(session)
-        self.login_user = session.get('login_user', None)
+        login_user = session.get('login_user', None)
+        if isinstance(login_user, Dict):
+            self.login_user = WebUser(
+                web_user_name=login_user.get("web_user_name"),
+                web_user_email=login_user.get("web_user_email"),
+                linked_line_user_id=login_user.get("linked_line_user_id"),
+                is_linked_line_user=bool(login_user.get("is_linked_line_user")),
+            )
+        if isinstance(login_user, WebUser):
+            self.login_user = login_user
+
         self.next_page_url = session.get('next_page_url', '')
         self.line_user_name = ''
         self.page_title = page_title

@@ -45,7 +45,8 @@ def case(request) -> Tuple[str, datetime, int]:
 def test_success(dummy_app, case):
     with dummy_app.test_request_context():
         # Arrange
-        use_case = AddStockUseCase()
+        stock_repository = StockRepository()
+        use_case = AddStockUseCase(stock_repository=stock_repository)
         session['login_user'] = dummy_web_user
 
         request.form = werkzeug.datastructures.ImmutableMultiDict({
@@ -63,7 +64,7 @@ def test_success(dummy_app, case):
         # Assert
         assert result == case[0]
 
-        data = StockRepository().find()
+        data = stock_repository.find()
         for i in range(len(data)):
             assert data[i].item_name == dummy_stocks[case[2]].item_name
             assert data[i].expiry_date == dummy_stocks[case[2]].expiry_date

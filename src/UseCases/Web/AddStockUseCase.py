@@ -1,16 +1,17 @@
 from flask import Request
 from src.UseCases.Interface.IUseCase import IUseCase
 from src.Domains.Entities.Stock import Stock
+from src.Domains.IRepositories.IStockRepository import IStockRepository
 from werkzeug.exceptions import BadRequest
 from datetime import datetime
-from src.Infrastructure.Repositories import (
-    stock_repository,
-)
 from src.models.Forms.AddStockForm import AddStockForm
 from src.models.PageContents import PageContents
 
 
 class AddStockUseCase(IUseCase):
+    def __init__(self, stock_repository: IStockRepository):
+        self._stock_repository = stock_repository
+
     def execute(self, page_contents: PageContents) -> str:
         request: Request = page_contents.request
         form = AddStockForm(request.form)
@@ -34,5 +35,5 @@ class AddStockUseCase(IUseCase):
             status=1,
         )
 
-        result = stock_repository.create(new_stock=new_stock)
+        result = self._stock_repository.create(new_stock=new_stock)
         return result.item_name

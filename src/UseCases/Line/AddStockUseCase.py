@@ -1,23 +1,31 @@
 from datetime import datetime
 from src.Domains.Entities.Stock import Stock
 from src.UseCases.Interface.IUseCase import IUseCase
-from src.services import (
-    line_request_service,
-    line_response_service,
-)
-from src.Infrastructure.Repositories import stock_repository
+from src.Domains.IRepositories.IStockRepository import IStockRepository
+from src.UseCases.Interface.ILineRequestService import ILineRequestService
+from src.UseCases.Interface.ILineResponseService import ILineResponseService
 
 
 class AddStockUseCase(IUseCase):
+    def __init__(
+        self,
+        stock_repository: IStockRepository,
+        line_request_service: ILineRequestService,
+        line_response_service: ILineResponseService,
+    ):
+        self._stock_repository = stock_repository
+        self._line_request_service = line_request_service
+        self._line_response_service = line_response_service
+
     def execute(self) -> None:
-        args = line_request_service.message.split()
+        args = self._line_request_service.message.split()
         item_name = args[1] if len(args) >= 2 else None
         date_str = args[2] if len(args) >= 3 else None
 
         if item_name is None:
-            line_response_service.add_message(
+            self._line_response_service.add_message(
                 '"登録 [アイテム名] [期限(任意)]" と送ってください。')
-            line_response_service.add_message(
+            self._line_response_service.add_message(
                 '[日付の入力方法]\nYYYY年MM月DD日: YYYYMMDD\n20YY年MM月DD日: YYMMDD\n今年MM月DD日: MMDD\n今月DD日: DD')
             return
 
@@ -43,7 +51,7 @@ class AddStockUseCase(IUseCase):
                 month = datetime.now().month
                 day = int(date_str[-2:])
             else:
-                line_response_service.add_message(
+                self._line_response_service.add_message(
                     '[日付の入力方法]\n\nYYYY年MM月DD日\n→ YYYYMMDD\n\n20YY年MM月DD日\n→ YYMMDD\n\n今年MM月DD日\n→ MMDD\n\n今月DD日\n→ DD')
                 return
 
@@ -51,14 +59,14 @@ class AddStockUseCase(IUseCase):
 
         new_stock = Stock(
             item_name=item_name,
-            owner_id=line_request_service.req_line_user_id,
+            owner_id=self._line_request_service.req_line_user_id,
             expiry_date=expiry_date,
             status=1,
         )
-        stock_repository.create(new_stock)
+        self._stock_repository.create(new_stock)
 
         if expiry_date is None:
-            line_response_service.add_message(f'"{item_name}"を登録しました')
+            self._line_response_service.add_message(f'"{item_name}"を登録しました')
         else:
-            line_response_service.add_message(
+            self._line_response_service.add_message(
                 f'"{item_name}"を期限{expiry_date.strftime("%Y年%m月%d日")}で登録しました')
