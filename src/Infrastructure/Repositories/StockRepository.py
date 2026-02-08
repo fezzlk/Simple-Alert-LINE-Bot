@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Tuple
 from datetime import datetime
 from google.cloud import firestore
-from google.cloud.firestore import FieldPath
+from google.cloud.firestore_v1 import FieldPath
 from src.Domains.Entities.Stock import Stock
 from src.firestore_client import firestore_client
 from src.firestore_query import build_filters
