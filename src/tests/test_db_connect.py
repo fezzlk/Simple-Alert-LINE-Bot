@@ -1,6 +1,6 @@
-from typing import List
-from src.mongo_client import mongo_client
+from google.cloud.firestore import Client
+from src.firestore_client import firestore_client
 
 
-def test_connect_mongo_with():
-    assert isinstance(mongo_client.db.list_collection_names(), List)
+def test_connect_firestore():
+    assert isinstance(firestore_client, Client)

@@ -24,22 +24,15 @@ class CheckExpiredStockUseCase(IUseCase):
             print(line_user.line_user_name)
             # [TODO] LINE アカウント取得時に関連する web ユーザー id もまとめて取得するようにする
             web_users = self._line_user_repository.find({
-                '$and': [
-                    {'linked_line_user_id': line_user.line_user_id},
-                    {'is_linked_line_user': True},
-                ],
+                'linked_line_user_id': line_user.line_user_id,
+                'is_linked_line_user': True,
             })
             web_user_id = '' if len(web_users) == 0 else web_users[0]._id
             print('# web_user_id')
             print(web_user_id)
             stocks = self._stock_repository.find({
-                '$and': [
-                    {'$or': [
-                        {'owner_id': line_user.line_user_id},
-                        {'owner_id': web_user_id},
-                    ]},
-                    {'status': 1},
-                ],
+                'owner_id__in': [line_user.line_user_id, web_user_id],
+                'status': 1,
             })
 
             expired_stocks = []

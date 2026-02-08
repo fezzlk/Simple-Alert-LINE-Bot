@@ -2,7 +2,6 @@ from src.UseCases.Interface.IUseCase import IUseCase
 from src.Domains.IRepositories.IStockRepository import IStockRepository
 from src.models.StockViewModel import StockViewModel, keys, labels
 from src.models.PageContents import PageContents, StockListData
-from pymongo import DESCENDING
 
 
 class ViewDeletedStockListUseCase(IUseCase):
@@ -14,16 +13,11 @@ class ViewDeletedStockListUseCase(IUseCase):
         web_user = page_contents.login_user
         stocks = self._stock_repository.find(
             query={
-                '$and': [
-                    {'$or': [
-                        {'owner_id': web_user.linked_line_user_id},
-                        {'owner_id': web_user._id},
-                    ]},
-                    {'status': 2},
-                ],
+                'owner_id__in': [web_user.linked_line_user_id, web_user._id],
+                'status': 2,
             },
             sort=[
-                ('updated_at', DESCENDING),
+                ('updated_at', 'desc'),
             ],
         )
         page_contents.data.stocks = [

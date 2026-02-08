@@ -18,13 +18,8 @@ class ViewStockListUseCase(IUseCase):
 
         web_user = page_contents.login_user
         stocks = self._stock_repository.find({
-            '$and': [
-                {'$or': [
-                    {'owner_id': web_user.linked_line_user_id},
-                    {'owner_id': web_user._id},
-                ]},
-                {'status': 1},
-            ],
+            'owner_id__in': [web_user.linked_line_user_id, web_user._id],
+            'status': 1,
         })
         page_contents.data.stocks = [
             StockViewModel(stock=stock) for stock in stocks]

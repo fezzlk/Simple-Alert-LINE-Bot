@@ -28,13 +28,11 @@ class ReplyStockUseCase(IUseCase):
         linked_web_user_id = linked_web_users[0]._id if len(
             linked_web_users) != 0 else ''
         stocks = self._stock_repository.find({
-            '$and': [
-                {'$or': [
-                    {'owner_id': linked_web_user_id},
-                    {'owner_id': self._line_request_service.req_line_user_id},
-                ]},
-                {'status': 1},
+            'owner_id__in': [
+                linked_web_user_id,
+                self._line_request_service.req_line_user_id,
             ],
+            'status': 1,
         })
 
         stocks_with_expire_date = []

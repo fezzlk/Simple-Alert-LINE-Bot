@@ -9,11 +9,6 @@ services:
     volumes:
       - ./:/app
     environment:
-      MONGO_URI: mongodb://mongo:27017/db
+      FIRESTORE_PROJECT_ID: simple-alert-line-bot
+      FIRESTORE_EMULATOR_HOST: ""
     command: flask run --host=0.0.0.0
-
-  mongo:
-    image: mongo:4.4
-    restart: always
-    ports:
-      - 27018:27017
