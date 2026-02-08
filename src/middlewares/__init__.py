@@ -1,4 +1,5 @@
 from functools import wraps
+from urllib.parse import quote
 from flask import request, redirect, url_for, session
 
 
@@ -10,7 +11,8 @@ def login_required(f):
         # 認証を通っていない場合はログイン画面に遷移
         if 'login_user' not in session:
             session['next_page_url'] = request.url
-            return redirect(url_for('views_blueprint.login', next=request.url))
+            next_url = quote(request.url, safe='')
+            return redirect(f'/line/login?next={next_url}')
 
         session.pop('next_page_url', None)
         return f(*args, **kwargs)
