@@ -4,7 +4,6 @@ from flask import (
 from src.UseCases.Interface.IUseCase import IUseCase
 from src.Domains.IRepositories.IStockRepository import IStockRepository
 from werkzeug.exceptions import BadRequest, NotFound
-from bson.objectid import ObjectId
 from src.models.PageContents import PageContents
 
 
@@ -19,10 +18,10 @@ class RestoreStockUseCase(IUseCase):
             raise BadRequest('アイテムIDは必須です')
 
         result = self._stock_repository.update(
-            {'$and': [
-                {'_id': ObjectId(stock_id)},
-                {'status': 2},
-            ]},
+            {
+                '_id': stock_id,
+                'status': 2,
+            },
             {'status': 1},
         )
         if result == 0:

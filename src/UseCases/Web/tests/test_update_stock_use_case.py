@@ -2,7 +2,6 @@ from datetime import datetime
 from types import SimpleNamespace
 
 import pytest
-from bson.objectid import ObjectId
 from werkzeug.exceptions import BadRequest
 from werkzeug.datastructures import ImmutableMultiDict
 
@@ -80,10 +79,9 @@ def test_update_stock_updates_fields_and_query():
 
     use_case.execute(page_contents=page_contents)
 
-    assert isinstance(repo.last_query["$and"][0]["_id"], ObjectId)
-    assert str(repo.last_query["$and"][0]["_id"]) == stock_id
-    assert {"owner_id": "W1"} in repo.last_query["$and"][1]["$or"]
-    assert {"owner_id": "L1"} in repo.last_query["$and"][1]["$or"]
+    assert isinstance(repo.last_query["_id"], str)
+    assert repo.last_query["_id"] == stock_id
+    assert repo.last_query["owner_id__in"] == ["W1", "L1"]
     assert repo.last_values["item_name"] == "rice"
     assert repo.last_values["expiry_date"] == datetime(2025, 1, 2)
     assert repo.last_values["created_at"] == datetime(2025, 1, 1)

@@ -5,7 +5,6 @@ from src.Domains.Entities.WebUser import WebUser
 from src.UseCases.Interface.IUseCase import IUseCase
 from src.Domains.IRepositories.IStockRepository import IStockRepository
 from werkzeug.exceptions import BadRequest
-from bson.objectid import ObjectId
 from src.models.PageContents import PageContents
 
 
@@ -46,13 +45,8 @@ class UpdateStockUseCase(IUseCase):
 
         res = self._stock_repository.update(
             query={
-                '$and': [
-                    {'_id': ObjectId(stock_id)},
-                    {'$or': [
-                        {'owner_id': owner_web._id},
-                        {'owner_id': owner_line_id},
-                    ]}
-                ]
+                '_id': stock_id,
+                'owner_id__in': [owner_web._id, owner_line_id],
             },
             new_values=new_values,
         )

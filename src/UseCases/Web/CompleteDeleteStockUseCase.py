@@ -2,7 +2,6 @@ from flask import Request
 from src.UseCases.Interface.IUseCase import IUseCase
 from src.Domains.IRepositories.IStockRepository import IStockRepository
 from werkzeug.exceptions import BadRequest, NotFound
-from bson.objectid import ObjectId
 from src.models.PageContents import PageContents
 
 
@@ -17,10 +16,8 @@ class CompleteDeleteStockUseCase(IUseCase):
             raise BadRequest('アイテムIDは必須です')
 
         result = self._stock_repository.delete({
-            '$and': [
-                {'_id': ObjectId(stock_id)},
-                {'status': 2},
-            ],
+            '_id': stock_id,
+            'status': 2,
         })
         if result == 0:
             raise NotFound('削除対象のアイテムが見つかりません')

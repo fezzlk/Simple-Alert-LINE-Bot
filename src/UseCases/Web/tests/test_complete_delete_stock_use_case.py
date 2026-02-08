@@ -1,7 +1,6 @@
 from types import SimpleNamespace
 
 import pytest
-from bson.objectid import ObjectId
 from werkzeug.exceptions import BadRequest, NotFound
 from werkzeug.datastructures import ImmutableMultiDict
 
@@ -63,4 +62,4 @@ def test_complete_delete_success():
 
     use_case.execute(page_contents=page_contents)
 
-    assert isinstance(repo.last_query["$and"][0]["_id"], ObjectId)
+    assert isinstance(repo.last_query["_id"], str)

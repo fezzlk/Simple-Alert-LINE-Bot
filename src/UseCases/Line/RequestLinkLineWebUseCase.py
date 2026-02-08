@@ -1,5 +1,4 @@
 from src import config
-from bson.objectid import ObjectId
 from src.Domains.IRepositories.IWebUserRepository import IWebUserRepository
 from src.UseCases.Interface.IUseCase import IUseCase
 from src.UseCases.Interface.ILineRequestService import ILineRequestService
@@ -43,7 +42,7 @@ class RequestLinkLineWebUseCase(IUseCase):
             return
 
         result = self._web_user_repository.update(
-            {'_id': ObjectId(web_users[0]._id)},
+            {'_id': web_users[0]._id},
             {'linked_line_user_id': self._line_request_service.req_line_user_id},
         )
 
