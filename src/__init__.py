@@ -34,7 +34,7 @@ app.jinja_env.assets_environment = assets
 @app.context_processor
 def inject_login_url():
     if config.IS_DEVELOPMENT:
-        return {'login_url': '/login'}
+        return {'login_url': '/line/login'}
     if config.SERVER_URL:
         return {'login_url': f'{config.SERVER_URL.rstrip("/")}/line/login'}
     return {'login_url': '/line/login'}

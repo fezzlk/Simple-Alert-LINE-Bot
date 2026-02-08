@@ -177,7 +177,7 @@ Auth
 @ views_blueprint.route('/login', methods=['GET', 'POST'])
 @ views_blueprint.route('/line/login', methods=['GET', 'POST'])
 def login():
-    if config.IS_DEVELOPMENT:
+    if config.IS_DEVELOPMENT and request.path == '/login':
         form = LocalLoginForm(request.form)
         if request.method == 'POST':
             if not form.validate():
