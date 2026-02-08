@@ -1,6 +1,6 @@
 from typing import Any, Dict, List
 from datetime import datetime
-from google.cloud.firestore_v1 import FieldPath
+from google.cloud.firestore_v1.field_path import FieldPath
 from src.Domains.Entities.WebUser import WebUser
 from src.firestore_client import firestore_client
 from src.firestore_query import build_filters
