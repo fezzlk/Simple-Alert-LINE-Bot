@@ -1,3 +1,4 @@
+import logging
 from flask import (
     Blueprint,
     render_template,
@@ -320,6 +321,7 @@ error handling
 
 @ views_blueprint.errorhandler(Exception)
 def handle_bad_request(e):
+    logging.exception('Unhandled exception in request')
     page_contents = PageContents(session, request, None, 'サーバーエラー')
     flash(e, 'danger')
     return render_template('pages/error.html', page_contents=page_contents)
