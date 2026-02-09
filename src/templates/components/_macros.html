@@ -1,0 +1,20 @@
+{% import 'components/header.html' as header_macro with context %}
+{% import 'components/alert.html' as alert_macro with context %}
+{% import 'components/StockTable.html' as stock_table_macro with context %}
+{% import 'components/DeletedStockTable.html' as deleted_stock_table_macro with context %}
+
+{% macro header(page_contents) -%}
+  {{ header_macro.render(page_contents) }}
+{%- endmacro %}
+
+{% macro alert(page_contents) -%}
+  {{ alert_macro.render(page_contents) }}
+{%- endmacro %}
+
+{% macro stock_table(page_contents, form) -%}
+  {{ stock_table_macro.render(page_contents, form) }}
+{%- endmacro %}
+
+{% macro deleted_stock_table(page_contents) -%}
+  {{ deleted_stock_table_macro.render(page_contents) }}
+{%- endmacro %}

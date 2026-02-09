@@ -1,6 +1,6 @@
 from functools import wraps
 from urllib.parse import quote
-from flask import request, redirect, url_for, session
+from flask import request, redirect, session
 from src import config
 
 
@@ -24,21 +24,3 @@ def login_required(f):
         return f(*args, **kwargs)
 
     return decorated_login_required
-
-
-def set_message(f):
-    @wraps(f)
-    def decorated_set_message(*args, **kwargs):
-        print('call set message')
-
-        messages = [value for key, value in request.args.items()
-                    if key == 'message']
-        if len(messages) > 0:
-            print(messages[0])
-            session['message'] = messages[0]
-        else:
-            session['message'] = ''
-
-        return f(*args, **kwargs)
-
-    return decorated_set_message

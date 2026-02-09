@@ -36,9 +36,9 @@
     ASSET_URL }}"> {% endassets %}
   </head>
   <body>
-    {% import 'components/header.html' as header with context %} {{
-    header.render(page_contents) }} {% import 'components/alert.html' as alert
-    %} {{ alert.render(page_contents) }} {% block content %} {% endblock %}
+    {% import 'components/_macros.html' as ui with context %} {{
+    ui.header(page_contents) }} {{ ui.alert(page_contents) }} {% block content %} {%
+    endblock %}
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
       integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"

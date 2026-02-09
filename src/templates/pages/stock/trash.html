@@ -2,8 +2,8 @@
 <div class="container">
   <div class="row">
     <div class="col">
-      {% import 'components/DeletedStockTable.html' as DeletedStockTable %} {{
-      DeletedStockTable.render(page_contents) }}
+      {% import 'components/_macros.html' as ui with context %} {{
+      ui.deleted_stock_table(page_contents) }}
     </div>
   </div>
 </div>

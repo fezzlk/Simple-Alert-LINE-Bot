@@ -2,8 +2,8 @@
 <div class="container">
   <div class="row">
     <div class="col">
-      {% import 'components/StockTable.html' as StockTable %} {{
-      StockTable.render(page_contents, form) }}
+      {% import 'components/_macros.html' as ui with context %} {{
+      ui.stock_table(page_contents, form) }}
     </div>
   </div>
 </div>
