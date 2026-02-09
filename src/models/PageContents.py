@@ -57,6 +57,7 @@ class PageContents(Generic[T]):
         login_user = session.get('login_user', None)
         if isinstance(login_user, Dict):
             self.login_user = WebUser(
+                _id=login_user.get("_id"),
                 web_user_name=login_user.get("web_user_name"),
                 web_user_email=login_user.get("web_user_email"),
                 linked_line_user_id=login_user.get("linked_line_user_id"),
