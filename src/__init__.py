@@ -1,6 +1,7 @@
 # flake8: noqa
 
 from src import config
+import logging
 from flask import Flask
 from webassets import Environment, Bundle
 from webassets.ext.jinja2 import AssetsExtension
@@ -16,6 +17,10 @@ app = Flask(__name__)
 app.debug = bool(config.DEBUG)
 app.secret_key = 'random secret'
 oauth.init_app(app)
+if config.IS_DEVELOPMENT:
+    logging.warning(
+        'FLASK_ENV is development. Production deploys should set FLASK_ENV=production.'
+    )
 
 # set endpoints for views
 app.register_blueprint(views_blueprint)
