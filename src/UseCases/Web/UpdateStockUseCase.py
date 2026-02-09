@@ -33,6 +33,7 @@ class UpdateStockUseCase(IUseCase):
 
             elif key == 'str_expiry_date':
                 if val != '':
+                    val = val.replace('/', '-')
                     new_values['expiry_date'] = datetime.strptime(
                         val, '%Y-%m-%d')
                 else:
@@ -41,6 +42,7 @@ class UpdateStockUseCase(IUseCase):
             elif key == 'str_created_at':
                 if val == '':
                     raise BadRequest("日付は必須です。")
+                val = val.replace('/', '-')
                 new_values['created_at'] = datetime.strptime(val, '%Y-%m-%d')
 
         res = self._stock_repository.update(

@@ -73,7 +73,8 @@ def register():
     ).execute(page_contents=page_contents)
     # TODO: ユーザー画面作ったらユーザー画面に遷移するようにする
     redirect_to = session.pop('next_page_url', '/')
-    return redirect(f'{redirect_to}?message=Hi, {web_user_name}! Welcome to SALB!')
+    flash(f'Hi, {web_user_name}! Welcome to SALB!', 'success')
+    return redirect(redirect_to)
 
 
 @ views_blueprint.route('/line/approve', methods=['GET'])
@@ -115,7 +116,8 @@ def add_stock():
     item_name = AddStockUseCase(
         stock_repository=stock_repository,
     ).execute(page_contents=page_contents)
-    return redirect(url_for('views_blueprint.view_stock_list', message=f'"{item_name}" を追加しました'))
+    flash(f'"{item_name}" を追加しました', 'success')
+    return redirect(url_for('views_blueprint.view_stock_list'))
 
 
 @ views_blueprint.route('/stock/update', methods=['POST'])
@@ -125,7 +127,8 @@ def update_stock():
     UpdateStockUseCase(
         stock_repository=stock_repository,
     ).execute(page_contents=page_contents)
-    return redirect(url_for('views_blueprint.view_stock_list', message=f'更新しました'))
+    flash('更新しました', 'success')
+    return redirect(url_for('views_blueprint.view_stock_list'))
 
 
 @ views_blueprint.route('/stock/delete', methods=['POST'])
@@ -136,7 +139,8 @@ def delete_stock():
     DeleteStockUseCase(
         stock_repository=stock_repository,
     ).execute(page_contents=page_contents)
-    return redirect(url_for('views_blueprint.view_stock_list', message='アイテムを削除しました'))
+    flash('アイテムを削除しました', 'success')
+    return redirect(url_for('views_blueprint.view_stock_list'))
 
 
 @ views_blueprint.route('/stock/delete', methods=['GET'])
@@ -157,7 +161,8 @@ def complete_delete_stock():
     CompleteDeleteStockUseCase(
         stock_repository=stock_repository,
     ).execute(page_contents=page_contents)
-    return redirect(url_for('views_blueprint.view_deleted_stock_list', message='アイテムを完全削除しました'))
+    flash('アイテムを完全削除しました', 'success')
+    return redirect(url_for('views_blueprint.view_deleted_stock_list'))
 
 
 @ views_blueprint.route('/stock/restore', methods=['POST'])
@@ -167,7 +172,8 @@ def restore_stock():
     RestoreStockUseCase(
         stock_repository=stock_repository,
     ).execute(page_contents=page_contents)
-    return redirect(url_for('views_blueprint.view_deleted_stock_list', message='アイテムを復元しました'))
+    flash('アイテムを復元しました', 'success')
+    return redirect(url_for('views_blueprint.view_deleted_stock_list'))
 
 
 '''
@@ -311,7 +317,8 @@ def line_register_post():
 @ views_blueprint.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('views_blueprint.index', message='ログアウトしました'))
+    flash('ログアウトしました', 'success')
+    return redirect(url_for('views_blueprint.index'))
 
 
 '''
