@@ -61,7 +61,7 @@ def delete_stock():
 @views_blueprint.route('/stock/delete', methods=['GET'])
 @login_required
 def view_deleted_stock_list():
-    page_contents = build_page_contents(session, request)
+    page_contents = build_page_contents(session, request, StockListData)
     page_contents = ViewDeletedStockListUseCase(
         stock_repository=stock_repository,
     ).execute(page_contents=page_contents)
