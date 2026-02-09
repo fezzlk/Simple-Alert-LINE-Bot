@@ -9,6 +9,7 @@ from src.routes.api import api_blueprint
 from src.routes.handle_line_event import line_blueprint
 from src.oauth_client import oauth
 from src.middlewares.WerkzeugMiddleware import WerkzeugMiddleware
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 # setup flask app
 app = Flask(__name__)
@@ -22,6 +23,7 @@ app.register_blueprint(api_blueprint)
 app.register_blueprint(line_blueprint)
 
 # set middleware
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 app.wsgi_app = WerkzeugMiddleware(app.wsgi_app)
 
 # scss
