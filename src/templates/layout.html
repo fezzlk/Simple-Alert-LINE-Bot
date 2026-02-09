@@ -36,7 +36,7 @@
     ASSET_URL }}"> {% endassets %}
   </head>
   <body>
-    {% import 'components/header.html' as header %} {{
+    {% import 'components/header.html' as header with context %} {{
     header.render(page_contents) }} {% import 'components/alert.html' as alert
     %} {{ alert.render(page_contents) }} {% block content %} {% endblock %}
     <script
