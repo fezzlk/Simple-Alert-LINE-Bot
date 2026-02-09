@@ -230,8 +230,6 @@ def login():
 @ views_blueprint.route('/authorize')
 @ views_blueprint.route('/line/authorize')
 def authorize():
-    if config.IS_DEVELOPMENT:
-        abort(404)
     line = oauth.create_client('line')
     token = line.authorize_access_token()
     profile = line.get('v2/profile', token=token).json()
