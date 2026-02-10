@@ -55,3 +55,10 @@ class PageContents(Generic[T]):
         self.request = request
         if DataClass is not None:
             self.data = DataClass(session)
+
+    def get(self, key: str, default: Any = None) -> Any:
+        if key == "login_user":
+            return self.login_user
+        if key == "data":
+            return getattr(self, "data", default)
+        return default
