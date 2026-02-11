@@ -8,4 +8,17 @@ def get_firestore_client() -> firestore.Client:
     return firestore.Client()
 
 
-firestore_client = get_firestore_client()
+class _LazyFirestoreClient:
+    def __init__(self) -> None:
+        self._client = None
+
+    def _get(self) -> firestore.Client:
+        if self._client is None:
+            self._client = get_firestore_client()
+        return self._client
+
+    def __getattr__(self, name):
+        return getattr(self._get(), name)
+
+
+firestore_client = _LazyFirestoreClient()

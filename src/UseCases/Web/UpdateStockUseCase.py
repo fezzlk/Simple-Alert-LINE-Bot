@@ -1,4 +1,5 @@
 from datetime import datetime
+import re
 
 from flask import Request, request
 from src.Domains.Entities.WebUser import WebUser
@@ -19,9 +20,24 @@ class UpdateStockUseCase(IUseCase):
         owner_line_id = owner_web.linked_line_user_id if owner_web.is_linked_line_user else ''
 
         stock_id = form.get('stock_id', None)
-        if stock_id is None:
+        if stock_id is None or stock_id == '':
             raise BadRequest('stock_id が指定されていません。')
         new_values = {}
+
+        def _parse_date_value(raw: str) -> datetime:
+            cleaned = raw.strip().replace('/', '-').replace('T', ' ')
+            # Drop trailing timezone abbreviations like "JST"
+            cleaned = re.sub(r'\s+[A-Za-z]{2,5}$', '', cleaned)
+            for fmt in (
+                '%Y-%m-%d',
+                '%Y-%m-%d %H:%M',
+                '%Y-%m-%d %H:%M:%S',
+            ):
+                try:
+                    return datetime.strptime(cleaned, fmt)
+                except ValueError:
+                    continue
+            raise BadRequest("日付として不適切です。")
 
         for key in form:
             val = form.get(key)
@@ -33,17 +49,14 @@ class UpdateStockUseCase(IUseCase):
 
             elif key == 'str_expiry_date':
                 if val != '':
-                    val = val.replace('/', '-')
-                    new_values['expiry_date'] = datetime.strptime(
-                        val, '%Y-%m-%d')
+                    new_values['expiry_date'] = _parse_date_value(val)
                 else:
                     new_values['expiry_date'] = None
 
             elif key == 'str_created_at':
                 if val == '':
                     raise BadRequest("日付は必須です。")
-                val = val.replace('/', '-')
-                new_values['created_at'] = datetime.strptime(val, '%Y-%m-%d')
+                new_values['created_at'] = _parse_date_value(val)
 
         res = self._stock_repository.update(
             query={

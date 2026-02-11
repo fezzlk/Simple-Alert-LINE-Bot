@@ -34,6 +34,7 @@ class DummyPageContents:
     def __init__(self, request, login_user):
         self.request = request
         self._login_user = login_user
+        self.login_user = login_user
 
     def get(self, key):
         if key == "login_user":
@@ -85,3 +86,27 @@ def test_update_stock_updates_fields_and_query():
     assert repo.last_values["item_name"] == "rice"
     assert repo.last_values["expiry_date"] == datetime(2025, 1, 2)
     assert repo.last_values["created_at"] == datetime(2025, 1, 1)
+
+
+def test_update_stock_accepts_datetime_with_timezone_suffix():
+    repo = DummyStockRepository()
+    use_case = UpdateStockUseCase(stock_repository=repo)
+    stock_id = "507f1f77bcf86cd799439012"
+    req = SimpleNamespace(
+        form=ImmutableMultiDict(
+            {
+                "stock_id": stock_id,
+                "str_created_at": "2026/02/11 07:24 JST",
+            }
+        )
+    )
+    login_user = WebUser(
+        _id="W1",
+        web_user_name="u",
+        web_user_email="u@example.com",
+    )
+    page_contents = DummyPageContents(request=req, login_user=login_user)
+
+    use_case.execute(page_contents=page_contents)
+
+    assert repo.last_values["created_at"] == datetime(2026, 2, 11, 7, 24)
