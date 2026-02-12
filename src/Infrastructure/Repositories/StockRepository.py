@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from datetime import datetime
 from google.cloud import firestore
 from google.cloud.firestore_v1.field_path import FieldPath
@@ -84,10 +84,9 @@ class StockRepository(IStockRepository):
     def find(
         self,
         query: Dict[str, any] = {},
-        sort: List[Tuple[str, any]] = [('item_name', 'asc')],
+        sort: Optional[List[Tuple[str, any]]] = None,
     ) -> List[Stock]:
         query_ref = self._apply_filters(self._collection(), query)
-        query_ref = self._apply_sort(query_ref, sort)
         records = query_ref.stream()
         stocks = []
         for record in records:
@@ -98,6 +97,17 @@ class StockRepository(IStockRepository):
                 if hasattr(value, 'tzinfo') and value.tzinfo is not None:
                     data[key] = value.replace(tzinfo=None)
             stocks.append(Stock(**data))
+        if sort is None:
+            stocks.sort(key=lambda s: (s.item_name or '', s._id or ''))
+            return stocks
+
+        stocks.sort(key=lambda s: (s.item_name or '', s._id or ''))
+        for field, direction in reversed(sort):
+            reverse = direction in ('desc', 'descending', firestore.Query.DESCENDING)
+            if field in ('_id', 'id'):
+                stocks.sort(key=lambda s: s._id or '', reverse=reverse)
+                continue
+            stocks.sort(key=lambda s: getattr(s, field, None) or '', reverse=reverse)
         return stocks
 
     def delete(
