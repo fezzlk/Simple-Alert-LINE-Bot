@@ -2,9 +2,13 @@ version: "3.1"
 
 services:
   firestore-emulator:
-    image: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
-    command: gcloud beta emulators firestore start --host-port=0.0.0.0:8080
+    build:
+      context: .
+      dockerfile: docker/firestore-emulator/Dockerfile
+    command: firebase emulators:start --only firestore --project ${FIRESTORE_PROJECT_ID:-simple-alert-line-bot}
     ports:
-      - 8080:8080
+      - 8085:8085
     environment:
       FIRESTORE_PROJECT_ID: simple-alert-line-bot
+    volumes:
+      - ./firebase.json:/app/firebase.json:ro

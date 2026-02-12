@@ -5,6 +5,7 @@ from flask.sessions import SessionMixin
 
 from src.Domains.Entities.WebUser import WebUser
 from src.models.StockViewModel import StockViewModel
+from src.web_context import build_login_user
 
 @dataclass()
 class RegisterFormData:
@@ -49,7 +50,7 @@ class PageContents(Generic[T]):
         DataClass: T = None,
         page_title: str = '',
     ):
-        self.login_user = None
+        self.login_user = build_login_user(session)
         self.line_user_name = ''
         self.page_title = page_title
         self.request = request

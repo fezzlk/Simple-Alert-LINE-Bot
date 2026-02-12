@@ -25,9 +25,10 @@ class UpdateStockUseCase(IUseCase):
         new_values = {}
 
         def _parse_date_value(raw: str) -> datetime:
-            cleaned = raw.strip().replace('/', '-').replace('T', ' ')
+            cleaned = raw.strip()
             # Drop trailing timezone abbreviations like "JST"
             cleaned = re.sub(r'\s+[A-Za-z]{2,5}$', '', cleaned)
+            cleaned = cleaned.replace('/', '-').replace('T', ' ')
             for fmt in (
                 '%Y-%m-%d',
                 '%Y-%m-%d %H:%M',

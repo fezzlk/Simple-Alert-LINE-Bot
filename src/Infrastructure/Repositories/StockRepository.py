@@ -84,7 +84,7 @@ class StockRepository(IStockRepository):
     def find(
         self,
         query: Dict[str, any] = {},
-        sort: List[Tuple[str, any]] = [('id', 'asc')],
+        sort: List[Tuple[str, any]] = [('item_name', 'asc')],
     ) -> List[Stock]:
         query_ref = self._apply_filters(self._collection(), query)
         query_ref = self._apply_sort(query_ref, sort)
@@ -93,6 +93,10 @@ class StockRepository(IStockRepository):
         for record in records:
             data = record.to_dict() or {}
             data['_id'] = record.id
+            for key in ('created_at', 'updated_at', 'expiry_date'):
+                value = data.get(key)
+                if hasattr(value, 'tzinfo') and value.tzinfo is not None:
+                    data[key] = value.replace(tzinfo=None)
             stocks.append(Stock(**data))
         return stocks
 

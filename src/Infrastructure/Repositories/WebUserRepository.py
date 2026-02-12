@@ -1,5 +1,6 @@
 from typing import Any, Dict, List
 from datetime import datetime
+from google.cloud import firestore
 from google.cloud.firestore_v1.field_path import FieldPath
 from src.Domains.Entities.WebUser import WebUser
 from src.firestore_client import firestore_client
@@ -56,6 +57,7 @@ class WebUserRepository(IWebUserRepository):
         query: Dict[str, any] = {},
     ) -> List[WebUser]:
         query_ref = self._apply_filters(self._collection(), query)
+        query_ref = query_ref.order_by('web_user_email', direction=firestore.Query.ASCENDING)
         records = query_ref.stream()
         web_users = []
         for record in records:

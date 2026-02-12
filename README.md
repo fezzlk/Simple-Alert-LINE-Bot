@@ -15,6 +15,15 @@ TBD
   - pip を最新バージョンにアップデート `python3 -m pip install --upgrade pip`
 - ngrok のインストール
 
+## テスト（Firestore Emulator）
+
+1. Emulator 起動
+   - `scripts/start_firestore_emulator.sh`（Docker があれば docker-compose を使用）
+1. Emulator を使ってテスト実行
+   - `scripts/test_with_emulator.sh`
+
+`FIRESTORE_PROJECT_ID` と `FIRESTORE_EMULATOR_HOST` は環境変数で上書きできます。
+
 ## 初回起動および LINE Bot との紐付けまでの手順
 
 1. 仮想環境の作成（必須ではないが推奨）
