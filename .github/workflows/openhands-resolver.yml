@@ -6,8 +6,16 @@ on:
   pull_request:
     types: [labeled]
 
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
 jobs:
   resolve:
     if: github.event.label.name == 'fix-me'
     uses: OpenHands/OpenHands/.github/workflows/openhands-resolver.yml@main
-    secrets: inherit
+    with:
+      LLM_MODEL: openai/gpt-4.1
+    secrets:
+      LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
