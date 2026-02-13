@@ -43,19 +43,25 @@ AddStockModal.render(page_contents, form) }}
             type="hidden"
             id="{{stock._id}}_{{key}}_input"
             name="{{key}}"
-            value="{{ stock.__dict__[key] }}"
+            value="{% if key in ['str_created_at', 'str_expiry_date'] %}{{ stock.__dict__[key] | replace('/', '-') }}{% else %}{{ stock.__dict__[key] }}{% endif %}"
           />
           <input type="hidden" name="stock_id" value="{{ stock._id }}" />
         </form>
         <script>
           $("#{{stock._id}}_{{key}}").on("click", (e) => {
+            const inputType =
+              "{{key}}" === "str_created_at" || "{{key}}" === "str_expiry_date"
+                ? "date"
+                : "text";
             $("#{{stock._id}}_{{key}}").addClass("complete-invisible");
-            $("#{{stock._id}}_{{key}}_input").attr("type", "text").focus();
+            $("#{{stock._id}}_{{key}}_input").attr("type", inputType).focus();
             var form = $("#{{stock._id}}_{{key}}_input").get(0);
-            // HACK: 　テキストカーソルを末尾に移動
-            tmp = form.value;
-            form.value = "";
-            form.value = tmp;
+            if (inputType === "text") {
+              // HACK:  テキストカーソルを末尾に移動
+              tmp = form.value;
+              form.value = "";
+              form.value = tmp;
+            }
           });
 
           $("#{{stock._id}}_{{key}}_input").on("blur", (e) => {
