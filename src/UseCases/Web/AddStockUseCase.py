@@ -33,6 +33,7 @@ class AddStockUseCase(IUseCase):
             expiry_date=expiry_date,
             owner_id=web_user._id,
             status=1,
+            notify_enabled=False,
         )
 
         result = self._stock_repository.create(new_stock=new_stock)

@@ -70,6 +70,7 @@ class AddStockUseCase(IUseCase):
             owner_id=self._line_request_service.req_line_user_id,
             expiry_date=expiry_date,
             status=1,
+            notify_enabled=False,
         )
         self._stock_repository.create(new_stock)
 

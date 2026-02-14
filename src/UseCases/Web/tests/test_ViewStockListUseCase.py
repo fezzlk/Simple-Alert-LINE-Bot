@@ -85,8 +85,9 @@ def test_success(dummy_app):
             'item_name',
             'str_created_at',
             'str_expiry_date',
+            'notify_status',
         ]
-        expected_labels = ['名前', '登録日', '期限']
+        expected_labels = ['名前', '登録日', '期限', '通知']
 
         # Act
         page_contents, form = use_case.execute(page_contents=page_contents)

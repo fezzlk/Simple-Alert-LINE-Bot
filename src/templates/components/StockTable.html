@@ -119,6 +119,16 @@ AddStockModal.render(page_contents, form) }}
                 return false;
               }
             }
+
+            if (ele.target.name == "notify_status") {
+              const notifyStatus = $("#{{stock._id}}_notify_status_input")
+                .val()
+                .toUpperCase();
+              if (notifyStatus !== "ON" && notifyStatus !== "OFF") {
+                toastr.error("通知は ON か OFF を入力してください。");
+                return false;
+              }
+            }
           });
         </script>
       </td>

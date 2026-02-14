@@ -114,6 +114,7 @@ class HandleIntentOperationUseCase(IUseCase):
                     owner_id=line_user_id,
                     expiry_date=parsed_expiry_date,
                     status=1,
+                    notify_enabled=False,
                 )
             )
             if parsed_expiry_date:

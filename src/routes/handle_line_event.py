@@ -3,6 +3,9 @@ from flask import Blueprint, request, abort
 from linebot.exceptions import InvalidSignatureError
 from linebot.models.events import Event
 from src.Infrastructure.Repositories import (
+    habit_pending_confirmation_repository,
+    habit_task_log_repository,
+    habit_task_repository,
     line_user_repository,
     stock_repository,
     web_user_repository,
@@ -28,6 +31,7 @@ from src.UseCases.get_line_command_use_case_list import (
     get_line_command_use_case_list
 )
 from src.UseCases.Line.ReplyHelpUseCase import ReplyHelpUseCase
+from src.UseCases.Line.HandleHabitTaskResponseUseCase import HandleHabitTaskResponseUseCase
 from src.UseCases.Line.HandleIntentOperationUseCase import HandleIntentOperationUseCase
 from src.services.LineIntentRulebook import (
     HELP_ALIASES,
@@ -165,6 +169,22 @@ def get_use_case_text_message(event: Event):
     message = event.message.text.strip()
     keyword = message.split()[0].upper() if message != '' else ''
     lower_message = message.lower()
+
+    awaiting_other = habit_pending_confirmation_repository.find(
+        {
+            "line_user_id": line_request_service.req_line_user_id,
+            "status": "awaiting_other_note",
+        }
+    )
+    if event.source.type == 'user' and message != '' and len(awaiting_other) != 0:
+        return HandleHabitTaskResponseUseCase(
+            line_request_service=line_request_service,
+            line_response_service=line_response_service,
+            habit_task_repository=habit_task_repository,
+            habit_task_log_repository=habit_task_log_repository,
+            habit_pending_confirmation_repository=habit_pending_confirmation_repository,
+        )
+
     if any(alias in message for alias in HELP_ALIASES):
         return help_use_case
     if any(alias in lower_message for alias in LOGIN_ALIASES):
@@ -211,6 +231,15 @@ def get_use_case_text_message(event: Event):
 
 def get_use_case_postback(event: Event):
     data = event.postback.data if hasattr(event, "postback") else ""
+    if data.startswith("habit_confirm:"):
+        return HandleHabitTaskResponseUseCase(
+            line_request_service=line_request_service,
+            line_response_service=line_response_service,
+            habit_task_repository=habit_task_repository,
+            habit_task_log_repository=habit_task_log_repository,
+            habit_pending_confirmation_repository=habit_pending_confirmation_repository,
+            postback_data=data,
+        )
     if data == "intent_confirm:yes":
         line_request_service.message = "はい"
         return HandleIntentOperationUseCase(

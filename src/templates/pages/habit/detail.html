@@ -1,0 +1,54 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-3">
+  <div class="row mb-3">
+    <div class="col">
+      <h4>習慣タスク実績</h4>
+      {% if page_contents.data.task %}
+      <p class="mb-0">
+        タスク: <strong>{{ page_contents.data.task.task_name }}</strong>
+        （通知時刻: {{ page_contents.data.task.notify_time }}）
+      </p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="row mb-2">
+    <div class="col">
+      <a href="{{ url_for('views_blueprint.view_habit_task_list') }}" class="btn btn-outline-secondary btn-sm">一覧へ戻る</a>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <table class="table table-sm table-striped">
+        <thead>
+          <tr class="table-light">
+            <th>対象日</th>
+            <th>結果</th>
+            <th>その他内容</th>
+            <th>記録時刻</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in page_contents.data.logs %}
+          <tr>
+            <td>{{ log.scheduled_date }}</td>
+            <td>
+              {% if log.result == 'done' %}実施
+              {% elif log.result == 'not_done' %}未実施
+              {% else %}その他{% endif %}
+            </td>
+            <td>{{ log.note or '' }}</td>
+            <td>{% if log.recorded_at %}{{ log.recorded_at.strftime('%Y-%m-%d %H:%M') }}{% endif %}</td>
+          </tr>
+          {% endfor %}
+          {% if page_contents.data.logs|length == 0 %}
+          <tr><td colspan="4" class="text-muted">実績はまだありません。</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

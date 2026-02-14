@@ -58,6 +58,13 @@ class UpdateStockUseCase(IUseCase):
                 if val == '':
                     raise BadRequest("日付は必須です。")
                 new_values['created_at'] = _parse_date_value(val)
+            elif key == 'notify_status':
+                if val is None:
+                    continue
+                upper = val.strip().upper()
+                if upper not in ('ON', 'OFF'):
+                    raise BadRequest('通知は ON または OFF を指定してください。')
+                new_values['notify_enabled'] = upper == 'ON'
 
         res = self._stock_repository.update(
             query={

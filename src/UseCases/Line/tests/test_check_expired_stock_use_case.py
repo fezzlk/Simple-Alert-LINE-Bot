@@ -118,12 +118,12 @@ def test_check_expired_stock_sends_expected_messages(monkeypatch):
     )
 
     stocks = [
-        Stock(item_name="no_expiry", owner_id="U1", expiry_date=None, status=1, created_at=fixed_now),
+        Stock(item_name="no_expiry", owner_id="U1", expiry_date=None, status=1, notify_enabled=True, created_at=fixed_now),
         Stock(item_name="expired", owner_id="U1", expiry_date=datetime(2025, 1, 8), status=1, created_at=fixed_now),
         Stock(item_name="today", owner_id="U1", expiry_date=datetime(2025, 1, 10), status=1, created_at=fixed_now),
         Stock(item_name="tomorrow", owner_id="U1", expiry_date=datetime(2025, 1, 11), status=1, created_at=fixed_now),
-        Stock(item_name="three_days", owner_id="U1", expiry_date=datetime(2025, 1, 13), status=1, created_at=fixed_now),
-        Stock(item_name="future", owner_id="U1", expiry_date=datetime(2025, 1, 20), status=1, created_at=fixed_now),
+        Stock(item_name="three_days", owner_id="U1", expiry_date=datetime(2025, 1, 13), status=1, notify_enabled=True, created_at=fixed_now),
+        Stock(item_name="future", owner_id="U1", expiry_date=datetime(2025, 1, 20), status=1, notify_enabled=True, created_at=fixed_now),
     ]
 
     line_user_repository = DummyLineUserRepository([line_user])
@@ -147,7 +147,9 @@ def test_check_expired_stock_sends_expected_messages(monkeypatch):
     assert "today: 今日まで" in joined
     assert "tomorrow: 明日まで" in joined
     assert "three_days: あと3日" in joined
-    assert "future" not in joined
+    assert "通知ONのアイテム" in joined
+    assert "no_expiry" in joined
+    assert "future" in joined
     assert "expired" not in joined
 
 
@@ -165,7 +167,10 @@ def test_check_expired_stock_does_not_push_when_no_active_stocks():
     )
     line_user_repository = DummyLineUserRepository([line_user])
     web_user_repository = DummyWebUserRepository([web_user])
-    stock_repository = DummyStockRepository([])
+    stock_repository = DummyStockRepository([
+        Stock(item_name="far", owner_id="U1", expiry_date=datetime(2025, 1, 30), status=1),
+        Stock(item_name="none", owner_id="U1", expiry_date=None, status=1),
+    ])
     line_response_service = DummyLineResponseService()
 
     use_case = CheckExpiredStockUseCase(

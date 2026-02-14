@@ -23,21 +23,26 @@ class CheckExpiredStockUseCase(IUseCase):
     def execute(self) -> None:
         line_users = self._line_user_repository.find()
         for line_user in line_users:
-            web_users = self._web_user_repository.find({
-                'linked_line_user_id': line_user.line_user_id,
-                'is_linked_line_user': True,
-            })
-            web_user_id = '' if len(web_users) == 0 else web_users[0]._id
-            stocks = self._stock_repository.find({
-                'owner_id__in': [line_user.line_user_id, web_user_id],
-                'status': 1,
-            })
-            if len(stocks) == 0:
-                continue
-
+            web_users = self._web_user_repository.find(
+                {
+                    "linked_line_user_id": line_user.line_user_id,
+                    "is_linked_line_user": True,
+                }
+            )
+            web_user_id = "" if len(web_users) == 0 else web_users[0]._id
+            stocks = self._stock_repository.find(
+                {
+                    "owner_id__in": [line_user.line_user_id, web_user_id],
+                    "status": 1,
+                }
+            )
             near_due_stocks = []
+            notify_on_items = []
             today = datetime.now().date()
             for stock in stocks:
+                if stock.notify_enabled:
+                    notify_on_items.append(stock.item_name)
+
                 if stock.expiry_date is None:
                     continue
 
@@ -46,20 +51,27 @@ class CheckExpiredStockUseCase(IUseCase):
                     continue
 
                 if days_until_expire == 0:
-                    label = '今日まで'
+                    label = "今日まで"
                 elif days_until_expire == 1:
-                    label = '明日まで'
+                    label = "明日まで"
                 else:
-                    label = f'あと{days_until_expire}日'
-                near_due_stocks.append(f'{stock.item_name}: {label}')
+                    label = f"あと{days_until_expire}日"
+                near_due_stocks.append(f"{stock.item_name}: {label}")
+
+            if len(near_due_stocks) == 0:
+                continue
 
             self._line_response_service.add_message(
-                f'今日の確認です。webで一覧を確認してください→ {config.SERVER_URL}/stock?openExternalBrowser=1'
+                "期限が3日以内のもの:\n" + "\n".join(near_due_stocks)
             )
-
-            if len(near_due_stocks) != 0:
+            self._line_response_service.add_message(
+                f"webで一覧を確認する→ {config.SERVER_URL}/stock?openExternalBrowser=1"
+            )
+            if len(notify_on_items) == 0:
+                self._line_response_service.add_message("通知ONのアイテム: なし")
+            else:
                 self._line_response_service.add_message(
-                    '期限が3日以内のもの:\n' + '\n'.join(near_due_stocks)
+                    "通知ONのアイテム:\n" + "\n".join(notify_on_items)
                 )
 
             self._line_response_service.push(to=line_user.line_user_id)

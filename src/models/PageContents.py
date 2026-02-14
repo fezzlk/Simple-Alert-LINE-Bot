@@ -37,7 +37,31 @@ class StockListData:
         self.sort_key = ''
         self.sort_order = ''
 
-T = TypeVar('T', RegisterFormData, StockListData, None)
+
+@dataclass()
+class HabitTaskListData:
+    tasks: list
+
+    def __init__(
+        self,
+        session: SessionMixin,
+    ):
+        self.tasks = []
+
+
+@dataclass()
+class HabitTaskLogListData:
+    task: Any
+    logs: list
+
+    def __init__(
+        self,
+        session: SessionMixin,
+    ):
+        self.task = None
+        self.logs = []
+
+T = TypeVar('T', RegisterFormData, StockListData, HabitTaskListData, HabitTaskLogListData, None)
 
 @dataclass()
 class PageContents(Generic[T]):

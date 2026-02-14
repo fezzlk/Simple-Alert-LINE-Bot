@@ -66,12 +66,27 @@
   - timezone: `Asia/Tokyo`
 - 処理
   - LINE ユーザーごとに `status=1` のアイテムを取得
-  - アイテムが1件以上あるユーザーにのみ push 通知
-  - まず Web 一覧 URL を通知
-  - 続けて、期限が3日以内（当日/翌日/3日後まで）のものだけを通知
-  - 期限切れ/期限なし/4日以上先はこの定期通知では通知しない
+  - 期限が3日以内（当日/翌日/3日後まで）のものが1件でもあるユーザーにのみ push 通知
+  - 通知メッセージ1: 期限3日以内アイテム一覧
+  - 通知メッセージ2: Web 一覧 URL
+  - 通知メッセージ3: 通知ONアイテム一覧（期限有無とは別軸）
+  - 期限切れ/期限なし/4日以上先は「期限3日以内一覧」には含めない
 
-### 2.3 Web
+### 2.3 LINE（習慣タスク見張り）
+
+- API: `POST /_api/v1/check_habit_tasks`
+- 初期仕様
+  - 繰り返し単位は `daily` のみ
+  - 指定時刻 (`HH:MM`) に到達したタスクを通知
+- 通知内容
+  - `習慣タスク確認: "<タスク名>" を実施しましたか？`
+  - ボタン: `OK` / `NG` / `その他`
+- 返信処理
+  - `OK` -> 実施ログ (`done`)
+  - `NG` -> 未実施ログ (`not_done`)
+  - `その他` -> 追加入力待ちに遷移し、次のテキストをメモとしてログ化 (`other`)
+
+### 2.4 Web
 
 - 画面
   - `/` トップ
@@ -82,6 +97,8 @@
   - `/stock/delete` GET ゴミ箱
   - `/stock/restore` POST 復元
   - `/stock/complete_delete` POST 物理削除
+  - `/habit` 習慣タスク一覧・追加
+  - `/habit/<task_id>` 習慣タスク実績リスト
   - `/register` ユーザー登録
   - `/line/login`, `/line/authorize` LINE OAuth ログイン
   - `/line/approve` LINE 連携承認
@@ -102,6 +119,7 @@
   - `owner_id: str`（LINE user id または Web user id）
   - `expiry_date: datetime | null`
   - `status: int`（`1=active`, `2=archived` 運用）
+  - `notify_enabled: bool`（通知ON/OFF、初期値OFF）
   - `created_at`, `updated_at`
 
 ### 3.2 `line_users`
@@ -128,6 +146,41 @@
   - `line_user_id`
   - `operation`（`intent`, `item_name`, `expiry_date`）
   - `updated_at`
+
+### 3.5 `habit_tasks`
+
+- 主な項目
+  - `_id`
+  - `owner_id`
+  - `task_name`
+  - `frequency`（初期は `daily`）
+  - `notify_time`（`HH:MM`）
+  - `is_active`
+  - `created_at`, `updated_at`
+
+### 3.6 `habit_task_logs`
+
+- 主な項目
+  - `_id`
+  - `habit_task_id`
+  - `owner_id`
+  - `task_name_snapshot`
+  - `scheduled_date`（`YYYY-MM-DD`）
+  - `result`（`done|not_done|other`）
+  - `note`（その他入力）
+  - `recorded_at`
+  - `created_at`, `updated_at`
+
+### 3.7 `habit_pending_confirmations`
+
+- 主な項目
+  - `_id`
+  - `line_user_id`
+  - `habit_task_id`
+  - `owner_id`
+  - `scheduled_date`
+  - `status`（`awaiting_answer|awaiting_other_note`）
+  - `created_at`, `updated_at`
 
 ## 4. 入力ルール（自然文）
 
