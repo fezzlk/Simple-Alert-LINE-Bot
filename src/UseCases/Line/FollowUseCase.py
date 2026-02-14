@@ -25,6 +25,12 @@ class FollowUseCase(IUseCase):
         )
         self._line_user_service.find_or_create(new_line_user=new_line_user)
         self._line_response_service.add_message(f'{name}さん、友達登録ありがとうございます！')
-        self._line_response_service.add_message('「ヘルプ」と送ると使えるコマンドが表示されます。')
+        self._line_response_service.add_message('「使い方」や「使い方教えて」でガイドを表示できます。')
+        self._line_response_service.add_message(
+            '使い方: 例) 「卵は3/15まで」「ライブチケット購入 3/20まで」「打ち合わせ日程調整 2/28まで」。'
+        )
+        self._line_response_service.add_message(
+            '「一覧表示」「リスト表示」で一覧表示、「webで操作」「webで表示」でWebリンク表示。'
+        )
         self._line_response_service.add_message(
             f'web で確認する→ {config.SERVER_URL}/stock?openExternalBrowser=1')

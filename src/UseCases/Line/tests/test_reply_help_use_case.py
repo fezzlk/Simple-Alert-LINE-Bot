@@ -67,13 +67,12 @@ def test_reply_help_default_lists_commands():
     use_case = ReplyHelpUseCase(
         line_request_service=line_request_service,
         line_response_service=line_response_service,
-        commands=["登録", "一覧"],
     )
 
     use_case.execute()
 
-    assert any("登録" in message for message in line_response_service.messages)
-    assert any("一覧" in message for message in line_response_service.messages)
+    assert any("使い方ガイド" in message for message in line_response_service.messages)
+    assert any("一覧表示" in message for message in line_response_service.messages)
 
 
 def test_reply_help_specific_keyword():
@@ -82,7 +81,6 @@ def test_reply_help_specific_keyword():
     use_case = ReplyHelpUseCase(
         line_request_service=line_request_service,
         line_response_service=line_response_service,
-        commands=["登録", "一覧"],
     )
 
     use_case.execute()

@@ -8,5 +8,5 @@ class TextMessageUseCase(IUseCase):
 
     def execute(self) -> None:
         self._line_response_service.add_message(
-            '使い方がわからない場合は「ヘルプ」と送ってください'
+            '使い方がわからない場合は「使い方」または「使い方教えて」と送ってください'
         )

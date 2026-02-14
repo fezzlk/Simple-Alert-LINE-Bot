@@ -29,6 +29,11 @@ from src.UseCases.get_line_command_use_case_list import (
 )
 from src.UseCases.Line.ReplyHelpUseCase import ReplyHelpUseCase
 from src.UseCases.Line.HandleIntentOperationUseCase import HandleIntentOperationUseCase
+from src.services.LineIntentRulebook import (
+    HELP_ALIASES,
+    LIST_DISPLAY_ALIASES,
+    WEB_LINK_ALIASES,
+)
 
 from src import config
 from linebot.models import (
@@ -151,17 +156,16 @@ def get_use_case_text_message(event: Event):
         line_request_service=line_request_service,
         line_response_service=line_response_service,
     )
-    commands = []
-    for values in use_case_list.values():
-        commands.extend(values.keys())
-    use_case_list['system_keywords']['ヘルプ'] = ReplyHelpUseCase(
+    help_use_case = ReplyHelpUseCase(
         line_request_service=line_request_service,
         line_response_service=line_response_service,
-        commands=commands,
     )
 
     message = event.message.text.strip()
     keyword = message.split()[0].upper() if message != '' else ''
+    lower_message = message.lower()
+    if any(alias in message for alias in HELP_ALIASES):
+        return help_use_case
     # keep explicit commands direct
     if keyword in use_case_list['stock_keywords']:
         if event.source.type == 'user' and keyword == '登録':
@@ -175,6 +179,12 @@ def get_use_case_text_message(event: Event):
         return use_case_list['stock_keywords'][keyword]
     elif keyword in use_case_list['system_keywords']:
         return use_case_list['system_keywords'][keyword]
+    elif any(alias in message for alias in LIST_DISPLAY_ALIASES) or (
+        '登録済み' in message and '一覧' in message
+    ):
+        return use_case_list['stock_keywords']['一覧']
+    elif any(alias in lower_message for alias in WEB_LINK_ALIASES):
+        return use_case_list['system_keywords']['URL']
     elif event.source.type == 'user' and message != '':
         return HandleIntentOperationUseCase(
             stock_repository=stock_repository,

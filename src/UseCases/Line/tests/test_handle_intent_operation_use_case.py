@@ -161,10 +161,28 @@ def test_delete_intent_updates_status():
 
     assert repo.updated_query["item_name"] == "牛乳"
     assert repo.updated_values["status"] == 2
-    @property
-    def message(self) -> str:
-        return self._message
 
-    @message.setter
-    def message(self, value: str) -> None:
-        self._message = value
+
+def test_register_with_expiry_date_executes_with_date():
+    req = DummyLineRequestService(message="確定申告は3/15まで")
+    res = DummyLineResponseService()
+    repo = DummyStockRepository()
+    parser = DummyIntentParserService(
+        {"intent": "register", "item_name": "確定申告", "expiry_date": "2026-03-15"}
+    )
+    pending = DummyPendingOperationService()
+    use_case = HandleIntentOperationUseCase(
+        stock_repository=repo,
+        line_request_service=req,
+        line_response_service=res,
+        intent_parser_service=parser,
+        pending_operation_service=pending,
+    )
+
+    use_case.execute()
+    req.message = "はい"
+    use_case.execute()
+
+    assert repo.created is not None
+    assert repo.created.item_name == "確定申告"
+    assert repo.created.expiry_date.strftime("%Y-%m-%d") == "2026-03-15"

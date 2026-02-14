@@ -64,7 +64,11 @@ class HandleIntentOperationUseCase(IUseCase):
         expiry_date = parsed["expiry_date"]
 
         if intent == "register":
-            message = f'"{item_name}" を登録します。よろしいですか？'
+            if expiry_date:
+                date_text = datetime.strptime(expiry_date, "%Y-%m-%d").strftime("%Y年%m月%d日")
+                message = f'"{item_name}" を期限 {date_text} で登録します。よろしいですか？'
+            else:
+                message = f'"{item_name}" を登録します。よろしいですか？'
         elif intent == "update":
             date_text = datetime.strptime(expiry_date, "%Y-%m-%d").strftime("%Y年%m月%d日")
             message = f'"{item_name}" の期限を {date_text} に更新します。よろしいですか？'
@@ -97,15 +101,23 @@ class HandleIntentOperationUseCase(IUseCase):
         expiry_date = operation.get("expiry_date")
 
         if intent == "register":
+            parsed_expiry_date = (
+                datetime.strptime(expiry_date, "%Y-%m-%d") if expiry_date else None
+            )
             self._stock_repository.create(
                 Stock(
                     item_name=item_name,
                     owner_id=line_user_id,
-                    expiry_date=None,
+                    expiry_date=parsed_expiry_date,
                     status=1,
                 )
             )
-            self._line_response_service.add_message(f'"{item_name}" を登録しました。')
+            if parsed_expiry_date:
+                self._line_response_service.add_message(
+                    f'"{item_name}" を期限{parsed_expiry_date.strftime("%Y年%m月%d日")}で登録しました。'
+                )
+            else:
+                self._line_response_service.add_message(f'"{item_name}" を登録しました。')
         elif intent == "update":
             count = self._stock_repository.update(
                 query={"owner_id": line_user_id, "item_name": item_name, "status": 1},
