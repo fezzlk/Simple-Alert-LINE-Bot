@@ -45,6 +45,26 @@ AddStockModal.render(page_contents, form) }}
     <tr>
       {% for key in page_contents.data.keys %}
       <td class="align-middle">
+        {% if key == "notify_status" %}
+        <form
+          action="{{ url_for('views_blueprint.update_stock') }}"
+          method="POST"
+          class="m-0"
+        >
+          <input type="hidden" name="stock_id" value="{{ stock._id }}" />
+          <input
+            type="hidden"
+            name="notify_status"
+            value="{% if stock.notify_status == 'ON' %}OFF{% else %}ON{% endif %}"
+          />
+          <button
+            type="submit"
+            class="btn btn-sm {% if stock.notify_status == 'ON' %}btn-success{% else %}btn-outline-secondary{% endif %}"
+          >
+            {{ stock.notify_status }}
+          </button>
+        </form>
+        {% else %}
         <div id="{{stock._id}}_{{key}}">
           {% if stock.__dict__[key] == '' %} &nbsp; {% else %} {{
           stock.__dict__[key] }} {% endif %}
@@ -131,6 +151,7 @@ AddStockModal.render(page_contents, form) }}
             }
           });
         </script>
+        {% endif %}
       </td>
       {% endfor %}
       <td>
