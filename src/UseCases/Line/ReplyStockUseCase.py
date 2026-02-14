@@ -46,7 +46,14 @@ class ReplyStockUseCase(IUseCase):
                 stocks_without_expire_date.append(
                     f'{stock.item_name}: 登録から{elapsed_time}日目')
 
-        self._line_response_service.add_message(
-            '\n'.join(stocks_without_expire_date) + '\n'.join(stocks_with_expire_date))
+        sections = []
+        if len(stocks_without_expire_date) != 0:
+            sections.append('期限未設定:\n' + '\n'.join(stocks_without_expire_date))
+        if len(stocks_with_expire_date) != 0:
+            sections.append('期限あり:\n' + '\n'.join(stocks_with_expire_date))
+        if len(sections) == 0:
+            sections.append('登録中のアイテムはありません。')
+
+        self._line_response_service.add_message('\n\n'.join(sections))
         self._line_response_service.add_message(
             f'web で確認する→ {config.SERVER_URL}/stock?openExternalBrowser=1')
