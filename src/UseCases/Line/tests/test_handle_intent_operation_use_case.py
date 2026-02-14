@@ -74,9 +74,13 @@ class DummyStockRepository(IStockRepository):
         self.updated_query = None
         self.updated_values = None
         self.update_count = 1
+        self.found_stocks = []
 
     def create(self, new_stock: Stock) -> Stock:
+        if new_stock._id is None:
+            new_stock._id = "S1"
         self.created = new_stock
+        self.found_stocks = [new_stock]
         return new_stock
 
     def update(self, query, new_values) -> int:
@@ -87,8 +91,8 @@ class DummyStockRepository(IStockRepository):
     def delete(self, query) -> int:
         return 0
 
-    def find(self, query=None) -> list[Stock]:
-        return []
+    def find(self, query=None, sort=None) -> list[Stock]:
+        return self.found_stocks
 
 
 class DummyIntentParserService:
@@ -186,3 +190,60 @@ def test_register_with_expiry_date_executes_with_date():
     assert repo.created is not None
     assert repo.created.item_name == "確定申告"
     assert repo.created.expiry_date.strftime("%Y-%m-%d") == "2026-03-15"
+
+
+def test_register_without_expiry_prompts_for_followup_expiry():
+    req = DummyLineRequestService(message="卵")
+    res = DummyLineResponseService()
+    repo = DummyStockRepository()
+    parser = DummyIntentParserService(
+        {"intent": "register", "item_name": "卵", "expiry_date": None}
+    )
+    pending = DummyPendingOperationService()
+    use_case = HandleIntentOperationUseCase(
+        stock_repository=repo,
+        line_request_service=req,
+        line_response_service=res,
+        intent_parser_service=parser,
+        pending_operation_service=pending,
+    )
+
+    use_case.execute()
+    req.message = "はい"
+    use_case.execute()
+
+    assert repo.created is not None
+    assert any("期限も登録しますか" in message for message in res.messages)
+    assert pending.get("U1")["operation"]["intent"] == "update_recent_expiry"
+
+
+def test_followup_expiry_date_updates_recently_registered_item():
+    req = DummyLineRequestService(message="明日で")
+    res = DummyLineResponseService()
+    repo = DummyStockRepository()
+    parser = DummyIntentParserService(
+        {"intent": "none", "item_name": None, "expiry_date": None}
+    )
+    pending = DummyPendingOperationService()
+    pending.save(
+        "U1",
+        {
+            "intent": "update_recent_expiry",
+            "item_name": "卵",
+        },
+    )
+    repo.found_stocks = [Stock(_id="S1", item_name="卵", owner_id="U1", status=1)]
+    use_case = HandleIntentOperationUseCase(
+        stock_repository=repo,
+        line_request_service=req,
+        line_response_service=res,
+        intent_parser_service=parser,
+        pending_operation_service=pending,
+    )
+
+    use_case.execute()
+
+    assert repo.updated_query == {"_id": "S1"}
+    assert repo.updated_values is not None
+    assert repo.updated_values["expiry_date"] is not None
+    assert pending.get("U1") is None
