@@ -32,6 +32,7 @@ from src.UseCases.Line.HandleIntentOperationUseCase import HandleIntentOperation
 from src.services.LineIntentRulebook import (
     HELP_ALIASES,
     LIST_DISPLAY_ALIASES,
+    LOGIN_ALIASES,
     WEB_LINK_ALIASES,
 )
 
@@ -166,6 +167,8 @@ def get_use_case_text_message(event: Event):
     lower_message = message.lower()
     if any(alias in message for alias in HELP_ALIASES):
         return help_use_case
+    if any(alias in lower_message for alias in LOGIN_ALIASES):
+        return use_case_list['system_keywords']['URL']
     # keep explicit commands direct
     if keyword in use_case_list['stock_keywords']:
         if event.source.type == 'user' and keyword == '登録':
@@ -179,13 +182,14 @@ def get_use_case_text_message(event: Event):
         return use_case_list['stock_keywords'][keyword]
     elif keyword in use_case_list['system_keywords']:
         return use_case_list['system_keywords'][keyword]
-    elif any(alias in message for alias in LIST_DISPLAY_ALIASES) or (
-        '登録済み' in message and '一覧' in message
-    ):
-        return use_case_list['stock_keywords']['一覧']
-    elif any(alias in lower_message for alias in WEB_LINK_ALIASES):
-        return use_case_list['system_keywords']['URL']
     elif event.source.type == 'user' and message != '':
+        parsed = line_intent_parser_service.parse(message)
+        if parsed["intent"] == "help":
+            return help_use_case
+        if parsed["intent"] == "list":
+            return use_case_list['stock_keywords']['一覧']
+        if parsed["intent"] in ("web", "login"):
+            return use_case_list['system_keywords']['URL']
         return HandleIntentOperationUseCase(
             stock_repository=stock_repository,
             line_request_service=line_request_service,
@@ -193,6 +197,12 @@ def get_use_case_text_message(event: Event):
             intent_parser_service=line_intent_parser_service,
             pending_operation_service=pending_line_operation_service,
         )
+    elif any(alias in message for alias in LIST_DISPLAY_ALIASES) or (
+        '登録済み' in message and '一覧' in message
+    ):
+        return use_case_list['stock_keywords']['一覧']
+    elif any(alias in lower_message for alias in WEB_LINK_ALIASES):
+        return use_case_list['system_keywords']['URL']
     else:
         return TextMessageUseCase(
             line_response_service=line_response_service,

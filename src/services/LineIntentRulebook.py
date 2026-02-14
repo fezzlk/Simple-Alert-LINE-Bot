@@ -46,6 +46,22 @@ INTENT_PROMPT_RULEBOOK = """
   - ライブチケット購入の期限を3/22にして
   - 日程調整の期限を2026-02-28に変更
   - 家具組み立て 期限 3/1に変更
+- Help intent examples:
+  - 使い方
+  - 使い方教えて
+  - 何ができる
+- List intent examples:
+  - 一覧表示
+  - リスト表示
+  - 登録済み一覧
+- Web intent examples:
+  - webで操作
+  - webで表示
+  - ブラウザで開いて
+- Login intent examples:
+  - ログイン
+  - webにログイン
+  - サインイン
 - Ambiguous date examples (must return none):
   - 牛乳の期限を来週に
   - 確定申告の期限を再来週に
@@ -100,4 +116,13 @@ HELP_ALIASES = (
     "どう使う",
     "何ができる",
     "使い方わからない",
+)
+
+
+LOGIN_ALIASES = (
+    "ログイン",
+    "lineでログイン",
+    "webにログイン",
+    "ログインしたい",
+    "サインイン",
 )

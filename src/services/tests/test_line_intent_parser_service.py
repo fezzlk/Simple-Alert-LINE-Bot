@@ -17,6 +17,28 @@ def test_fallback_parse_bought_maps_to_register():
         config.OPENAI_API_KEY = original
 
 
+@pytest.mark.parametrize(
+    "text,expected_intent",
+    [
+        ("使い方教えて", "help"),
+        ("一覧表示", "list"),
+        ("webで操作", "web"),
+        ("ログインしたい", "login"),
+    ],
+)
+def test_fallback_parse_non_crud_intents(text, expected_intent):
+    original = config.OPENAI_API_KEY
+    config.OPENAI_API_KEY = ""
+    try:
+        service = LineIntentParserService()
+        result = service.parse(text)
+        assert result["intent"] == expected_intent
+        assert result["item_name"] is None
+        assert result["expiry_date"] is None
+    finally:
+        config.OPENAI_API_KEY = original
+
+
 def test_fallback_parse_bought_with_particle_maps_to_register():
     original = config.OPENAI_API_KEY
     config.OPENAI_API_KEY = ""
