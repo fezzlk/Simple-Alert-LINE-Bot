@@ -100,8 +100,10 @@ def test_check_expired_stock_sends_expected_messages(monkeypatch):
     stocks = [
         Stock(item_name="no_expiry", owner_id="U1", expiry_date=None, status=1, created_at=fixed_now),
         Stock(item_name="expired", owner_id="U1", expiry_date=datetime(2025, 1, 8), status=1, created_at=fixed_now),
-        Stock(item_name="today", owner_id="U1", expiry_date=datetime(2025, 1, 9), status=1, created_at=fixed_now),
-        Stock(item_name="soon", owner_id="U1", expiry_date=datetime(2025, 1, 12), status=1, created_at=fixed_now),
+        Stock(item_name="today", owner_id="U1", expiry_date=datetime(2025, 1, 10), status=1, created_at=fixed_now),
+        Stock(item_name="tomorrow", owner_id="U1", expiry_date=datetime(2025, 1, 11), status=1, created_at=fixed_now),
+        Stock(item_name="three_days", owner_id="U1", expiry_date=datetime(2025, 1, 13), status=1, created_at=fixed_now),
+        Stock(item_name="future", owner_id="U1", expiry_date=datetime(2025, 1, 20), status=1, created_at=fixed_now),
     ]
 
     line_user_repository = DummyLineUserRepository([line_user], [web_user])
@@ -118,7 +120,38 @@ def test_check_expired_stock_sends_expected_messages(monkeypatch):
 
     assert line_response_service.pushes == ["U1"]
     joined = "\n".join(line_response_service.messages)
-    assert "no_expiry" in joined
-    assert "expired" in joined and "x" in joined
-    assert "today" in joined and "今日まで" in joined
-    assert "soon" in joined and "あと" in joined
+    assert "webで一覧を確認" in joined
+    assert "期限が3日以内のもの" in joined
+    assert "today: 今日まで" in joined
+    assert "tomorrow: 明日まで" in joined
+    assert "three_days: あと3日" in joined
+    assert "future" not in joined
+    assert "expired" not in joined
+
+
+def test_check_expired_stock_does_not_push_when_no_active_stocks():
+    line_user = LineUser(
+        line_user_name="dummy",
+        line_user_id="U1",
+    )
+    web_user = WebUser(
+        _id="W1",
+        web_user_name="web",
+        web_user_email="web@example.com",
+        linked_line_user_id="U1",
+        is_linked_line_user=True,
+    )
+    line_user_repository = DummyLineUserRepository([line_user], [web_user])
+    stock_repository = DummyStockRepository([])
+    line_response_service = DummyLineResponseService()
+
+    use_case = CheckExpiredStockUseCase(
+        line_user_repository=line_user_repository,
+        stock_repository=stock_repository,
+        line_response_service=line_response_service,
+    )
+
+    use_case.execute()
+
+    assert line_response_service.pushes == []
+    assert line_response_service.messages == []
