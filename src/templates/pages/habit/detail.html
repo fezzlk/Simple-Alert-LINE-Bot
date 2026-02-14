@@ -18,6 +18,12 @@
       <a href="{{ url_for('views_blueprint.view_habit_task_list') }}" class="btn btn-outline-secondary btn-sm">一覧へ戻る</a>
     </div>
   </div>
+  <div class="row mb-3">
+    <div class="col">
+      <button id="toggle-view-btn" class="btn btn-primary btn-sm">カレンダー表示に切替</button>
+    </div>
+  </div>
+  <div id="calendar-view" class="mb-4" style="display:none;"></div>
 
   <div class="row">
     <div class="col">
@@ -45,6 +51,58 @@
           {% endfor %}
           {% if page_contents.data.logs|length == 0 %}
           <tr><td colspan="4" class="text-muted">実績はまだありません。</td></tr>
+<script>
+// Simple calendar rendering (no external library)
+function renderCalendar(logs) {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  let html = '<table class="table table-bordered text-center"><thead><tr>';
+  const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+  for (const wd of weekDays) html += `<th>${wd}</th>`;
+  html += '</tr></thead><tbody><tr>';
+  for (let i = 0; i < firstDay.getDay(); i++) html += '<td></td>';
+  const logMap = {};
+  logs.forEach(log => { logMap[log.scheduled_date] = log; });
+  for (let d = 1; d <= lastDay.getDate(); d++) {
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const log = logMap[dateStr];
+    let cell = d;
+    if (log) {
+      if (log.result === 'done') cell = `<span class='text-success fw-bold'>${d}✓</span>`;
+      else if (log.result === 'not_done') cell = `<span class='text-danger fw-bold'>${d}×</span>`;
+      else cell = `<span class='text-secondary'>${d}?</span>`;
+    }
+    html += `<td>${cell}</td>`;
+    if ((firstDay.getDay() + d) % 7 === 0) html += '</tr><tr>';
+  }
+  for (let i = (firstDay.getDay() + lastDay.getDate()) % 7; i < 7 && i !== 0; i++) html += '<td></td>';
+  html += '</tr></tbody></table>';
+  return html;
+}
+
+const logs = JSON.parse('{{ page_contents.data.logs|tojson|safe }}');
+const calendarView = document.getElementById('calendar-view');
+const tableView = document.querySelector('.table-striped').parentElement.parentElement;
+const toggleBtn = document.getElementById('toggle-view-btn');
+let calendarMode = false;
+toggleBtn.addEventListener('click', function() {
+  calendarMode = !calendarMode;
+  if (calendarMode) {
+    calendarView.innerHTML = renderCalendar(logs);
+    calendarView.style.display = '';
+    tableView.style.display = 'none';
+    toggleBtn.textContent = 'リスト表示に切替';
+  } else {
+    calendarView.style.display = 'none';
+    tableView.style.display = '';
+    toggleBtn.textContent = 'カレンダー表示に切替';
+  }
+});
+</script>
+
           {% endif %}
         </tbody>
       </table>
