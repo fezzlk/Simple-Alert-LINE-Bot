@@ -131,3 +131,39 @@ def test_add_stock_with_expiry_date():
     assert stock_repository.created.item_name == "milk"
     assert stock_repository.created.expiry_date == datetime(2025, 1, 2)
     assert line_response_service.messages[-1].startswith('"milk"を期限')
+
+
+def test_add_stock_with_name_only_message():
+    line_request_service = DummyLineRequestService(message="milk")
+    line_response_service = DummyLineResponseService()
+    stock_repository = DummyStockRepository()
+    use_case = AddStockUseCase(
+        stock_repository=stock_repository,
+        line_request_service=line_request_service,
+        line_response_service=line_response_service,
+    )
+
+    use_case.execute()
+
+    assert isinstance(stock_repository.created, Stock)
+    assert stock_repository.created.item_name == "milk"
+    assert stock_repository.created.expiry_date is None
+    assert line_response_service.messages[-1] == '"milk"を登録しました'
+
+
+def test_add_stock_with_name_only_message_allow_spaces():
+    line_request_service = DummyLineRequestService(message="low fat milk")
+    line_response_service = DummyLineResponseService()
+    stock_repository = DummyStockRepository()
+    use_case = AddStockUseCase(
+        stock_repository=stock_repository,
+        line_request_service=line_request_service,
+        line_response_service=line_response_service,
+    )
+
+    use_case.execute()
+
+    assert isinstance(stock_repository.created, Stock)
+    assert stock_repository.created.item_name == "low fat milk"
+    assert stock_repository.created.expiry_date is None
+    assert line_response_service.messages[-1] == '"low fat milk"を登録しました'

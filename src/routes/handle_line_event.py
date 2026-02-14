@@ -11,6 +11,8 @@ from src.services import (
     line_request_service,
     line_response_service,
     line_user_service,
+    line_intent_parser_service,
+    pending_line_operation_service,
 )
 from src.line_bot_api import handler
 
@@ -26,6 +28,7 @@ from src.UseCases.get_line_command_use_case_list import (
     get_line_command_use_case_list
 )
 from src.UseCases.Line.ReplyHelpUseCase import ReplyHelpUseCase
+from src.UseCases.Line.HandleIntentOperationUseCase import HandleIntentOperationUseCase
 
 from src import config
 from linebot.models import (
@@ -138,9 +141,7 @@ def handle_image_message(event: Event, destination: str) -> None:
 @handler.add(PostbackEvent)
 @handle_event_decorater
 def handle_postback(event: Event, destination: str) -> None:
-    PostbackUseCase(
-        line_response_service=line_response_service,
-    ).execute()
+    get_use_case_postback(event).execute()
 
 
 def get_use_case_text_message(event: Event):
@@ -159,13 +160,55 @@ def get_use_case_text_message(event: Event):
         commands=commands,
     )
 
-    keyword = event.message.text.split()[0].upper()
-    # ストック情報
+    message = event.message.text.strip()
+    keyword = message.split()[0].upper() if message != '' else ''
+    # keep explicit commands direct
     if keyword in use_case_list['stock_keywords']:
+        if event.source.type == 'user' and keyword == '登録':
+            return HandleIntentOperationUseCase(
+                stock_repository=stock_repository,
+                line_request_service=line_request_service,
+                line_response_service=line_response_service,
+                intent_parser_service=line_intent_parser_service,
+                pending_operation_service=pending_line_operation_service,
+            )
         return use_case_list['stock_keywords'][keyword]
     elif keyword in use_case_list['system_keywords']:
         return use_case_list['system_keywords'][keyword]
+    elif event.source.type == 'user' and message != '':
+        return HandleIntentOperationUseCase(
+            stock_repository=stock_repository,
+            line_request_service=line_request_service,
+            line_response_service=line_response_service,
+            intent_parser_service=line_intent_parser_service,
+            pending_operation_service=pending_line_operation_service,
+        )
     else:
         return TextMessageUseCase(
             line_response_service=line_response_service,
         )
+
+
+def get_use_case_postback(event: Event):
+    data = event.postback.data if hasattr(event, "postback") else ""
+    if data == "intent_confirm:yes":
+        line_request_service.message = "はい"
+        return HandleIntentOperationUseCase(
+            stock_repository=stock_repository,
+            line_request_service=line_request_service,
+            line_response_service=line_response_service,
+            intent_parser_service=line_intent_parser_service,
+            pending_operation_service=pending_line_operation_service,
+        )
+    if data == "intent_confirm:no":
+        line_request_service.message = "いいえ"
+        return HandleIntentOperationUseCase(
+            stock_repository=stock_repository,
+            line_request_service=line_request_service,
+            line_response_service=line_response_service,
+            intent_parser_service=line_intent_parser_service,
+            pending_operation_service=pending_line_operation_service,
+        )
+    return PostbackUseCase(
+        line_response_service=line_response_service,
+    )

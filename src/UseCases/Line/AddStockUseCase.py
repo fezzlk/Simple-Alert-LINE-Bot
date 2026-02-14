@@ -18,9 +18,17 @@ class AddStockUseCase(IUseCase):
         self._line_response_service = line_response_service
 
     def execute(self) -> None:
-        args = self._line_request_service.message.split()
-        item_name = args[1] if len(args) >= 2 else None
-        date_str = args[2] if len(args) >= 3 else None
+        message = (self._line_request_service.message or '').strip()
+        item_name = None
+        date_str = None
+
+        if message.startswith('登録'):
+            args = message.split()
+            item_name = args[1] if len(args) >= 2 else None
+            date_str = args[2] if len(args) >= 3 else None
+        else:
+            # Personal chat quick-add: plain text is treated as item name.
+            item_name = message if message != '' else None
 
         if item_name is None:
             self._line_response_service.add_message(
