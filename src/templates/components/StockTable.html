@@ -5,8 +5,24 @@ AddStockModal.render(page_contents, form) }}
 <table class="table table-hover table-sm">
   <thead>
     <tr class="table-light">
-      {% for label in page_contents.data.labels %}
-      <th scope="col">{{ label }}</th>
+      {% for i in range(page_contents.data.keys|length) %}
+      {% set key = page_contents.data.keys[i] %}
+      {% set label = page_contents.data.labels[i] %}
+      {% set next_order = "asc" %}
+      {% if page_contents.data.sort_key == key and page_contents.data.sort_order == "asc" %}
+      {% set next_order = "desc" %}
+      {% endif %}
+      <th scope="col">
+        <a
+          href="{{ url_for('views_blueprint.view_stock_list', sort_key=key, sort_order=next_order) }}"
+          class="text-decoration-none text-reset"
+        >
+          {{ label }}
+          {% if page_contents.data.sort_key == key %}
+          {% if page_contents.data.sort_order == "asc" %}▲{% else %}▼{% endif %}
+          {% endif %}
+        </a>
+      </th>
       {% endfor %}
       <th scope="col">
         <div class="text-end">

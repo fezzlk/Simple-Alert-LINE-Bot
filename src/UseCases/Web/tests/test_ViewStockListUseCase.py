@@ -105,3 +105,67 @@ def test_success(dummy_app):
             assert page_contents.data.stocks[i].str_expiry_date == expected_stocks[i].str_expiry_date
 
         assert isinstance(form, AddStockForm)
+
+
+def test_sort_by_created_at_desc(dummy_app):
+    with dummy_app.test_request_context('/stock?sort_key=str_created_at&sort_order=desc'):
+        stock_repository = StockRepository()
+        use_case = ViewStockListUseCase(stock_repository=stock_repository)
+        session['login_user'] = generate_dummy_web_user_list()[0]
+        page_contents = PageContents[StockListData](session, request, StockListData)
+
+        stock_repository.create(
+            Stock(
+                item_name='old',
+                owner_id='U0123456789abcdefghijklmnopqrstu1',
+                status=1,
+                created_at=datetime(2020, 1, 1),
+            )
+        )
+        stock_repository.create(
+            Stock(
+                item_name='new',
+                owner_id='U0123456789abcdefghijklmnopqrstu1',
+                status=1,
+                created_at=datetime(2020, 1, 2),
+            )
+        )
+
+        page_contents, _ = use_case.execute(page_contents=page_contents)
+
+        assert page_contents.data.sort_key == 'str_created_at'
+        assert page_contents.data.sort_order == 'desc'
+        assert page_contents.data.stocks[0].item_name == 'new'
+        assert page_contents.data.stocks[1].item_name == 'old'
+
+
+def test_sort_by_expiry_date_asc(dummy_app):
+    with dummy_app.test_request_context('/stock?sort_key=str_expiry_date&sort_order=asc'):
+        stock_repository = StockRepository()
+        use_case = ViewStockListUseCase(stock_repository=stock_repository)
+        session['login_user'] = generate_dummy_web_user_list()[0]
+        page_contents = PageContents[StockListData](session, request, StockListData)
+
+        stock_repository.create(
+            Stock(
+                item_name='late',
+                owner_id='U0123456789abcdefghijklmnopqrstu1',
+                status=1,
+                expiry_date=datetime(2020, 1, 3),
+            )
+        )
+        stock_repository.create(
+            Stock(
+                item_name='early',
+                owner_id='U0123456789abcdefghijklmnopqrstu1',
+                status=1,
+                expiry_date=datetime(2020, 1, 1),
+            )
+        )
+
+        page_contents, _ = use_case.execute(page_contents=page_contents)
+
+        assert page_contents.data.sort_key == 'str_expiry_date'
+        assert page_contents.data.sort_order == 'asc'
+        assert page_contents.data.stocks[0].item_name == 'early'
+        assert page_contents.data.stocks[1].item_name == 'late'

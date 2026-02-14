@@ -24,6 +24,8 @@ class StockListData:
     stocks: List[StockViewModel]
     keys: List[str]
     labels: List[str]
+    sort_key: str
+    sort_order: str
 
     def __init__(
         self,
@@ -32,6 +34,8 @@ class StockListData:
         self.stocks = []
         self.keys = []
         self.labels = []
+        self.sort_key = ''
+        self.sort_order = ''
 
 T = TypeVar('T', RegisterFormData, StockListData, None)
 

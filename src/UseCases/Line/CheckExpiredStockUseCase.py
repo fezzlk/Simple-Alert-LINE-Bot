@@ -3,6 +3,7 @@ from datetime import datetime
 from src.UseCases.Interface.IUseCase import IUseCase
 from src.Domains.IRepositories.ILineUserRepository import ILineUserRepository
 from src.Domains.IRepositories.IStockRepository import IStockRepository
+from src.Domains.IRepositories.IWebUserRepository import IWebUserRepository
 from src.UseCases.Interface.ILineResponseService import ILineResponseService
 
 
@@ -10,17 +11,19 @@ class CheckExpiredStockUseCase(IUseCase):
     def __init__(
         self,
         line_user_repository: ILineUserRepository,
+        web_user_repository: IWebUserRepository,
         stock_repository: IStockRepository,
         line_response_service: ILineResponseService,
     ):
         self._line_user_repository = line_user_repository
+        self._web_user_repository = web_user_repository
         self._stock_repository = stock_repository
         self._line_response_service = line_response_service
 
     def execute(self) -> None:
         line_users = self._line_user_repository.find()
         for line_user in line_users:
-            web_users = self._line_user_repository.find({
+            web_users = self._web_user_repository.find({
                 'linked_line_user_id': line_user.line_user_id,
                 'is_linked_line_user': True,
             })

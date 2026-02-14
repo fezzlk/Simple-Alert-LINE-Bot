@@ -5,14 +5,14 @@ from src.Domains.Entities.Stock import Stock
 from src.Domains.Entities.WebUser import WebUser
 from src.Domains.IRepositories.ILineUserRepository import ILineUserRepository
 from src.Domains.IRepositories.IStockRepository import IStockRepository
+from src.Domains.IRepositories.IWebUserRepository import IWebUserRepository
 from src.UseCases.Interface.ILineResponseService import ILineResponseService
 from src.UseCases.Line.CheckExpiredStockUseCase import CheckExpiredStockUseCase
 
 
 class DummyLineUserRepository(ILineUserRepository):
-    def __init__(self, line_users: list[LineUser], web_users: list[WebUser]):
+    def __init__(self, line_users: list[LineUser]):
         self._line_users = line_users
-        self._web_users = web_users
 
     def create(self, new_line_user: LineUser) -> LineUser:
         return new_line_user
@@ -24,11 +24,31 @@ class DummyLineUserRepository(ILineUserRepository):
         return 0
 
     def find(self, query: dict = None) -> list[LineUser]:
+        return self._line_users if not query else []
+
+
+class DummyWebUserRepository(IWebUserRepository):
+    def __init__(self, web_users: list[WebUser]):
+        self._web_users = web_users
+
+    def create(self, new_web_user: WebUser) -> WebUser:
+        return new_web_user
+
+    def update(self, query, new_web_user) -> int:
+        return 0
+
+    def delete(self, query) -> int:
+        return 0
+
+    def find(self, query: dict = None) -> list[WebUser]:
         if not query:
-            return self._line_users
-        if "linked_line_user_id" in str(query):
             return self._web_users
-        return []
+        linked_id = query.get("linked_line_user_id")
+        required_linked = query.get("is_linked_line_user")
+        return [
+            w for w in self._web_users
+            if w.linked_line_user_id == linked_id and w.is_linked_line_user == required_linked
+        ]
 
 
 class DummyStockRepository(IStockRepository):
@@ -106,12 +126,14 @@ def test_check_expired_stock_sends_expected_messages(monkeypatch):
         Stock(item_name="future", owner_id="U1", expiry_date=datetime(2025, 1, 20), status=1, created_at=fixed_now),
     ]
 
-    line_user_repository = DummyLineUserRepository([line_user], [web_user])
+    line_user_repository = DummyLineUserRepository([line_user])
+    web_user_repository = DummyWebUserRepository([web_user])
     stock_repository = DummyStockRepository(stocks)
     line_response_service = DummyLineResponseService()
 
     use_case = CheckExpiredStockUseCase(
         line_user_repository=line_user_repository,
+        web_user_repository=web_user_repository,
         stock_repository=stock_repository,
         line_response_service=line_response_service,
     )
@@ -141,12 +163,14 @@ def test_check_expired_stock_does_not_push_when_no_active_stocks():
         linked_line_user_id="U1",
         is_linked_line_user=True,
     )
-    line_user_repository = DummyLineUserRepository([line_user], [web_user])
+    line_user_repository = DummyLineUserRepository([line_user])
+    web_user_repository = DummyWebUserRepository([web_user])
     stock_repository = DummyStockRepository([])
     line_response_service = DummyLineResponseService()
 
     use_case = CheckExpiredStockUseCase(
         line_user_repository=line_user_repository,
+        web_user_repository=web_user_repository,
         stock_repository=stock_repository,
         line_response_service=line_response_service,
     )
