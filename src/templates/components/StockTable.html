@@ -90,8 +90,12 @@ AddStockModal.render(page_contents, form) }}
                 ? "date"
                 : "text";
             $("#{{stock._id}}_{{key}}").addClass("complete-invisible");
-            $("#{{stock._id}}_{{key}}_input").attr("type", inputType).focus();
-            var form = $("#{{stock._id}}_{{key}}_input").get(0);
+            const $input = $("#{{stock._id}}_{{key}}_input");
+            $input.attr("type", inputType);
+            $input.attr("data-original-value", $input.val());
+            $input.attr("data-submitted", "0");
+            $input.focus();
+            var form = $input.get(0);
             if (inputType === "text") {
               // HACK:  テキストカーソルを末尾に移動
               tmp = form.value;
@@ -101,11 +105,24 @@ AddStockModal.render(page_contents, form) }}
           });
 
           $("#{{stock._id}}_{{key}}_input").on("blur", (e) => {
+            const original = $(e.currentTarget).attr("data-original-value");
+            const current = $(e.currentTarget).val();
             $("#{{stock._id}}_{{key}}").removeClass("complete-invisible");
             $("#{{stock._id}}_{{key}}_input").attr("type", "hidden");
+            if (current !== original && $(e.currentTarget).attr("data-submitted") !== "1") {
+              $("#{{stock._id}}_{{key}}_form").trigger("submit");
+            }
+          });
+
+          // iOS Safari の date 入力では Enter submit されないことがあるため change で確定更新
+          $("#{{stock._id}}_{{key}}_input").on("change", (e) => {
+            if ("{{key}}" === "str_created_at" || "{{key}}" === "str_expiry_date") {
+              $("#{{stock._id}}_{{key}}_form").trigger("submit");
+            }
           });
 
           form = $("#{{stock._id}}_{{key}}_form").submit((ele) => {
+            $("#{{stock._id}}_{{key}}_input").attr("data-submitted", "1");
             if (ele.target.name == "item_name") {
               const item_name = $("#{{stock._id}}_item_name_input").val();
               if (item_name == "") {
