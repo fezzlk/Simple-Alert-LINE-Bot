@@ -20,6 +20,22 @@ class HabitTaskLogRepository:
         for field, op, value in filters:
             if field in ("_id", "id"):
                 field_ref = FieldPath.document_id()
+                if op == "in":
+                    if value == []:
+                        return query_ref.where(field_ref, "==", "__no_results__")
+                    if isinstance(value, list):
+                        value = [
+                            self._collection().document(v) if isinstance(v, str) else v
+                            for v in value
+                            if v not in (None, "")
+                        ]
+                        if value == []:
+                            return query_ref.where(field_ref, "==", "__no_results__")
+                elif op == "==":
+                    if value in (None, ""):
+                        return query_ref.where("___no_results__", "==", True)
+                    if isinstance(value, str):
+                        value = self._collection().document(value)
             else:
                 field_ref = field
             if op == "in" and value == []:
