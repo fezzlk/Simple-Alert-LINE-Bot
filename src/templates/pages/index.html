@@ -1,17 +1,131 @@
 {% extends "layout.html" %} {% block content %}
-<div class="container">
-  <h3>ホーム画面</h3>
-  <p>Simple-Alert-LINE-Bot はアイテムを期限つきで管理できます。</p>
-  {% if line_add_friends_url %}
-  <a href="{{ line_add_friends_url }}"
-    ><img
-      src="https://scdn.line-apps.com/n/line_add_friends/btn/ja.png"
-      alt="友だち追加"
-      height="36"
-      border="0"
-  /></a>
+<div class="container home-container py-4">
+  {% if page_contents.login_user %}
+  <section class="home-section">
+    <div class="home-header">
+      <h1 class="home-title">ダッシュボード</h1>
+      <p class="home-subtitle">
+        今日の利用状況と、よく使う機能へのショートカットです。
+      </p>
+    </div>
+    <div class="row g-3">
+      <div class="col-6 col-lg-3">
+        <div class="home-kpi-card">
+          <p class="home-kpi-label">管理中アイテム</p>
+          <p class="home-kpi-value">{{ dashboard.stock_total }}</p>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="home-kpi-card">
+          <p class="home-kpi-label">期限3日以内</p>
+          <p class="home-kpi-value">{{ dashboard.near_due_count }}</p>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="home-kpi-card">
+          <p class="home-kpi-label">通知ONアイテム</p>
+          <p class="home-kpi-value">{{ dashboard.notify_on_count }}</p>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="home-kpi-card">
+          <p class="home-kpi-label">有効な習慣タスク</p>
+          <p class="home-kpi-value">{{ dashboard.active_task_count }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="home-section mt-4">
+    <div class="row g-3">
+      <div class="col-12 col-lg-6">
+        <div class="home-panel">
+          <h2 class="home-panel-title">本日の進捗</h2>
+          <p class="mb-1">実績記録数: {{ dashboard.today_log_count }}</p>
+          <p class="mb-1">完了数: {{ dashboard.done_today_count }}</p>
+          {% if dashboard.next_notify_at_text %}
+          <p class="mb-0">次回通知予定: {{ dashboard.next_notify_at_text }} (JST)</p>
+          {% else %}
+          <p class="mb-0 text-muted">次回通知予定: 未設定</p>
+          {% endif %}
+        </div>
+      </div>
+      <div class="col-12 col-lg-6">
+        <div class="home-panel">
+          <h2 class="home-panel-title">アカウント状態</h2>
+          {% if dashboard.line_linked %}
+          <p class="mb-2">LINE連携: 連携済み</p>
+          <a class="btn btn-sm btn-outline-primary" href="/line/approve">連携設定を確認</a>
+          {% else %}
+          <p class="mb-2">LINE連携: 未連携</p>
+          <a class="btn btn-sm btn-primary" href="/line/approve">LINE連携を進める</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="home-section mt-4">
+    <h2 class="home-panel-title">機能メニュー</h2>
+    <div class="row g-3 mt-0">
+      <div class="col-12 col-md-6 col-lg-4">
+        <a class="home-link-card" href="/stock">
+          <h3>アイテム一覧</h3>
+          <p>期限・通知設定の確認と編集</p>
+        </a>
+      </div>
+      <div class="col-12 col-md-6 col-lg-4">
+        <a class="home-link-card" href="/habit">
+          <h3>習慣タスク</h3>
+          <p>毎日の習慣登録と実績確認</p>
+        </a>
+      </div>
+      <div class="col-12 col-md-6 col-lg-4">
+        <a class="home-link-card" href="/stock/delete">
+          <h3>削除済みアイテム</h3>
+          <p>誤削除したデータの復元</p>
+        </a>
+      </div>
+    </div>
+  </section>
   {% else %}
-  <p>リンクが無効です</p>
+  <section class="home-hero">
+    <p class="home-eyebrow">Simple Alert LINE Bot</p>
+    <h1 class="home-title">期限管理をLINEとWebでまとめて運用</h1>
+    <p class="home-subtitle">
+      アイテムの期限通知と習慣タスク確認を、毎日のメッセージで自動化できます。
+    </p>
+    <div class="d-flex flex-wrap gap-2 mt-3">
+      <a class="btn btn-primary" href="{{ login_url }}">ログイン</a>
+      {% if line_add_friends_url %}
+      <a class="btn btn-outline-success" href="{{ line_add_friends_url }}">LINEで友だち追加</a>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="home-section mt-4">
+    <h2 class="home-panel-title">主な機能</h2>
+    <div class="row g-3 mt-0">
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="home-link-card disabled-card">
+          <h3>アイテム期限管理</h3>
+          <p>期限日と通知ON/OFFを一覧で管理</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="home-link-card disabled-card">
+          <h3>習慣タスク通知</h3>
+          <p>毎日の通知時刻を指定して継続を支援</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="home-link-card disabled-card">
+          <h3>LINE連携</h3>
+          <p>通知受信と簡単な操作をLINEで実行</p>
+        </div>
+      </div>
+    </div>
+  </section>
   {% endif %}
 </div>
 {% endblock %}
