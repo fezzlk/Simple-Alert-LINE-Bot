@@ -72,14 +72,24 @@ class DummyLineUserService(ILineUserService):
         return new_line_user
 
 
+class DummyNotificationScheduleRepository:
+    def __init__(self):
+        self.upserted_line_user_id = None
+
+    def upsert(self, line_user_id: str, notify_time: str, timezone_name: str):
+        self.upserted_line_user_id = line_user_id
+
+
 def test_follow_use_case_creates_user_and_messages():
     request_service = DummyLineRequestService(name="Alice", user_id="U1")
     response_service = DummyLineResponseService()
     line_user_service = DummyLineUserService()
+    notification_schedule_repository = DummyNotificationScheduleRepository()
     use_case = FollowUseCase(
         line_request_service=request_service,
         line_response_service=response_service,
         line_user_service=line_user_service,
+        notification_schedule_repository=notification_schedule_repository,
     )
 
     use_case.execute()
@@ -87,4 +97,5 @@ def test_follow_use_case_creates_user_and_messages():
     assert line_user_service.created is not None
     assert line_user_service.created.line_user_name == "Alice"
     assert line_user_service.created.line_user_id == "U1"
+    assert notification_schedule_repository.upserted_line_user_id == "U1"
     assert any("友達登録ありがとうございます" in msg for msg in response_service.messages)

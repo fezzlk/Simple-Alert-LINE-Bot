@@ -1,44 +1,58 @@
+from datetime import datetime, timezone
+
 from src import config
-from datetime import datetime
-from src.UseCases.Interface.IUseCase import IUseCase
-from src.Domains.IRepositories.ILineUserRepository import ILineUserRepository
 from src.Domains.IRepositories.IStockRepository import IStockRepository
 from src.Domains.IRepositories.IWebUserRepository import IWebUserRepository
 from src.UseCases.Interface.ILineResponseService import ILineResponseService
+from src.UseCases.Interface.IUseCase import IUseCase
 
 
 class CheckExpiredStockUseCase(IUseCase):
     def __init__(
         self,
-        line_user_repository: ILineUserRepository,
+        notification_schedule_repository,
         web_user_repository: IWebUserRepository,
         stock_repository: IStockRepository,
         line_response_service: ILineResponseService,
     ):
-        self._line_user_repository = line_user_repository
+        self._notification_schedule_repository = notification_schedule_repository
         self._web_user_repository = web_user_repository
         self._stock_repository = stock_repository
         self._line_response_service = line_response_service
 
     def execute(self) -> None:
-        line_users = self._line_user_repository.find()
-        for line_user in line_users:
-            web_users = self._web_user_repository.find(
-                {
-                    "linked_line_user_id": line_user.line_user_id,
-                    "is_linked_line_user": True,
-                }
+        now_utc = datetime.now(timezone.utc)
+        due_schedules = self._notification_schedule_repository.find_due(now_utc=now_utc)
+        if len(due_schedules) == 0:
+            return
+
+        due_line_user_ids = [s.line_user_id for s in due_schedules]
+        linked_web_users = self._web_user_repository.find(
+            {
+                "linked_line_user_id__in": due_line_user_ids,
+                "is_linked_line_user": True,
+            }
+        )
+        web_user_id_map = {user.linked_line_user_id: user._id for user in linked_web_users}
+        today = datetime.now().date()
+
+        for schedule in due_schedules:
+            claimed = self._notification_schedule_repository.claim_and_schedule_next(
+                line_user_id=schedule.line_user_id,
+                now_utc=now_utc,
             )
-            web_user_id = "" if len(web_users) == 0 else web_users[0]._id
+            if not claimed:
+                continue
+
+            web_user_id = web_user_id_map.get(schedule.line_user_id, "")
             stocks = self._stock_repository.find(
                 {
-                    "owner_id__in": [line_user.line_user_id, web_user_id],
+                    "owner_id__in": [schedule.line_user_id, web_user_id],
                     "status": 1,
                 }
             )
             near_due_stocks = []
             notify_on_items = []
-            today = datetime.now().date()
             for stock in stocks:
                 if stock.notify_enabled:
                     notify_on_items.append(stock.item_name)
@@ -73,5 +87,4 @@ class CheckExpiredStockUseCase(IUseCase):
                 self._line_response_service.add_message(
                     "通知ONのアイテム:\n" + "\n".join(notify_on_items)
                 )
-
-            self._line_response_service.push(to=line_user.line_user_id)
+            self._line_response_service.push(to=schedule.line_user_id)

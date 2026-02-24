@@ -1,5 +1,28 @@
 {% extends "layout.html" %} {% block content %}
 <div class="container">
+  <div class="row mb-3">
+    <div class="col">
+      <form
+        action="{{ url_for('views_blueprint.update_notify_schedule') }}"
+        method="POST"
+        class="d-flex align-items-center gap-2"
+      >
+        <label for="notify_time" class="form-label m-0">通知時刻</label>
+        <input
+          id="notify_time"
+          name="notify_time"
+          type="time"
+          class="form-control form-control-sm"
+          value="{{ notify_time }}"
+          style="max-width: 160px"
+          required
+        />
+        <button type="submit" class="btn btn-sm btn-outline-primary">
+          保存
+        </button>
+      </form>
+    </div>
+  </div>
   <div class="row">
     <div class="col">
       {% import 'components/_macros.html' as ui with context %} {{

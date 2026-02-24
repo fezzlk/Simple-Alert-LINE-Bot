@@ -12,10 +12,12 @@ class FollowUseCase(IUseCase):
         line_request_service: ILineRequestService,
         line_response_service: ILineResponseService,
         line_user_service: ILineUserService,
+        notification_schedule_repository=None,
     ):
         self._line_request_service = line_request_service
         self._line_response_service = line_response_service
         self._line_user_service = line_user_service
+        self._notification_schedule_repository = notification_schedule_repository
 
     def execute(self) -> None:
         name = self._line_request_service.req_line_user_name
@@ -24,6 +26,12 @@ class FollowUseCase(IUseCase):
             line_user_id=self._line_request_service.req_line_user_id,
         )
         self._line_user_service.find_or_create(new_line_user=new_line_user)
+        if self._notification_schedule_repository is not None:
+            self._notification_schedule_repository.upsert(
+                line_user_id=new_line_user.line_user_id,
+                notify_time="12:00",
+                timezone_name="Asia/Tokyo",
+            )
         self._line_response_service.add_message(
             f"{name}さん、友達登録ありがとうございます！"
         )

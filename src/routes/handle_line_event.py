@@ -7,6 +7,7 @@ from src.Infrastructure.Repositories import (
     habit_task_log_repository,
     habit_task_repository,
     line_user_repository,
+    notification_schedule_repository,
     stock_repository,
     web_user_repository,
 )
@@ -120,6 +121,7 @@ def handle_follow(event: Event, destination: str) -> None:
         line_request_service=line_request_service,
         line_response_service=line_response_service,
         line_user_service=line_user_service,
+        notification_schedule_repository=notification_schedule_repository,
     ).execute()
 
 
