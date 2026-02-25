@@ -8,7 +8,9 @@ class ApproveLinkLineUserUseCase(IUseCase):
         self._web_user_repository = web_user_repository
 
     def execute(self, page_contents: PageContents) -> None:
+        if page_contents.login_user is None:
+            return
         self._web_user_repository.update(
-            {'web_user_email': page_contents.login_user.web_user_email},
-            {'is_linked_line_user': True},
+            {"_id": page_contents.login_user._id},
+            {"is_linked_line_user": True},
         )

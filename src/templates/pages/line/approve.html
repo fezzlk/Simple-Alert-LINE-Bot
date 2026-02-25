@@ -1,30 +1,33 @@
 {% extends "layout.html" %} {% block content %}
-<h1>LINE アカウント連携</h1>
-<div>
-  {% if login_user and login_user.is_linked_line_user %}
-  <p>連携中 LINE アカウント名: {{ page_contents.line_user_name }}</p>
-  {% elif page_contents.line_user_name %}
-  <p>
-    {{ page_contents.line_user_name }}
-    さんからアカウント連携のリクエストが来ています。
-  </p>
-  <form
-    action="{{ url_for('views_blueprint.approve_line_user') }}"
-    method="post"
-  >
-    <input type="submit" value="承認" />
-  </form>
-  {% else %}
-  <p>アカウント連携リクエストが来ていません。</p>
-  <p>
-    {% if login_user and login_user.web_user_email %}
-      連携したい LINE アカウントから Bot に 「アカウント連携 {{
-      login_user.web_user_email }}」と送信してください。
-    {% else %}
-      LINEログインを利用しているため、この手順は不要です。
-    {% endif %}
-  </p>
-  {% endif %}
+<div class="container py-4">
+  <h1 class="h3 mb-3">LINE アカウント連携</h1>
+  <div class="card">
+    <div class="card-body">
+      {% if page_contents.line_link_status == "linked" %}
+      <p class="mb-2">連携状態: <span class="text-success">連携済み</span></p>
+      <p class="mb-0">
+        連携中 LINE アカウント名:
+        {{ page_contents.line_user_name if page_contents.line_user_name else "取得できませんでした" }}
+      </p>
+      {% elif page_contents.line_link_status == "pending" %}
+      <p class="mb-3">
+        {{ page_contents.line_user_name }} さんから連携リクエストが来ています。
+      </p>
+      <form action="{{ url_for('views_blueprint.approve_line_user') }}" method="post">
+        <button type="submit" class="btn btn-primary">承認する</button>
+      </form>
+      {% else %}
+      <p class="mb-2">連携状態: <span class="text-muted">未連携</span></p>
+      {% if login_user and login_user.web_user_email %}
+      <p class="mb-0">
+        連携したいLINEアカウントから Bot に
+        「アカウント連携 {{ login_user.web_user_email }}」と送信してください。
+      </p>
+      {% else %}
+      <p class="mb-0">LINEログイン利用中のため、この手順は不要です。</p>
+      {% endif %}
+      {% endif %}
+    </div>
+  </div>
 </div>
-
 {% endblock %}

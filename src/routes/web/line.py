@@ -22,6 +22,7 @@ def view_approve_link_line_user():
 
 
 @views_blueprint.route('/line/approve', methods=['POST'])
+@login_required
 def approve_line_user():
     page_contents = build_page_contents(session, request)
     ApproveLinkLineUserUseCase(
