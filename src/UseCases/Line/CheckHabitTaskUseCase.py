@@ -1,4 +1,5 @@
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from linebot.models import ButtonsTemplate, PostbackAction, TemplateSendMessage
 
@@ -7,6 +8,8 @@ from src.UseCases.Interface.IUseCase import IUseCase
 
 
 class CheckHabitTaskUseCase(IUseCase):
+    _notify_timezone = ZoneInfo("Asia/Tokyo")
+
     def __init__(
         self,
         line_user_repository,
@@ -24,7 +27,7 @@ class CheckHabitTaskUseCase(IUseCase):
         self._line_response_service = line_response_service
 
     def execute(self) -> None:
-        now = datetime.now()
+        now = datetime.now(self._notify_timezone)
         now_hhmm = now.strftime("%H:%M")
         scheduled_date = now.strftime("%Y-%m-%d")
 
