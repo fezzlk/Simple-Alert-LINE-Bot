@@ -195,3 +195,41 @@ def test_handle_habit_task_response_other_flow():
     assert len(log_repo.find()) == 1
     assert log_repo.find()[0].result == "other"
     assert log_repo.find()[0].note == "腰が痛いので軽め"
+    assert any("実績を記録しました。" in msg for msg in text_use_case._line_response_service.messages)
+    assert any("タスク: 筋トレ" in msg for msg in text_use_case._line_response_service.messages)
+    assert any("結果: その他" in msg for msg in text_use_case._line_response_service.messages)
+    assert any("メモ: 腰が痛いので軽め" in msg for msg in text_use_case._line_response_service.messages)
+
+
+def test_handle_habit_task_response_done_message_contains_result():
+    pending_repo = DummyHabitPendingRepository()
+    pending_repo.create(
+        HabitPendingConfirmation(
+            _id="P2",
+            line_user_id="U1",
+            habit_task_id="T1",
+            owner_id="W1",
+            scheduled_date="2026-02-15",
+        )
+    )
+    task_repo = DummyHabitTaskRepository([HabitTask(_id="T1", owner_id="W1", task_name="読書")])
+    log_repo = DummyHabitTaskLogRepository()
+    response_service = DummyLineResponseService()
+
+    use_case = HandleHabitTaskResponseUseCase(
+        line_request_service=DummyLineRequestService(user_id="U1"),
+        line_response_service=response_service,
+        habit_task_repository=task_repo,
+        habit_task_log_repository=log_repo,
+        habit_pending_confirmation_repository=pending_repo,
+        postback_data="habit_confirm:P2:done",
+    )
+
+    use_case.execute()
+
+    assert len(log_repo.find()) == 1
+    assert log_repo.find()[0].result == "done"
+    assert any("実績を記録しました。" in msg for msg in response_service.messages)
+    assert any("タスク: 読書" in msg for msg in response_service.messages)
+    assert any("対象日: 2026-02-15" in msg for msg in response_service.messages)
+    assert any("結果: OK" in msg for msg in response_service.messages)

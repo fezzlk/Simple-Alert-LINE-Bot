@@ -56,8 +56,15 @@ class HandleHabitTaskResponseUseCase(IUseCase):
             self._line_response_service.add_message("回答が不正です。")
             return
 
-        self._save_log_and_clear_pending(pending, result, None)
-        self._line_response_service.add_message("実績を記録しました。")
+        task_name = self._save_log_and_clear_pending(pending, result, None)
+        self._line_response_service.add_message(
+            self._build_saved_message(
+                task_name=task_name,
+                scheduled_date=pending.scheduled_date,
+                result=result,
+                note=None,
+            )
+        )
 
     def _execute_text(self) -> None:
         line_user_id = self._line_request_service.req_line_user_id
@@ -74,10 +81,17 @@ class HandleHabitTaskResponseUseCase(IUseCase):
             self._line_response_service.add_message("その他の内容を入力してください。")
             return
 
-        self._save_log_and_clear_pending(pending, "other", note)
-        self._line_response_service.add_message("その他として実績を記録しました。")
+        task_name = self._save_log_and_clear_pending(pending, "other", note)
+        self._line_response_service.add_message(
+            self._build_saved_message(
+                task_name=task_name,
+                scheduled_date=pending.scheduled_date,
+                result="other",
+                note=note,
+            )
+        )
 
-    def _save_log_and_clear_pending(self, pending, result: str, note: str) -> None:
+    def _save_log_and_clear_pending(self, pending, result: str, note: str) -> str:
         tasks = self._habit_task_repository.find({"_id": pending.habit_task_id})
         task_name = tasks[0].task_name if len(tasks) != 0 else "不明なタスク"
         self._habit_task_log_repository.create(
@@ -92,3 +106,27 @@ class HandleHabitTaskResponseUseCase(IUseCase):
             )
         )
         self._habit_pending_confirmation_repository.delete({"_id": pending._id})
+        return task_name
+
+    def _build_saved_message(
+        self,
+        task_name: str,
+        scheduled_date: str,
+        result: str,
+        note: str,
+    ) -> str:
+        result_label_map = {
+            "done": "OK",
+            "not_done": "NG",
+            "other": "その他",
+        }
+        result_label = result_label_map.get(result, result)
+        message = (
+            "実績を記録しました。\n"
+            f"タスク: {task_name}\n"
+            f"対象日: {scheduled_date}\n"
+            f"結果: {result_label}"
+        )
+        if result == "other" and note:
+            message += f"\nメモ: {note}"
+        return message
