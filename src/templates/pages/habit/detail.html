@@ -19,6 +19,74 @@
     </div>
   </div>
 
+  <div class="row mb-3">
+    <div class="col">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <a
+              class="btn btn-outline-secondary btn-sm"
+              href="{{ url_for('views_blueprint.view_habit_task_log', task_id=page_contents.data.task._id, month=page_contents.data.prev_month) }}"
+            >
+              前月
+            </a>
+            <strong>{{ page_contents.data.calendar_month_label }}</strong>
+            <a
+              class="btn btn-outline-secondary btn-sm"
+              href="{{ url_for('views_blueprint.view_habit_task_log', task_id=page_contents.data.task._id, month=page_contents.data.next_month) }}"
+            >
+              次月
+            </a>
+          </div>
+          <div class="mb-2 small">
+            <span class="badge bg-success">実施</span>
+            <span class="badge bg-warning text-dark">未実施</span>
+            <span class="badge bg-info text-dark">その他</span>
+            <span class="badge bg-light text-dark border">未記録</span>
+          </div>
+          <table class="table table-bordered table-sm mb-0">
+            <thead>
+              <tr class="table-light text-center">
+                <th>日</th>
+                <th>月</th>
+                <th>火</th>
+                <th>水</th>
+                <th>木</th>
+                <th>金</th>
+                <th>土</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for week in page_contents.data.calendar_weeks %}
+              <tr>
+                {% for cell in week %}
+                <td class="{% if not cell.is_current_month %}text-muted bg-light{% endif %}" style="width: 14.2%; height: 72px;">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <span>{{ cell.day }}</span>
+                    {% if cell.status == 'done' %}
+                    <span class="badge bg-success">実施</span>
+                    {% elif cell.status == 'not_done' %}
+                    <span class="badge bg-warning text-dark">未実施</span>
+                    {% elif cell.status == 'other' %}
+                    <span class="badge bg-info text-dark">その他</span>
+                    {% else %}
+                    <span class="badge bg-light text-dark border">未記録</span>
+                    {% endif %}
+                  </div>
+                  {% if cell.note %}
+                  <div class="small mt-1 text-truncate" title="{{ cell.note }}">{{ cell.note }}</div>
+                  {% endif %}
+                </td>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="row">
     <div class="col">
       <table class="table table-sm table-striped">

@@ -46,8 +46,9 @@ def add_habit_task():
 @login_required
 def view_habit_task_log(task_id: str):
     page_contents = build_page_contents(session, request, HabitTaskLogListData)
+    month = request.args.get("month")
     page_contents = ViewHabitTaskLogUseCase(
         habit_task_repository=habit_task_repository,
         habit_task_log_repository=habit_task_log_repository,
-    ).execute(page_contents=page_contents, task_id=task_id)
+    ).execute(page_contents=page_contents, task_id=task_id, month=month)
     return render_template('pages/habit/detail.html', page_contents=page_contents)
