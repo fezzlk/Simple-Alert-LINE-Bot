@@ -24,6 +24,21 @@ TBD
 
 `FIRESTORE_PROJECT_ID` と `FIRESTORE_EMULATOR_HOST` は環境変数で上書きできます。
 
+## Rich Menu 設定
+
+1. Rich Menu 画像（2500x1686）を準備
+   - 既定画像: `scripts/assets/rich_menu_default.png`
+1. Rich Menu を作成してデフォルト設定
+   - `venv/bin/python scripts/setup_line_rich_menu.py`
+
+メニュー割り当て:
+- 左上: `一覧`
+- 中上: `登録`
+- 右上: `使い方`
+- 左下: `Web一覧`（`/stock`）
+- 中下: `アカウント連携`
+- 右下: `習慣タスク`（`/habit`）
+
 ## 初回起動および LINE Bot との紐付けまでの手順
 
 1. 仮想環境の作成（必須ではないが推奨）

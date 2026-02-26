@@ -1,4 +1,4 @@
-from linebot.models import ButtonsTemplate, TemplateSendMessage, URIAction
+from linebot.models import FlexSendMessage
 
 
 def add_stock_web_link_button(line_response_service, server_url: str) -> None:
@@ -15,15 +15,54 @@ def add_stock_web_link_button(line_response_service, server_url: str) -> None:
         return
 
     line_response_service.buttons.append(
-        TemplateSendMessage(
+        FlexSendMessage(
             alt_text="webで一覧を確認",
-            template=ButtonsTemplate(
-                thumbnail_image_url=image_url,
-                title="一覧をWebで確認",
-                text="ボタンからアイテム一覧を開けます。",
-                actions=[
-                    URIAction(label="一覧を開く", uri=stock_url),
-                ],
-            ),
+            contents={
+                "type": "bubble",
+                "hero": {
+                    "type": "image",
+                    "url": image_url,
+                    "size": "full",
+                    "aspectRatio": "20:13",
+                    "aspectMode": "cover",
+                },
+                "body": {
+                    "type": "box",
+                    "layout": "vertical",
+                    "spacing": "md",
+                    "contents": [
+                        {
+                            "type": "text",
+                            "text": "一覧をWebで確認",
+                            "weight": "bold",
+                            "size": "lg",
+                            "wrap": True,
+                        },
+                        {
+                            "type": "text",
+                            "text": "ボタンからアイテム一覧を開けます。",
+                            "size": "sm",
+                            "color": "#666666",
+                            "wrap": True,
+                        },
+                    ],
+                },
+                "footer": {
+                    "type": "box",
+                    "layout": "vertical",
+                    "spacing": "sm",
+                    "contents": [
+                        {
+                            "type": "button",
+                            "style": "primary",
+                            "action": {
+                                "type": "uri",
+                                "label": "一覧を開く",
+                                "uri": stock_url,
+                            },
+                        }
+                    ],
+                },
+            },
         )
     )
