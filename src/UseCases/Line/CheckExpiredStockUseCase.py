@@ -5,6 +5,7 @@ from src.Domains.IRepositories.IStockRepository import IStockRepository
 from src.Domains.IRepositories.IWebUserRepository import IWebUserRepository
 from src.UseCases.Interface.ILineResponseService import ILineResponseService
 from src.UseCases.Interface.IUseCase import IUseCase
+from src.line_rich_messages import add_stock_web_link_button
 
 
 class CheckExpiredStockUseCase(IUseCase):
@@ -78,8 +79,9 @@ class CheckExpiredStockUseCase(IUseCase):
             self._line_response_service.add_message(
                 "期限が3日以内のもの:\n" + "\n".join(near_due_stocks)
             )
-            self._line_response_service.add_message(
-                f"webで一覧を確認する→ {config.SERVER_URL}/stock?openExternalBrowser=1"
+            add_stock_web_link_button(
+                line_response_service=self._line_response_service,
+                server_url=config.SERVER_URL,
             )
             if len(notify_on_items) == 0:
                 self._line_response_service.add_message("通知ONのアイテム: なし")

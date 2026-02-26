@@ -5,6 +5,7 @@ from src.Domains.IRepositories.IStockRepository import IStockRepository
 from src.Domains.IRepositories.IWebUserRepository import IWebUserRepository
 from src.UseCases.Interface.ILineRequestService import ILineRequestService
 from src.UseCases.Interface.ILineResponseService import ILineResponseService
+from src.line_rich_messages import add_stock_web_link_button
 
 
 class ReplyStockUseCase(IUseCase):
@@ -55,5 +56,7 @@ class ReplyStockUseCase(IUseCase):
             sections.append('登録中のアイテムはありません。')
 
         self._line_response_service.add_message('\n\n'.join(sections))
-        self._line_response_service.add_message(
-            f'web で確認する→ {config.SERVER_URL}/stock?openExternalBrowser=1')
+        add_stock_web_link_button(
+            line_response_service=self._line_response_service,
+            server_url=config.SERVER_URL,
+        )
