@@ -1,3 +1,5 @@
+from datetime import datetime
+from src.Domains.Entities.HabitTask import HabitTask
 from src.Domains.Entities.Stock import Stock
 from src.Domains.IRepositories.IStockRepository import IStockRepository
 from src.UseCases.Line.HandleIntentOperationUseCase import HandleIntentOperationUseCase
@@ -217,6 +219,15 @@ def test_register_without_expiry_prompts_for_followup_expiry():
     assert pending.get("U1")["operation"]["intent"] == "update_recent_expiry"
 
 
+class DummyHabitTaskRepository:
+    def __init__(self):
+        self.created = None
+
+    def create(self, habit_task: HabitTask) -> HabitTask:
+        self.created = habit_task
+        return habit_task
+
+
 def test_followup_expiry_date_updates_recently_registered_item():
     req = DummyLineRequestService(message="明日で")
     res = DummyLineResponseService()
@@ -247,3 +258,121 @@ def test_followup_expiry_date_updates_recently_registered_item():
     assert repo.updated_values is not None
     assert repo.updated_values["expiry_date"] is not None
     assert pending.get("U1") is None
+
+
+def test_register_with_notify_enabled():
+    req = DummyLineRequestService(message="通知ありで確定申告 3/15まで")
+    res = DummyLineResponseService()
+    repo = DummyStockRepository()
+    parser = DummyIntentParserService(
+        {
+            "intent": "register",
+            "item_name": "確定申告",
+            "expiry_date": "2026-03-15",
+            "notify_enabled": True,
+        }
+    )
+    pending = DummyPendingOperationService()
+    use_case = HandleIntentOperationUseCase(
+        stock_repository=repo,
+        line_request_service=req,
+        line_response_service=res,
+        intent_parser_service=parser,
+        pending_operation_service=pending,
+    )
+
+    use_case.execute()
+    assert any("通知あり" in m for m in res.messages)
+
+    req.message = "はい"
+    use_case.execute()
+    assert repo.created is not None
+    assert repo.created.item_name == "確定申告"
+    assert repo.created.notify_enabled is True
+
+
+def test_register_habit_creates_habit_task():
+    req = DummyLineRequestService(message="筋トレを習慣タスクとして追加")
+    res = DummyLineResponseService()
+    repo = DummyStockRepository()
+    parser = DummyIntentParserService(
+        {
+            "intent": "register_habit",
+            "item_name": "筋トレ",
+            "expiry_date": None,
+            "frequency": "daily",
+            "notify_time": "09:00",
+        }
+    )
+    pending = DummyPendingOperationService()
+    habit_repo = DummyHabitTaskRepository()
+    use_case = HandleIntentOperationUseCase(
+        stock_repository=repo,
+        line_request_service=req,
+        line_response_service=res,
+        intent_parser_service=parser,
+        pending_operation_service=pending,
+        habit_task_repository=habit_repo,
+    )
+
+    use_case.execute()
+    assert any("習慣タスク" in m for m in res.messages)
+
+    req.message = "はい"
+    use_case.execute()
+    assert habit_repo.created is not None
+    assert habit_repo.created.task_name == "筋トレ"
+    assert habit_repo.created.frequency == "daily"
+    assert habit_repo.created.notify_time == "09:00"
+
+
+def test_delete_with_exclude_expiry_filters_python_side():
+    req = DummyLineRequestService(message="期限が3/11以外の卵を削除して")
+    res = DummyLineResponseService()
+    repo = DummyStockRepository()
+
+    stock_keep = Stock(_id="S1", item_name="卵", owner_id="U1", status=1,
+                       expiry_date=datetime(2026, 3, 11))
+    stock_delete1 = Stock(_id="S2", item_name="卵", owner_id="U1", status=1,
+                          expiry_date=datetime(2026, 3, 5))
+    stock_delete2 = Stock(_id="S3", item_name="卵", owner_id="U1", status=1,
+                          expiry_date=datetime(2026, 3, 20))
+    repo.found_stocks = [stock_keep, stock_delete1, stock_delete2]
+
+    parser = DummyIntentParserService(
+        {
+            "intent": "delete",
+            "item_name": "卵",
+            "expiry_date": None,
+            "exclude_expiry_date": "2026-03-11",
+        }
+    )
+    pending = DummyPendingOperationService()
+    use_case = HandleIntentOperationUseCase(
+        stock_repository=repo,
+        line_request_service=req,
+        line_response_service=res,
+        intent_parser_service=parser,
+        pending_operation_service=pending,
+    )
+
+    use_case.execute()
+    assert any("以外" in m for m in res.messages)
+
+    req.message = "はい"
+    # Track all update calls
+    update_calls = []
+    original_update = repo.update
+
+    def tracking_update(query, new_values):
+        update_calls.append((query, new_values))
+        return original_update(query, new_values)
+
+    repo.update = tracking_update
+    use_case.execute()
+
+    deleted_ids = [call[0]["_id"] for call in update_calls if "_id" in call[0]]
+    assert "S2" in deleted_ids
+    assert "S3" in deleted_ids
+    assert "S1" not in deleted_ids
+    assert any("削除しました" in m for m in res.messages)

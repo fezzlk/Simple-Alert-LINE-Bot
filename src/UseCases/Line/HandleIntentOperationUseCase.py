@@ -3,6 +3,7 @@ import re
 
 from linebot.models import ButtonsTemplate, PostbackAction, TemplateSendMessage
 
+from src.Domains.Entities.HabitTask import HabitTask
 from src.Domains.Entities.Stock import Stock
 from src.Domains.IRepositories.IStockRepository import IStockRepository
 from src.UseCases.Interface.IUseCase import IUseCase
@@ -20,12 +21,14 @@ class HandleIntentOperationUseCase(IUseCase):
         line_response_service: ILineResponseService,
         intent_parser_service: LineIntentParserService,
         pending_operation_service: PendingLineOperationService,
+        habit_task_repository=None,
     ):
         self._stock_repository = stock_repository
         self._line_request_service = line_request_service
         self._line_response_service = line_response_service
         self._intent_parser_service = intent_parser_service
         self._pending_operation_service = pending_operation_service
+        self._habit_task_repository = habit_task_repository
 
     def execute(self) -> None:
         message = (self._line_request_service.message or "").strip()
@@ -58,6 +61,10 @@ class HandleIntentOperationUseCase(IUseCase):
                 "intent": parsed["intent"],
                 "item_name": parsed["item_name"],
                 "expiry_date": parsed["expiry_date"],
+                "exclude_expiry_date": parsed.get("exclude_expiry_date"),
+                "notify_enabled": parsed.get("notify_enabled", False),
+                "frequency": parsed.get("frequency"),
+                "notify_time": parsed.get("notify_time"),
             },
         )
         self._reply_confirmation(parsed)
@@ -66,16 +73,35 @@ class HandleIntentOperationUseCase(IUseCase):
         intent = parsed["intent"]
         item_name = parsed["item_name"]
         expiry_date = parsed["expiry_date"]
+        exclude_expiry_date = parsed.get("exclude_expiry_date")
+        notify_enabled = parsed.get("notify_enabled", False)
+        frequency = parsed.get("frequency")
+        notify_time = parsed.get("notify_time")
 
         if intent == "register":
             if expiry_date:
                 date_text = datetime.strptime(expiry_date, "%Y-%m-%d").strftime("%Y年%m月%d日")
-                message = f'"{item_name}" を期限 {date_text} で登録します。よろしいですか？'
+                notify_suffix = "（通知あり）" if notify_enabled else ""
+                message = f'"{item_name}" を期限 {date_text} で登録します{notify_suffix}。よろしいですか？'
             else:
-                message = f'"{item_name}" を登録します。よろしいですか？'
+                notify_suffix = "（通知あり）" if notify_enabled else ""
+                message = f'"{item_name}" を登録します{notify_suffix}。よろしいですか？'
+        elif intent == "register_habit":
+            freq_text = "毎週" if frequency == "weekly" else "毎日"
+            time_text = notify_time or "12:00"
+            message = f'習慣タスク "{item_name}" を登録します（{freq_text} {time_text} にリマインド）。よろしいですか？'
         elif intent == "update":
             date_text = datetime.strptime(expiry_date, "%Y-%m-%d").strftime("%Y年%m月%d日")
             message = f'"{item_name}" の期限を {date_text} に更新します。よろしいですか？'
+        elif intent == "delete":
+            if exclude_expiry_date:
+                excl_text = datetime.strptime(exclude_expiry_date, "%Y-%m-%d").strftime("%Y年%m月%d日")
+                message = f'"{item_name}" を削除します（{excl_text}以外の期限のもの）。よろしいですか？'
+            elif expiry_date:
+                date_text = datetime.strptime(expiry_date, "%Y-%m-%d").strftime("%Y年%m月%d日")
+                message = f'"{item_name}" を削除します（期限: {date_text}のもの）。よろしいですか？'
+            else:
+                message = f'"{item_name}" を削除します。よろしいですか？'
         else:
             message = f'"{item_name}" を削除します。よろしいですか？'
 
@@ -114,7 +140,7 @@ class HandleIntentOperationUseCase(IUseCase):
                     owner_id=line_user_id,
                     expiry_date=parsed_expiry_date,
                     status=1,
-                    notify_enabled=False,
+                    notify_enabled=operation.get("notify_enabled", False),
                 )
             )
             if parsed_expiry_date:
@@ -145,14 +171,60 @@ class HandleIntentOperationUseCase(IUseCase):
             else:
                 self._line_response_service.add_message(f'"{item_name}" を更新しました。')
         elif intent == "delete":
-            count = self._stock_repository.update(
-                query={"owner_id": line_user_id, "item_name": item_name, "status": 1},
-                new_values={"status": 2},
-            )
+            exclude_expiry = operation.get("exclude_expiry_date")
+            filter_expiry = expiry_date
+
+            if filter_expiry or exclude_expiry:
+                all_stocks = self._stock_repository.find(
+                    query={"owner_id": line_user_id, "item_name": item_name, "status": 1}
+                )
+                if filter_expiry:
+                    target_date = datetime.strptime(filter_expiry, "%Y-%m-%d").date()
+                    targets = [
+                        s for s in all_stocks
+                        if s.expiry_date and s.expiry_date.date() == target_date
+                    ]
+                else:
+                    exclude_date = datetime.strptime(exclude_expiry, "%Y-%m-%d").date()
+                    targets = [
+                        s for s in all_stocks
+                        if not (s.expiry_date and s.expiry_date.date() == exclude_date)
+                    ]
+                for s in targets:
+                    self._stock_repository.update(
+                        query={"_id": s._id}, new_values={"status": 2}
+                    )
+                count = len(targets)
+            else:
+                count = self._stock_repository.update(
+                    query={"owner_id": line_user_id, "item_name": item_name, "status": 1},
+                    new_values={"status": 2},
+                )
+
             if count == 0:
                 self._line_response_service.add_message(f'"{item_name}" が見つかりませんでした。')
             else:
                 self._line_response_service.add_message(f'"{item_name}" を削除しました。')
+        elif intent == "register_habit":
+            if self._habit_task_repository is None:
+                self._line_response_service.add_message("習慣タスク登録は現在利用できません。")
+                self._pending_operation_service.clear(line_user_id)
+                return
+            frequency = operation.get("frequency") or "daily"
+            notify_time = operation.get("notify_time") or "12:00"
+            self._habit_task_repository.create(
+                HabitTask(
+                    owner_id=line_user_id,
+                    task_name=item_name,
+                    frequency=frequency,
+                    notify_time=notify_time,
+                    is_active=True,
+                )
+            )
+            freq_text = "毎週" if frequency == "weekly" else "毎日"
+            self._line_response_service.add_message(
+                f'習慣タスク "{item_name}" を登録しました（{freq_text} {notify_time} にリマインド）。'
+            )
         else:
             self._line_response_service.add_message("操作を特定できませんでした。")
 

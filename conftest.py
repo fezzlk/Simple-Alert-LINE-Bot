@@ -59,7 +59,10 @@ def pytest_collection_modifyitems(config, items):
         if (
             "src/Infrastructure/Repositories/tests" in path
             or "src/UseCases/Web/tests" in path
-            or "src/services/tests" in path
+            or (
+                "src/services/tests" in path
+                and "test_line_intent_parser_service" not in path
+            )
             or path.endswith("src/tests/test_db_connect.py")
         ):
             item.add_marker(skip)

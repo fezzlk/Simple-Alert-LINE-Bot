@@ -13,6 +13,18 @@
 - バグ修正/原因調査の依頼では、まずこのログを読み、根拠となる行（例外文言やスタック）を引用して原因仮説を述べること。
 - ログだけで特定できない場合は、実装に着手する前に追加質問を返すこと（例：再現条件、該当リクエスト、直前のデプロイ等）。
 
+## Cloud Run Logging MCP の起動
+
+- ローカル起動コマンド: `scripts/start_cloud_run_logging_mcp.sh`
+- このスクリプトは以下を自動で実行する
+  - Docker daemon の起動待ち（macOSでは Docker.app 起動を試行）
+  - `cloud-run-logging-mcp:local` イメージ存在チェック（未作成時は `../cloud-run-logging-mcp` から build）
+  - サービスアカウント鍵の存在チェック
+- 必要に応じて環境変数で上書き可能
+  - `MCP_REPO_DIR`
+  - `MCP_IMAGE`
+  - `MCP_KEY_PATH`
+
 ## 時刻指定の解釈
 
 - コメントに書かれた日本時間（JST）の時刻を優先する。

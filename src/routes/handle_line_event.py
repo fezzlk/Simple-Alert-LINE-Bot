@@ -200,6 +200,7 @@ def get_use_case_text_message(event: Event):
                 line_response_service=line_response_service,
                 intent_parser_service=line_intent_parser_service,
                 pending_operation_service=pending_line_operation_service,
+                habit_task_repository=habit_task_repository,
             )
         return use_case_list['stock_keywords'][keyword]
     elif keyword in use_case_list['system_keywords']:
@@ -218,6 +219,7 @@ def get_use_case_text_message(event: Event):
             line_response_service=line_response_service,
             intent_parser_service=line_intent_parser_service,
             pending_operation_service=pending_line_operation_service,
+            habit_task_repository=habit_task_repository,
         )
     elif any(alias in message for alias in LIST_DISPLAY_ALIASES) or (
         '登録済み' in message and '一覧' in message
@@ -250,6 +252,7 @@ def get_use_case_postback(event: Event):
             line_response_service=line_response_service,
             intent_parser_service=line_intent_parser_service,
             pending_operation_service=pending_line_operation_service,
+            habit_task_repository=habit_task_repository,
         )
     if data == "intent_confirm:no":
         line_request_service.message = "いいえ"
@@ -259,6 +262,7 @@ def get_use_case_postback(event: Event):
             line_response_service=line_response_service,
             intent_parser_service=line_intent_parser_service,
             pending_operation_service=pending_line_operation_service,
+            habit_task_repository=habit_task_repository,
         )
     return PostbackUseCase(
         line_response_service=line_response_service,

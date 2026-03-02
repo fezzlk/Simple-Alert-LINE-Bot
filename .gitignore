@@ -128,3 +128,11 @@ dmypy.json
 # Pyre type checker
 .pyre/
 src/static/all.css
+
+# Secrets / local config
+.env
+.env.*
+!.env.example
+
+# Claude Code local data
+.claude/
