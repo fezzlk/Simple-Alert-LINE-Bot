@@ -39,6 +39,11 @@ def _parse_args():
         action="store_true",
         help="Skip set_default_rich_menu call.",
     )
+    parser.add_argument(
+        "--clean",
+        action="store_true",
+        help="Delete all existing rich menus before creating a new one.",
+    )
     return parser.parse_args()
 
 
@@ -85,6 +90,16 @@ def _build_rich_menu(name: str, chat_bar_text: str, server_url: str) -> RichMenu
     )
 
 
+def _delete_all_rich_menus() -> None:
+    menus = line_bot_api.get_rich_menu_list()
+    if not menus:
+        print("No existing rich menus found.")
+        return
+    for menu in menus:
+        line_bot_api.delete_rich_menu(menu.rich_menu_id)
+        print(f"Deleted rich menu: {menu.rich_menu_id} ({menu.name})")
+
+
 def main() -> int:
     args = _parse_args()
 
@@ -97,6 +112,9 @@ def main() -> int:
     if not os.path.exists(args.image_path):
         print(f"Image file not found: {args.image_path}")
         return 1
+
+    if args.clean:
+        _delete_all_rich_menus()
 
     rich_menu = _build_rich_menu(
         name=args.name,
