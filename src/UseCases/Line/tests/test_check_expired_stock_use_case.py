@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 
+from src import config
 from src.Domains.Entities.NotificationSchedule import NotificationSchedule
 from src.Domains.Entities.Stock import Stock
 from src.Domains.Entities.WebUser import WebUser
@@ -105,6 +106,7 @@ def test_check_expired_stock_sends_expected_messages(monkeypatch):
         "src.UseCases.Line.CheckExpiredStockUseCase.datetime",
         FixedDatetime,
     )
+    monkeypatch.setattr(config, "SERVER_URL", "https://example.com")
 
     due_schedule = NotificationSchedule(
         line_user_id="U1",
