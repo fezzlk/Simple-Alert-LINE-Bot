@@ -214,6 +214,63 @@ class TestFunctionCallingSuccess:
         assert result["item_name"] == "英語学習"
         assert result["notify_time"] is None
 
+    def test_fc_delete_habit(self):
+        resp = _make_tool_response("delete_habit_task", {"task_name": "筋トレ"})
+        with _mock_api(resp):
+            result = self.svc.parse("筋トレの習慣タスクを停止して")
+        assert result["intent"] == "delete_habit"
+        assert result["item_name"] == "筋トレ"
+
+    def test_fc_update_habit_notify_time(self):
+        resp = _make_tool_response("update_habit_notify_time", {
+            "task_name": "筋トレ", "notify_time": "08:00"
+        })
+        with _mock_api(resp):
+            result = self.svc.parse("筋トレの通知を朝8時に変更して")
+        assert result["intent"] == "update_habit_notify_time"
+        assert result["item_name"] == "筋トレ"
+        assert result["notify_time"] == "08:00"
+
+    def test_fc_update_notification_off(self):
+        resp = _make_tool_response("update_notification_setting", {
+            "enabled": False, "notify_time": None
+        })
+        with _mock_api(resp):
+            result = self.svc.parse("通知をオフにして")
+        assert result["intent"] == "update_notification"
+        assert result["enabled"] is False
+
+    def test_fc_update_notification_time(self):
+        resp = _make_tool_response("update_notification_setting", {
+            "enabled": None, "notify_time": "09:00"
+        })
+        with _mock_api(resp):
+            result = self.svc.parse("通知を9時にして")
+        assert result["intent"] == "update_notification"
+        assert result["notify_time"] == "09:00"
+
+    def test_fc_update_stock_notify(self):
+        resp = _make_tool_response("update_stock_notify", {
+            "item_name": "牛乳", "notify_enabled": True
+        })
+        with _mock_api(resp):
+            result = self.svc.parse("牛乳の通知をオンにして")
+        assert result["intent"] == "update_stock_notify"
+        assert result["item_name"] == "牛乳"
+        assert result["notify_enabled"] is True
+
+    def test_fc_update_habit_log(self):
+        resp = _make_tool_response("update_habit_log", {
+            "task_name": "筋トレ", "scheduled_date": "2026-03-03",
+            "result": "not_done", "note": None
+        })
+        with _mock_api(resp):
+            result = self.svc.parse("今日の筋トレをNGに修正して")
+        assert result["intent"] == "update_habit_log"
+        assert result["item_name"] == "筋トレ"
+        assert result["result"] == "not_done"
+        assert result["scheduled_date"] == "2026-03-03"
+
 
 # ---------------------------------------------------------------------------
 # Group 4: Function Calling 異常系

@@ -1,5 +1,6 @@
 from datetime import datetime
 from src.Domains.Entities.HabitTask import HabitTask
+from src.Domains.Entities.HabitTaskLog import HabitTaskLog
 from src.Domains.Entities.Stock import Stock
 from src.Domains.IRepositories.IStockRepository import IStockRepository
 from src.UseCases.Line.HandleIntentOperationUseCase import HandleIntentOperationUseCase
@@ -222,10 +223,54 @@ def test_register_without_expiry_prompts_for_followup_expiry():
 class DummyHabitTaskRepository:
     def __init__(self):
         self.created = None
+        self.updated_query = None
+        self.updated_values = None
+        self.update_count = 1
+        self.found_tasks = []
 
     def create(self, habit_task: HabitTask) -> HabitTask:
         self.created = habit_task
         return habit_task
+
+    def update(self, query, new_values) -> int:
+        self.updated_query = query
+        self.updated_values = new_values
+        return self.update_count
+
+    def find(self, query=None) -> list:
+        return self.found_tasks
+
+
+class DummyNotificationScheduleRepository:
+    def __init__(self, current=None):
+        self.current = current
+        self.upsert_kwargs = None
+
+    def find_by_line_user_id(self, line_user_id: str):
+        return self.current
+
+    def upsert(self, **kwargs):
+        self.upsert_kwargs = kwargs
+
+
+class DummyHabitTaskLogRepository:
+    def __init__(self):
+        self.created = None
+        self.updated_query = None
+        self.updated_values = None
+        self.found_logs = []
+
+    def create(self, log: HabitTaskLog) -> HabitTaskLog:
+        self.created = log
+        return log
+
+    def update(self, query, new_values) -> int:
+        self.updated_query = query
+        self.updated_values = new_values
+        return 1
+
+    def find(self, query=None) -> list:
+        return self.found_logs
 
 
 def test_followup_expiry_date_updates_recently_registered_item():
@@ -376,3 +421,143 @@ def test_delete_with_exclude_expiry_filters_python_side():
     assert "S3" in deleted_ids
     assert "S1" not in deleted_ids
     assert any("削除しました" in m for m in res.messages)
+
+
+def _make_use_case(req, res, parser, pending, repo=None, habit_repo=None, notif_repo=None, log_repo=None):
+    return HandleIntentOperationUseCase(
+        stock_repository=repo or DummyStockRepository(),
+        line_request_service=req,
+        line_response_service=res,
+        intent_parser_service=parser,
+        pending_operation_service=pending,
+        habit_task_repository=habit_repo,
+        notification_schedule_repository=notif_repo,
+        habit_task_log_repository=log_repo,
+    )
+
+
+def test_delete_habit_deactivates_task():
+    req = DummyLineRequestService(message="筋トレの習慣タスクを停止して")
+    res = DummyLineResponseService()
+    habit_repo = DummyHabitTaskRepository()
+    parser = DummyIntentParserService(
+        {"intent": "delete_habit", "item_name": "筋トレ", "expiry_date": None}
+    )
+    pending = DummyPendingOperationService()
+    use_case = _make_use_case(req, res, parser, pending, habit_repo=habit_repo)
+
+    use_case.execute()
+    req.message = "はい"
+    use_case.execute()
+
+    assert habit_repo.updated_query["task_name"] == "筋トレ"
+    assert habit_repo.updated_values["is_active"] is False
+    assert any("停止しました" in m for m in res.messages)
+
+
+def test_update_habit_notify_time():
+    req = DummyLineRequestService(message="筋トレの通知を朝8時に変更して")
+    res = DummyLineResponseService()
+    habit_repo = DummyHabitTaskRepository()
+    parser = DummyIntentParserService(
+        {"intent": "update_habit_notify_time", "item_name": "筋トレ", "notify_time": "08:00", "expiry_date": None}
+    )
+    pending = DummyPendingOperationService()
+    use_case = _make_use_case(req, res, parser, pending, habit_repo=habit_repo)
+
+    use_case.execute()
+    req.message = "はい"
+    use_case.execute()
+
+    assert habit_repo.updated_query["task_name"] == "筋トレ"
+    assert habit_repo.updated_values["notify_time"] == "08:00"
+    assert any("変更しました" in m for m in res.messages)
+
+
+def test_update_notification_setting_off():
+    req = DummyLineRequestService(message="通知をオフにして")
+    res = DummyLineResponseService()
+    notif_repo = DummyNotificationScheduleRepository()
+    parser = DummyIntentParserService(
+        {"intent": "update_notification", "item_name": None, "expiry_date": None,
+         "enabled": False, "notify_time": None}
+    )
+    pending = DummyPendingOperationService()
+    use_case = _make_use_case(req, res, parser, pending, notif_repo=notif_repo)
+
+    use_case.execute()
+    req.message = "はい"
+    use_case.execute()
+
+    assert notif_repo.upsert_kwargs is not None
+    assert notif_repo.upsert_kwargs["enabled"] is False
+    assert any("更新しました" in m for m in res.messages)
+
+
+def test_update_stock_notify_on():
+    req = DummyLineRequestService(message="牛乳の通知をオンにして")
+    res = DummyLineResponseService()
+    repo = DummyStockRepository()
+    parser = DummyIntentParserService(
+        {"intent": "update_stock_notify", "item_name": "牛乳", "notify_enabled": True, "expiry_date": None}
+    )
+    pending = DummyPendingOperationService()
+    use_case = _make_use_case(req, res, parser, pending, repo=repo)
+
+    use_case.execute()
+    req.message = "はい"
+    use_case.execute()
+
+    assert repo.updated_query["item_name"] == "牛乳"
+    assert repo.updated_values["notify_enabled"] is True
+    assert any("更新しました" in m for m in res.messages)
+
+
+def test_update_habit_log_existing():
+    req = DummyLineRequestService(message="今日の筋トレをNGに修正して")
+    res = DummyLineResponseService()
+    habit_repo = DummyHabitTaskRepository()
+    habit_repo.found_tasks = [HabitTask(_id="HT1", owner_id="U1", task_name="筋トレ", is_active=True)]
+    log_repo = DummyHabitTaskLogRepository()
+    existing_log = HabitTaskLog(_id="L1", habit_task_id="HT1", owner_id="U1",
+                                task_name_snapshot="筋トレ", scheduled_date="2026-03-03",
+                                result="done", note=None, recorded_at=datetime.now())
+    log_repo.found_logs = [existing_log]
+    parser = DummyIntentParserService(
+        {"intent": "update_habit_log", "item_name": "筋トレ", "expiry_date": None,
+         "scheduled_date": "2026-03-03", "result": "not_done", "note": None}
+    )
+    pending = DummyPendingOperationService()
+    use_case = _make_use_case(req, res, parser, pending, habit_repo=habit_repo, log_repo=log_repo)
+
+    use_case.execute()
+    req.message = "はい"
+    use_case.execute()
+
+    assert log_repo.updated_query == {"_id": "L1"}
+    assert log_repo.updated_values["result"] == "not_done"
+    assert any("修正しました" in m for m in res.messages)
+
+
+def test_update_habit_log_not_found_creates():
+    req = DummyLineRequestService(message="今日の筋トレをOKに修正して")
+    res = DummyLineResponseService()
+    habit_repo = DummyHabitTaskRepository()
+    habit_repo.found_tasks = [HabitTask(_id="HT1", owner_id="U1", task_name="筋トレ", is_active=True)]
+    log_repo = DummyHabitTaskLogRepository()
+    log_repo.found_logs = []  # ログが存在しない
+    parser = DummyIntentParserService(
+        {"intent": "update_habit_log", "item_name": "筋トレ", "expiry_date": None,
+         "scheduled_date": "2026-03-03", "result": "done", "note": None}
+    )
+    pending = DummyPendingOperationService()
+    use_case = _make_use_case(req, res, parser, pending, habit_repo=habit_repo, log_repo=log_repo)
+
+    use_case.execute()
+    req.message = "はい"
+    use_case.execute()
+
+    assert log_repo.created is not None
+    assert log_repo.created.result == "done"
+    assert log_repo.created.habit_task_id == "HT1"
+    assert any("修正しました" in m for m in res.messages)

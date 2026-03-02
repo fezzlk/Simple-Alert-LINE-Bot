@@ -4,6 +4,7 @@ import re
 from linebot.models import ButtonsTemplate, PostbackAction, TemplateSendMessage
 
 from src.Domains.Entities.HabitTask import HabitTask
+from src.Domains.Entities.HabitTaskLog import HabitTaskLog
 from src.Domains.Entities.Stock import Stock
 from src.Domains.IRepositories.IStockRepository import IStockRepository
 from src.UseCases.Interface.IUseCase import IUseCase
@@ -22,6 +23,8 @@ class HandleIntentOperationUseCase(IUseCase):
         intent_parser_service: LineIntentParserService,
         pending_operation_service: PendingLineOperationService,
         habit_task_repository=None,
+        notification_schedule_repository=None,
+        habit_task_log_repository=None,
     ):
         self._stock_repository = stock_repository
         self._line_request_service = line_request_service
@@ -29,6 +32,8 @@ class HandleIntentOperationUseCase(IUseCase):
         self._intent_parser_service = intent_parser_service
         self._pending_operation_service = pending_operation_service
         self._habit_task_repository = habit_task_repository
+        self._notification_schedule_repository = notification_schedule_repository
+        self._habit_task_log_repository = habit_task_log_repository
 
     def execute(self) -> None:
         message = (self._line_request_service.message or "").strip()
@@ -65,6 +70,10 @@ class HandleIntentOperationUseCase(IUseCase):
                 "notify_enabled": parsed.get("notify_enabled", False),
                 "frequency": parsed.get("frequency"),
                 "notify_time": parsed.get("notify_time"),
+                "enabled": parsed.get("enabled"),
+                "scheduled_date": parsed.get("scheduled_date"),
+                "result": parsed.get("result"),
+                "note": parsed.get("note"),
             },
         )
         self._reply_confirmation(parsed)
@@ -102,6 +111,27 @@ class HandleIntentOperationUseCase(IUseCase):
                 message = f'"{item_name}" を削除します（期限: {date_text}のもの）。よろしいですか？'
             else:
                 message = f'"{item_name}" を削除します。よろしいですか？'
+        elif intent == "delete_habit":
+            message = f'習慣タスク "{item_name}" を停止します。よろしいですか？'
+        elif intent == "update_habit_notify_time":
+            message = f'習慣タスク "{item_name}" の通知時刻を {notify_time} に変更します。よろしいですか？'
+        elif intent == "update_notification":
+            enabled = parsed.get("enabled")
+            parts = []
+            if enabled is not None:
+                parts.append(f"enabled={'オン' if enabled else 'オフ'}")
+            if notify_time:
+                parts.append(f"時刻={notify_time}")
+            message = f'通知設定を変更します（{" / ".join(parts)}）。よろしいですか？'
+        elif intent == "update_stock_notify":
+            notify_enabled = parsed.get("notify_enabled", False)
+            message = f'"{item_name}" の通知を {"オン" if notify_enabled else "オフ"} にします。よろしいですか？'
+        elif intent == "update_habit_log":
+            scheduled_date = parsed.get("scheduled_date")
+            result = parsed.get("result")
+            date_text = datetime.strptime(scheduled_date, "%Y-%m-%d").strftime("%-m月%-d日")
+            result_text = {"done": "OK", "not_done": "NG", "other": "その他"}.get(result, result)
+            message = f'習慣タスク "{item_name}" の {date_text} の実績を "{result_text}" に修正します。よろしいですか？'
         else:
             message = f'"{item_name}" を削除します。よろしいですか？'
 
@@ -224,6 +254,100 @@ class HandleIntentOperationUseCase(IUseCase):
             freq_text = "毎週" if frequency == "weekly" else "毎日"
             self._line_response_service.add_message(
                 f'習慣タスク "{item_name}" を登録しました（{freq_text} {notify_time} にリマインド）。'
+            )
+        elif intent == "delete_habit":
+            if self._habit_task_repository is None:
+                self._line_response_service.add_message("習慣タスク操作は現在利用できません。")
+                self._pending_operation_service.clear(line_user_id)
+                return
+            count = self._habit_task_repository.update(
+                query={"owner_id": line_user_id, "task_name": item_name, "is_active": True},
+                new_values={"is_active": False},
+            )
+            if count > 0:
+                self._line_response_service.add_message(f'習慣タスク "{item_name}" を停止しました。')
+            else:
+                self._line_response_service.add_message(f'"{item_name}" が見つかりませんでした。')
+        elif intent == "update_habit_notify_time":
+            if self._habit_task_repository is None:
+                self._line_response_service.add_message("習慣タスク操作は現在利用できません。")
+                self._pending_operation_service.clear(line_user_id)
+                return
+            notify_time = operation.get("notify_time")
+            count = self._habit_task_repository.update(
+                query={"owner_id": line_user_id, "task_name": item_name, "is_active": True},
+                new_values={"notify_time": notify_time},
+            )
+            if count > 0:
+                self._line_response_service.add_message(
+                    f'習慣タスク "{item_name}" の通知時刻を {notify_time} に変更しました。'
+                )
+            else:
+                self._line_response_service.add_message(f'"{item_name}" が見つかりませんでした。')
+        elif intent == "update_notification":
+            if self._notification_schedule_repository is None:
+                self._line_response_service.add_message("通知設定の変更は現在利用できません。")
+                self._pending_operation_service.clear(line_user_id)
+                return
+            enabled = operation.get("enabled")
+            notify_time = operation.get("notify_time")
+            current = self._notification_schedule_repository.find_by_line_user_id(line_user_id)
+            new_enabled = enabled if enabled is not None else (current.enabled if current else True)
+            new_time = notify_time or (current.notify_time if current else "12:00")
+            self._notification_schedule_repository.upsert(
+                line_user_id=line_user_id,
+                notify_time=new_time,
+                enabled=new_enabled,
+            )
+            self._line_response_service.add_message("通知設定を更新しました。")
+        elif intent == "update_stock_notify":
+            count = self._stock_repository.update(
+                query={"owner_id": line_user_id, "item_name": item_name, "status": 1},
+                new_values={"notify_enabled": operation.get("notify_enabled", False)},
+            )
+            if count > 0:
+                self._line_response_service.add_message(f'"{item_name}" の通知設定を更新しました。')
+            else:
+                self._line_response_service.add_message(f'"{item_name}" が見つかりませんでした。')
+        elif intent == "update_habit_log":
+            if self._habit_task_repository is None or self._habit_task_log_repository is None:
+                self._line_response_service.add_message("習慣タスク操作は現在利用できません。")
+                self._pending_operation_service.clear(line_user_id)
+                return
+            scheduled_date = operation.get("scheduled_date")
+            result = operation.get("result")
+            note = operation.get("note")
+            tasks = self._habit_task_repository.find(
+                {"owner_id": line_user_id, "task_name": item_name, "is_active": True}
+            )
+            if not tasks:
+                self._line_response_service.add_message(f'習慣タスク "{item_name}" が見つかりませんでした。')
+                self._pending_operation_service.clear(line_user_id)
+                return
+            task = tasks[0]
+            logs = self._habit_task_log_repository.find(
+                {"habit_task_id": task._id, "scheduled_date": scheduled_date}
+            )
+            if logs:
+                self._habit_task_log_repository.update(
+                    query={"_id": logs[0]._id},
+                    new_values={"result": result, "note": note, "recorded_at": datetime.now()},
+                )
+            else:
+                self._habit_task_log_repository.create(
+                    HabitTaskLog(
+                        habit_task_id=task._id,
+                        owner_id=line_user_id,
+                        task_name_snapshot=item_name,
+                        scheduled_date=scheduled_date,
+                        result=result,
+                        note=note,
+                        recorded_at=datetime.now(),
+                    )
+                )
+            result_text = {"done": "OK", "not_done": "NG", "other": "その他"}.get(result, result)
+            self._line_response_service.add_message(
+                f'習慣タスク "{item_name}" の {scheduled_date} の実績を "{result_text}" に修正しました。'
             )
         else:
             self._line_response_service.add_message("操作を特定できませんでした。")

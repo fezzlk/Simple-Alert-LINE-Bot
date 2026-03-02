@@ -84,13 +84,102 @@ TOOLS = [
             "strict": True,
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "delete_habit_task",
+            "description": "習慣タスクを停止（論理削除）する。",
+            "parameters": {
+                "type": "object",
+                "properties": {"task_name": {"type": "string"}},
+                "required": ["task_name"],
+                "additionalProperties": False,
+            },
+            "strict": True,
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "update_habit_notify_time",
+            "description": "習慣タスクの通知時刻を変更する。notify_timeはHH:MM形式。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "task_name":   {"type": "string"},
+                    "notify_time": {"type": "string"},
+                },
+                "required": ["task_name", "notify_time"],
+                "additionalProperties": False,
+            },
+            "strict": True,
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "update_notification_setting",
+            "description": "在庫期限通知スケジュールのON/OFFまたは時刻を変更する。変更しない項目はnull。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "enabled":     {"type": ["boolean", "null"]},
+                    "notify_time": {"type": ["string", "null"]},
+                },
+                "required": ["enabled", "notify_time"],
+                "additionalProperties": False,
+            },
+            "strict": True,
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "update_stock_notify",
+            "description": "登録済みアイテムの通知設定（notify_enabled）を変更する。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "item_name":      {"type": "string"},
+                    "notify_enabled": {"type": "boolean"},
+                },
+                "required": ["item_name", "notify_enabled"],
+                "additionalProperties": False,
+            },
+            "strict": True,
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "update_habit_log",
+            "description": "習慣タスクの実績を修正する。scheduled_dateはYYYY-MM-DD（今日/昨日を変換）。resultはdone/not_done/other。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "task_name":      {"type": "string"},
+                    "scheduled_date": {"type": "string"},
+                    "result":         {"type": "string", "enum": ["done", "not_done", "other"]},
+                    "note":           {"type": ["string", "null"]},
+                },
+                "required": ["task_name", "scheduled_date", "result", "note"],
+                "additionalProperties": False,
+            },
+            "strict": True,
+        },
+    },
 ]
 
 FUNCTION_TO_INTENT = {
-    "register_stock":      "register",
-    "update_stock_expiry": "update",
-    "delete_stock":        "delete",
-    "register_habit_task": "register_habit",
+    "register_stock":            "register",
+    "update_stock_expiry":       "update",
+    "delete_stock":              "delete",
+    "register_habit_task":       "register_habit",
+    "delete_habit_task":         "delete_habit",
+    "update_habit_notify_time":  "update_habit_notify_time",
+    "update_notification_setting": "update_notification",
+    "update_stock_notify":       "update_stock_notify",
+    "update_habit_log":          "update_habit_log",
 }
 
 
@@ -167,12 +256,16 @@ class LineIntentParserService:
     def _build_result_from_tool_call(self, tool_name: str, args: dict) -> dict:
         return {
             "intent":              FUNCTION_TO_INTENT.get(tool_name, "none"),
-            "item_name":           args.get("item_name"),
+            "item_name":           args.get("item_name") or args.get("task_name"),
             "expiry_date":         args.get("expiry_date"),
             "exclude_expiry_date": args.get("exclude_expiry_date"),
             "notify_enabled":      bool(args.get("notify_enabled", False)),
             "frequency":           args.get("frequency"),
             "notify_time":         args.get("notify_time"),
+            "enabled":             args.get("enabled"),
+            "scheduled_date":      args.get("scheduled_date"),
+            "result":              args.get("result"),
+            "note":                args.get("note"),
         }
 
     def _sanitize(self, parsed: Dict[str, Any]) -> Dict[str, Any]:
@@ -205,6 +298,18 @@ class LineIntentParserService:
             intent = "none"
         if intent == "register_habit" and not item_name:
             intent = "none"
+        if intent == "delete_habit" and not item_name:
+            intent = "none"
+        if intent == "update_habit_notify_time" and (not item_name or not _check_time(parsed.get("notify_time"))):
+            intent = "none"
+        if intent == "update_notification":
+            if parsed.get("enabled") is None and not _check_time(parsed.get("notify_time")):
+                intent = "none"
+        if intent == "update_stock_notify" and not item_name:
+            intent = "none"
+        if intent == "update_habit_log":
+            if not item_name or not _check_date(parsed.get("scheduled_date")) or parsed.get("result") not in ("done", "not_done", "other"):
+                intent = "none"
 
         return {
             "intent":              intent,
@@ -214,6 +319,10 @@ class LineIntentParserService:
             "notify_enabled":      bool(parsed.get("notify_enabled", False)),
             "frequency":           frequency,
             "notify_time":         _check_time(parsed.get("notify_time")),
+            "enabled":             parsed.get("enabled"),
+            "scheduled_date":      _check_date(parsed.get("scheduled_date")),
+            "result":              parsed.get("result"),
+            "note":                parsed.get("note"),
         }
 
     def _none_result(self) -> Dict[str, Any]:
@@ -225,4 +334,8 @@ class LineIntentParserService:
             "notify_enabled":      False,
             "frequency":           None,
             "notify_time":         None,
+            "enabled":             None,
+            "scheduled_date":      None,
+            "result":              None,
+            "note":                None,
         }
