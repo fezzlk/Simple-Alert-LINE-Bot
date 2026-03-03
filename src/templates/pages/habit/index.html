@@ -1,29 +1,35 @@
 {% extends "layout.html" %}
 {% block content %}
 <div class="container py-3">
-  <div class="row mb-3">
-    <div class="col">
-      <h4>習慣タスク</h4>
-      <p class="text-muted mb-0">毎日定時に通知し、実施/未実施/その他を記録します。</p>
-    </div>
+  <!-- ページヘッダー -->
+  <div class="page-header">
+    <h1 class="page-title">習慣タスク</h1>
   </div>
 
+  <!-- 新規追加フォーム -->
   <div class="row mb-4">
     <div class="col-md-6">
-      <form action="{{ url_for('views_blueprint.add_habit_task') }}" method="post" class="card card-body">
-        {% from "components/_formhelpers.html" import render_field %}
-        <div class="mb-2">{{ render_field(form.task_name) }}</div>
-        <div class="mb-2">{{ render_field(form.notify_time) }}</div>
-        <div>{{ form.csrf_token }}{{ form.submit() }}</div>
-      </form>
+      <div class="app-card">
+        <div class="app-card-header">新規タスクを追加</div>
+        <div class="p-3">
+          <form action="{{ url_for('views_blueprint.add_habit_task') }}" method="post">
+            {% from "components/_formhelpers.html" import render_field %}
+            <div class="mb-2">{{ render_field(form.task_name) }}</div>
+            <div class="mb-2">{{ render_field(form.notify_time) }}</div>
+            <div>{{ form.csrf_token }}{{ form.submit() }}</div>
+          </form>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="row">
-    <div class="col">
-      <table class="table table-sm table-hover">
+  <!-- タスク一覧 -->
+  <div class="app-card">
+    <div class="app-card-header">タスク一覧</div>
+    <div class="table-responsive">
+      <table class="table app-table table-hover mb-0">
         <thead>
-          <tr class="table-light">
+          <tr>
             <th>タスク名</th>
             <th>通知時刻</th>
             <th>頻度</th>
@@ -38,11 +44,21 @@
               </a>
             </td>
             <td>{{ task.notify_time }}</td>
-            <td>{{ task.frequency }}</td>
+            <td>
+              {% if task.frequency == 'daily' %}
+              <span class="badge badge-frequency-daily">毎日</span>
+              {% elif task.frequency == 'weekly' %}
+              <span class="badge badge-frequency-weekly">毎週</span>
+              {% elif task.frequency == 'monthly' %}
+              <span class="badge badge-frequency-monthly">毎月</span>
+              {% else %}
+              <span class="badge bg-secondary">{{ task.frequency }}</span>
+              {% endif %}
+            </td>
           </tr>
           {% endfor %}
           {% if page_contents.data.tasks|length == 0 %}
-          <tr><td colspan="3" class="text-muted">習慣タスクはまだありません。</td></tr>
+          <tr><td colspan="3" class="text-muted py-3">習慣タスクはまだありません。</td></tr>
           {% endif %}
         </tbody>
       </table>
