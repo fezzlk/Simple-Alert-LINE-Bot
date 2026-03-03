@@ -73,7 +73,7 @@ def _build_rich_menu(name: str, chat_bar_text: str, server_url: str) -> RichMenu
         ),
         RichMenuArea(
             bounds=RichMenuBounds(x=833, y=843, width=833, height=843),
-            action=MessageAction(label="連携", text="アカウント連携"),
+            action=URIAction(label="カレンダー", uri=habit_url),
         ),
         RichMenuArea(
             bounds=RichMenuBounds(x=1666, y=843, width=834, height=843),

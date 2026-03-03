@@ -1,11 +1,36 @@
-from src import config
 from datetime import datetime
 from src.UseCases.Interface.IUseCase import IUseCase
 from src.Domains.IRepositories.IStockRepository import IStockRepository
 from src.Domains.IRepositories.IWebUserRepository import IWebUserRepository
 from src.UseCases.Interface.ILineRequestService import ILineRequestService
 from src.UseCases.Interface.ILineResponseService import ILineResponseService
-from src.line_rich_messages import add_stock_web_link_button
+
+
+def _days_left(expiry_date: datetime) -> int:
+    return (expiry_date.date() - datetime.now().date()).days
+
+
+def _expiry_label(expiry_date: datetime) -> str:
+    days = _days_left(expiry_date)
+    date_str = expiry_date.strftime("%-m/%-d")
+    if days < 0:
+        return f'{date_str}（{abs(days)}日超過）'
+    if days == 0:
+        return f'{date_str}（今日まで）'
+    if days == 1:
+        return f'{date_str}（明日まで）'
+    return f'{date_str}（残り{days}日）'
+
+
+def _urgency_icon(expiry_date: datetime) -> str:
+    days = _days_left(expiry_date)
+    if days < 0:
+        return '🔴'
+    if days <= 3:
+        return '🟠'
+    if days <= 7:
+        return '🟡'
+    return '🟢'
 
 
 class ReplyStockUseCase(IUseCase):
@@ -26,8 +51,7 @@ class ReplyStockUseCase(IUseCase):
             'linked_line_user_id': self._line_request_service.req_line_user_id,
             'is_linked_line': True,
         })
-        linked_web_user_id = linked_web_users[0]._id if len(
-            linked_web_users) != 0 else ''
+        linked_web_user_id = linked_web_users[0]._id if len(linked_web_users) != 0 else ''
         stocks = self._stock_repository.find({
             'owner_id__in': [
                 linked_web_user_id,
@@ -36,27 +60,30 @@ class ReplyStockUseCase(IUseCase):
             'status': 1,
         })
 
-        stocks_with_expire_date = []
-        stocks_without_expire_date = []
-        for stock in stocks:
-            if stock.expiry_date is not None:
-                stocks_with_expire_date.append(
-                    f'{stock.item_name}: {stock.expiry_date.strftime("%Y年%m月%d日")}')
-            else:
-                elapsed_time = (datetime.now() - stock.created_at).days + 1
-                stocks_without_expire_date.append(
-                    f'{stock.item_name}: 登録から{elapsed_time}日目')
+        if not stocks:
+            self._line_response_service.add_message('登録中のアイテムはありません。')
+            return
 
-        sections = []
-        if len(stocks_without_expire_date) != 0:
-            sections.append('期限未設定:\n' + '\n'.join(stocks_without_expire_date))
-        if len(stocks_with_expire_date) != 0:
-            sections.append('期限あり:\n' + '\n'.join(stocks_with_expire_date))
-        if len(sections) == 0:
-            sections.append('登録中のアイテムはありません。')
-
-        self._line_response_service.add_message('\n\n'.join(sections))
-        add_stock_web_link_button(
-            line_response_service=self._line_response_service,
-            server_url=config.SERVER_URL,
+        with_expiry = sorted(
+            [s for s in stocks if s.expiry_date is not None],
+            key=lambda s: s.expiry_date,
         )
+        without_expiry = [s for s in stocks if s.expiry_date is None]
+
+        lines = [f'📋 登録中のアイテム（{len(stocks)}件）']
+
+        if with_expiry:
+            lines.append('')
+            lines.append('⏰ 期限あり')
+            for s in with_expiry:
+                icon = _urgency_icon(s.expiry_date)
+                lines.append(f'{icon} {s.item_name}  {_expiry_label(s.expiry_date)}')
+
+        if without_expiry:
+            lines.append('')
+            lines.append('📌 期限なし')
+            for s in without_expiry:
+                elapsed = (datetime.now() - s.created_at).days + 1
+                lines.append(f'• {s.item_name}（登録{elapsed}日目）')
+
+        self._line_response_service.add_message('\n'.join(lines))

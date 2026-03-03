@@ -21,11 +21,11 @@ TOOLS = [
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "item_name":      {"type": "string"},
-                    "expiry_date":    {"type": ["string", "null"]},
-                    "notify_enabled": {"type": "boolean"},
+                    "item_name":          {"type": "string"},
+                    "expiry_date":        {"type": ["string", "null"]},
+                    "notify_days_before": {"type": ["integer", "null"], "description": "何日前から通知するか。null = 常に通知、省略や不明もnull。"},
                 },
-                "required": ["item_name", "expiry_date", "notify_enabled"],
+                "required": ["item_name", "expiry_date", "notify_days_before"],
                 "additionalProperties": False,
             },
             "strict": True,
@@ -70,15 +70,36 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "register_habit_task",
-            "description": "毎日・毎週の習慣タスクを登録する。notify_timeはHH:MM形式、不明ならnull。",
+            "description": "毎日・毎週・毎月の習慣タスクを登録する。notify_timeはHH:MM形式、不明ならnull。weeklyの場合はnotify_day_of_week（0=月〜6=日）、monthlyの場合はnotify_day_of_month（1〜31）を指定。dailyはどちらもnull。",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "item_name":   {"type": "string"},
-                    "frequency":   {"type": "string", "enum": ["daily", "weekly"]},
-                    "notify_time": {"type": ["string", "null"]},
+                    "item_name":           {"type": "string"},
+                    "frequency":           {"type": "string", "enum": ["daily", "weekly", "monthly"]},
+                    "notify_time":         {"type": ["string", "null"]},
+                    "notify_day_of_week":  {"type": ["integer", "null"], "description": "週次の場合の曜日（0=月〜6=日）。daily/monthlyはnull。"},
+                    "notify_day_of_month": {"type": ["integer", "null"], "description": "月次の場合の日（1〜31）。daily/weeklyはnull。"},
                 },
-                "required": ["item_name", "frequency", "notify_time"],
+                "required": ["item_name", "frequency", "notify_time", "notify_day_of_week", "notify_day_of_month"],
+                "additionalProperties": False,
+            },
+            "strict": True,
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "update_habit_frequency",
+            "description": "習慣タスクの頻度を変更する。weekly→notify_day_of_week（0〜6）、monthly→notify_day_of_month（1〜31）を指定。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "task_name":           {"type": "string"},
+                    "frequency":           {"type": "string", "enum": ["daily", "weekly", "monthly"]},
+                    "notify_day_of_week":  {"type": ["integer", "null"]},
+                    "notify_day_of_month": {"type": ["integer", "null"]},
+                },
+                "required": ["task_name", "frequency", "notify_day_of_week", "notify_day_of_month"],
                 "additionalProperties": False,
             },
             "strict": True,
@@ -136,14 +157,14 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "update_stock_notify",
-            "description": "登録済みアイテムの通知設定（notify_enabled）を変更する。",
+            "description": "登録済みアイテムの通知設定を変更する。何日前から通知するかを指定する。",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "item_name":      {"type": "string"},
-                    "notify_enabled": {"type": "boolean"},
+                    "item_name":          {"type": "string"},
+                    "notify_days_before": {"type": ["integer", "null"], "description": "何日前から通知するか。null = 常に通知、省略や不明もnull。"},
                 },
-                "required": ["item_name", "notify_enabled"],
+                "required": ["item_name", "notify_days_before"],
                 "additionalProperties": False,
             },
             "strict": True,
@@ -177,6 +198,7 @@ FUNCTION_TO_INTENT = {
     "register_habit_task":       "register_habit",
     "delete_habit_task":         "delete_habit",
     "update_habit_notify_time":  "update_habit_notify_time",
+    "update_habit_frequency":    "update_habit_frequency",
     "update_notification_setting": "update_notification",
     "update_stock_notify":       "update_stock_notify",
     "update_habit_log":          "update_habit_log",
@@ -259,9 +281,11 @@ class LineIntentParserService:
             "item_name":           args.get("item_name") or args.get("task_name"),
             "expiry_date":         args.get("expiry_date"),
             "exclude_expiry_date": args.get("exclude_expiry_date"),
-            "notify_enabled":      bool(args.get("notify_enabled", False)),
+            "notify_days_before":  args.get("notify_days_before"),
             "frequency":           args.get("frequency"),
             "notify_time":         args.get("notify_time"),
+            "notify_day_of_week":  args.get("notify_day_of_week"),
+            "notify_day_of_month": args.get("notify_day_of_month"),
             "enabled":             args.get("enabled"),
             "scheduled_date":      args.get("scheduled_date"),
             "result":              args.get("result"),
@@ -288,8 +312,14 @@ class LineIntentParserService:
             return None
 
         frequency = parsed.get("frequency")
-        if frequency not in ("daily", "weekly"):
+        if frequency not in ("daily", "weekly", "monthly"):
             frequency = None
+
+        dow = parsed.get("notify_day_of_week")
+        notify_day_of_week = dow if isinstance(dow, int) and 0 <= dow <= 6 else None
+
+        dom = parsed.get("notify_day_of_month")
+        notify_day_of_month = dom if isinstance(dom, int) and 1 <= dom <= 31 else None
 
         intent = parsed.get("intent", "none")
         if intent in {"register", "delete"} and not item_name:
@@ -298,9 +328,19 @@ class LineIntentParserService:
             intent = "none"
         if intent == "register_habit" and not item_name:
             intent = "none"
+        if intent == "register_habit" and frequency == "weekly" and notify_day_of_week is None:
+            intent = "none"
+        if intent == "register_habit" and frequency == "monthly" and notify_day_of_month is None:
+            intent = "none"
         if intent == "delete_habit" and not item_name:
             intent = "none"
         if intent == "update_habit_notify_time" and (not item_name or not _check_time(parsed.get("notify_time"))):
+            intent = "none"
+        if intent == "update_habit_frequency" and not item_name:
+            intent = "none"
+        if intent == "update_habit_frequency" and frequency == "weekly" and notify_day_of_week is None:
+            intent = "none"
+        if intent == "update_habit_frequency" and frequency == "monthly" and notify_day_of_month is None:
             intent = "none"
         if intent == "update_notification":
             if parsed.get("enabled") is None and not _check_time(parsed.get("notify_time")):
@@ -311,14 +351,22 @@ class LineIntentParserService:
             if not item_name or not _check_date(parsed.get("scheduled_date")) or parsed.get("result") not in ("done", "not_done", "other"):
                 intent = "none"
 
+        ndb = parsed.get("notify_days_before")
+        if isinstance(ndb, int) and ndb >= 0:
+            notify_days_before = ndb
+        else:
+            notify_days_before = None
+
         return {
             "intent":              intent,
             "item_name":           item_name,
             "expiry_date":         _check_date(parsed.get("expiry_date")),
             "exclude_expiry_date": _check_date(parsed.get("exclude_expiry_date")),
-            "notify_enabled":      bool(parsed.get("notify_enabled", False)),
+            "notify_days_before":  notify_days_before,
             "frequency":           frequency,
             "notify_time":         _check_time(parsed.get("notify_time")),
+            "notify_day_of_week":  notify_day_of_week,
+            "notify_day_of_month": notify_day_of_month,
             "enabled":             parsed.get("enabled"),
             "scheduled_date":      _check_date(parsed.get("scheduled_date")),
             "result":              parsed.get("result"),
@@ -331,9 +379,11 @@ class LineIntentParserService:
             "item_name":           None,
             "expiry_date":         None,
             "exclude_expiry_date": None,
-            "notify_enabled":      False,
+            "notify_days_before":  None,
             "frequency":           None,
             "notify_time":         None,
+            "notify_day_of_week":  None,
+            "notify_day_of_month": None,
             "enabled":             None,
             "scheduled_date":      None,
             "result":              None,

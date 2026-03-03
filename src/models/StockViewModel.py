@@ -34,7 +34,8 @@ class StockViewModel:
             ).strftime('%Y/%m/%d')
             self.str_created_at = '' if stock.created_at is None else stock.created_at.date(
             ).strftime('%Y/%m/%d')
-            self.notify_status = 'ON' if stock.notify_enabled else 'OFF'
+            ndb = stock.notify_days_before
+            self.notify_status = '常に通知' if ndb is None else f'{ndb}日前から'
         else:
             self._id = _id
             self.item_name = item_name

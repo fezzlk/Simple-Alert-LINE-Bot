@@ -29,6 +29,8 @@ class CheckHabitTaskUseCase(IUseCase):
     def execute(self) -> None:
         now = datetime.now(self._notify_timezone)
         now_hhmm = now.strftime("%H:%M")
+        today_weekday = now.weekday()        # 0=Monday, 6=Sunday
+        today_day_of_month = now.day
         scheduled_date = now.strftime("%Y-%m-%d")
 
         line_users = self._line_user_repository.find()
@@ -41,14 +43,21 @@ class CheckHabitTaskUseCase(IUseCase):
             )
             linked_web_user_id = web_users[0]._id if len(web_users) != 0 else ""
 
-            tasks = self._habit_task_repository.find(
+            all_time_tasks = self._habit_task_repository.find(
                 {
                     "owner_id__in": [line_user.line_user_id, linked_web_user_id],
                     "is_active": True,
-                    "frequency": "daily",
                     "notify_time": now_hhmm,
                 }
             )
+            tasks = []
+            for task in all_time_tasks:
+                if task.frequency == "daily":
+                    tasks.append(task)
+                elif task.frequency == "weekly" and task.notify_day_of_week == today_weekday:
+                    tasks.append(task)
+                elif task.frequency == "monthly" and task.notify_day_of_month == today_day_of_month:
+                    tasks.append(task)
 
             pushed_count = 0
             for task in tasks:

@@ -1,7 +1,15 @@
+from linebot.models import MessageAction, QuickReply, QuickReplyButton, TextSendMessage
+
 from src import config
 from src.UseCases.Interface.IUseCase import IUseCase
 from src.UseCases.Interface.ILineRequestService import ILineRequestService
 from src.UseCases.Interface.ILineResponseService import ILineResponseService
+
+_QUICK_REPLY_BUTTONS = QuickReply(items=[
+    QuickReplyButton(action=MessageAction(label='➕ 登録の使い方', text='使い方 登録')),
+    QuickReplyButton(action=MessageAction(label='📄 一覧の使い方', text='使い方 一覧')),
+    QuickReplyButton(action=MessageAction(label='🔗 連携の使い方', text='使い方 アカウント連携')),
+])
 
 
 class ReplyHelpUseCase(IUseCase):
@@ -16,44 +24,64 @@ class ReplyHelpUseCase(IUseCase):
     def execute(self) -> None:
         args = self._line_request_service.message.split()
         keyword = args[1] if len(args) >= 2 else None
-        messages = self._get_description(keyword)
-        for message in messages:
-            self._line_response_service.add_message(message)
+        text = self._get_description(keyword)
 
-    def _get_description(self, keyword):
-        if keyword is None:
-            return [
-                '使い方ガイドです',
-                '例: 「ソファ組み立て」「ライブチケット購入 3/20まで」「打ち合わせ日程調整 2/28まで」',
-                '「一覧表示」「リスト表示」で一覧、「webで操作」「webで表示」でWebリンクを返します',
-                '更新例: 「卵の期限を3/22にして」 / 削除例: 「卵を使い切った」',
-            ]
-        elif keyword in ('一覧', '一覧表示', 'リスト表示'):
-            return [
-                '登録したアイテムを一覧で表示します',
-                '例: 「一覧表示」または「登録済み一覧」',
-            ]
-        elif keyword in ('登録', '追加'):
-            return [
-                '食材・家具などの非食品・チケット購入・日程調整などを管理できます',
-                '期限が1週間前までに近づいている場合、毎日12時に通知がきます',
-                '例: 「卵は3/15まで」「ライブチケット購入 3/20まで」「打ち合わせ日程調整 2/28まで」',
-                '更新は「卵の期限を3/22にして」、削除は「卵を使い切った」と送ってください。',
-            ]
-        elif keyword == 'アカウント連携':
-            return [
-                'Web 上のアカウントと LINE アカウントを紐付けます',
-                '紐付けが完了すると LINE で登録したストックを Web 上で確認できるようになります',
-                f'まずは web 上でログインしてください → {config.SERVER_URL}/stock?openExternalBrowser=1',
-                '次にこのチャットにて\n"アカウント連携 [メールアドレス]"\nと送ってください。',
-            ]
-        elif keyword in ('URL', 'web', 'Web'):
-            return [
-                'Web アプリの URL を表示します',
-            ]
+        if keyword is None and hasattr(self._line_response_service, 'buttons'):
+            self._line_response_service.buttons.append(
+                TextSendMessage(text=text, quick_reply=_QUICK_REPLY_BUTTONS)
+            )
         else:
-            return [
-                '使い方ガイドです',
-                '登録はアイテム名をそのまま送信（例: 「卵は3/15まで」）',
-                '一覧は「一覧表示」、Webは「webで操作」と送ってください。',
-            ]
+            self._line_response_service.add_message(text)
+
+    def _get_description(self, keyword) -> str:
+        if keyword is None:
+            return (
+                '📋 Simple Alert の使い方\n\n'
+                'このBotでできること：\n'
+                '• 期限・締切のあるものを登録して通知を受け取る\n'
+                '• 期限1週間前から毎日12時にリマインド\n'
+                '• 習慣タスクの記録・管理\n\n'
+                '💬 使い方はシンプル。やりたいことを日本語で送るだけ！\n\n'
+                '【登録】\n「卵 3/15まで」「ライブチケット 3/20まで」\n\n'
+                '【更新】\n「卵の期限を3/22にして」\n\n'
+                '【削除】\n「卵を使い切った」\n\n'
+                '【一覧確認】\n「一覧」と送るか、下のメニューから'
+            )
+        elif keyword in ('一覧', '一覧表示', 'リスト表示'):
+            return (
+                '📄 一覧表示\n\n'
+                '登録中のアイテムをすべて表示します。\n\n'
+                '「一覧」と送るか、メニューの「一覧」ボタンを押してください。\n'
+                'Web画面で確認したい場合はメニューの「Web一覧」から。'
+            )
+        elif keyword in ('登録', '追加'):
+            return (
+                '➕ アイテムの登録\n\n'
+                '登録できるもの：食材・日用品・チケット・締切タスクなど\n\n'
+                '【送り方の例】\n'
+                '「卵 3/15まで」\n'
+                '「ライブチケット購入 3/20まで」\n'
+                '「レポート提出 2/28まで」\n\n'
+                '期限1週間前から毎日12時に通知が届きます。\n\n'
+                '更新：「卵の期限を3/22にして」\n'
+                '削除：「卵を使い切った」'
+            )
+        elif keyword == 'アカウント連携':
+            return (
+                '✅ ログインについて\n\n'
+                'アカウント連携機能は廃止されました。\n\n'
+                '現在はLINEアカウントで直接ログインできます。\n'
+                f'こちらからWebアプリにアクセスしてください👇\n'
+                f'{config.SERVER_URL}/stock?openExternalBrowser=1'
+            )
+        elif keyword in ('URL', 'web', 'Web'):
+            return 'WebアプリのURLを表示します。'
+        else:
+            return (
+                '📋 Simple Alert の使い方\n\n'
+                'やりたいことを日本語で送るだけで操作できます。\n\n'
+                '「卵 3/15まで」→ 登録\n'
+                '「卵の期限を3/22にして」→ 更新\n'
+                '「卵を使い切った」→ 削除\n'
+                '「一覧」→ 一覧表示'
+            )

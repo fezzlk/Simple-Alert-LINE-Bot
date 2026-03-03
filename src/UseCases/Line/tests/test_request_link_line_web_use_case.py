@@ -1,5 +1,5 @@
-from src.Domains.Entities.WebUser import WebUser
 from src.Domains.IRepositories.IWebUserRepository import IWebUserRepository
+from src.Domains.Entities.WebUser import WebUser
 from src.UseCases.Interface.ILineRequestService import ILineRequestService
 from src.UseCases.Interface.ILineResponseService import ILineResponseService
 from src.UseCases.Line.RequestLinkLineWebUseCase import RequestLinkLineWebUseCase
@@ -64,104 +64,33 @@ class DummyLineResponseService(ILineResponseService):
 
 
 class DummyWebUserRepository(IWebUserRepository):
-    def __init__(self, find_result: list[WebUser], update_result: int = 1):
-        self._find_result = find_result
-        self._update_result = update_result
-        self.updated = None
+    def __init__(self, find_result: list = None):
+        self._find_result = find_result or []
 
     def create(self, new_web_user: WebUser) -> WebUser:
         return new_web_user
 
     def update(self, query, new_web_user) -> int:
-        self.updated = (query, new_web_user)
-        return self._update_result
+        return 0
 
     def delete(self, query) -> int:
         return 0
 
-    def find(self, query) -> list[WebUser]:
+    def find(self, query) -> list:
         return self._find_result
 
 
-def test_request_link_invalid_args():
+def test_request_link_returns_deprecation_message():
+    """アカウント連携機能は廃止済みのため、廃止メッセージとWebアプリURLを返す。"""
+    response = DummyLineResponseService()
     use_case = RequestLinkLineWebUseCase(
-        web_user_repository=DummyWebUserRepository(find_result=[]),
+        web_user_repository=DummyWebUserRepository(),
         line_request_service=DummyLineRequestService(message="アカウント連携"),
-        line_response_service=DummyLineResponseService(),
-    )
-
-    use_case.execute()
-
-    assert any("アカウント連携" in message for message in use_case._line_response_service.messages)
-
-
-def test_request_link_email_not_found():
-    response = DummyLineResponseService()
-    use_case = RequestLinkLineWebUseCase(
-        web_user_repository=DummyWebUserRepository(find_result=[]),
-        line_request_service=DummyLineRequestService(message="アカウント連携 test@example.com"),
         line_response_service=response,
     )
 
     use_case.execute()
 
-    assert any("登録されていません" in message for message in response.messages)
-
-
-def test_request_link_already_linked():
-    response = DummyLineResponseService()
-    web_user = WebUser(
-        _id="507f1f77bcf86cd799439011",
-        web_user_name="dummy",
-        web_user_email="test@example.com",
-        is_linked_line_user=True,
-    )
-    use_case = RequestLinkLineWebUseCase(
-        web_user_repository=DummyWebUserRepository(find_result=[web_user]),
-        line_request_service=DummyLineRequestService(message="アカウント連携 test@example.com"),
-        line_response_service=response,
-    )
-
-    use_case.execute()
-
-    assert any("すでに LINE アカウントと紐付けされています" in message for message in response.messages)
-
-
-def test_request_link_update_failure():
-    response = DummyLineResponseService()
-    web_user = WebUser(
-        _id="507f1f77bcf86cd799439011",
-        web_user_name="dummy",
-        web_user_email="test@example.com",
-        is_linked_line_user=False,
-    )
-    use_case = RequestLinkLineWebUseCase(
-        web_user_repository=DummyWebUserRepository(find_result=[web_user], update_result=0),
-        line_request_service=DummyLineRequestService(message="アカウント連携 test@example.com"),
-        line_response_service=response,
-    )
-
-    use_case.execute()
-
-    assert any("失敗しました" in message for message in response.messages)
-
-
-def test_request_link_success():
-    response = DummyLineResponseService()
-    web_user = WebUser(
-        _id="507f1f77bcf86cd799439011",
-        web_user_name="dummy",
-        web_user_email="test@example.com",
-        is_linked_line_user=False,
-    )
-    repo = DummyWebUserRepository(find_result=[web_user], update_result=1)
-    use_case = RequestLinkLineWebUseCase(
-        web_user_repository=repo,
-        line_request_service=DummyLineRequestService(message="アカウント連携 test@example.com"),
-        line_response_service=response,
-    )
-
-    use_case.execute()
-
-    assert repo.updated is not None
-    assert any("承認してください" in message for message in response.messages)
+    assert len(response.messages) == 1
+    assert "廃止" in response.messages[0]
+    assert "LINEアカウント" in response.messages[0]

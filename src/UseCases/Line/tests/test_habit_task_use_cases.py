@@ -159,6 +159,126 @@ def test_check_habit_task_use_case_sends_confirmation(monkeypatch):
     assert any("習慣タスク確認" in msg for msg in use_case._line_response_service.messages)
 
 
+def test_check_habit_weekly_task_sends_on_correct_day(monkeypatch):
+    # 土曜日（weekday=5）にnotify_day_of_week=5のタスクが通知される
+    fixed_now = datetime(2026, 3, 7, 9, 0, 0)  # 2026-03-07は土曜日
+
+    class FixedDatetime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return fixed_now
+
+    monkeypatch.setattr("src.UseCases.Line.CheckHabitTaskUseCase.datetime", FixedDatetime)
+
+    line_users = [LineUser(line_user_name="u1", line_user_id="U1")]
+    web_users = []
+    tasks = [
+        HabitTask(_id="T1", owner_id="U1", task_name="週次筋トレ",
+                  frequency="weekly", notify_time="09:00", notify_day_of_week=5)
+    ]
+
+    use_case = CheckHabitTaskUseCase(
+        line_user_repository=DummyLineUserRepository(line_users),
+        web_user_repository=DummyWebUserRepository(web_users),
+        habit_task_repository=DummyHabitTaskRepository(tasks),
+        habit_task_log_repository=DummyHabitTaskLogRepository(),
+        habit_pending_confirmation_repository=DummyHabitPendingRepository(),
+        line_response_service=DummyLineResponseService(),
+    )
+    use_case.execute()
+    assert use_case._line_response_service.pushes == ["U1"]
+
+
+def test_check_habit_weekly_task_not_sent_on_wrong_day(monkeypatch):
+    # 日曜日（weekday=6）にnotify_day_of_week=5（土）のタスクは通知されない
+    fixed_now = datetime(2026, 3, 8, 9, 0, 0)  # 2026-03-08は日曜日
+
+    class FixedDatetime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return fixed_now
+
+    monkeypatch.setattr("src.UseCases.Line.CheckHabitTaskUseCase.datetime", FixedDatetime)
+
+    line_users = [LineUser(line_user_name="u1", line_user_id="U1")]
+    web_users = []
+    tasks = [
+        HabitTask(_id="T1", owner_id="U1", task_name="週次筋トレ",
+                  frequency="weekly", notify_time="09:00", notify_day_of_week=5)
+    ]
+
+    use_case = CheckHabitTaskUseCase(
+        line_user_repository=DummyLineUserRepository(line_users),
+        web_user_repository=DummyWebUserRepository(web_users),
+        habit_task_repository=DummyHabitTaskRepository(tasks),
+        habit_task_log_repository=DummyHabitTaskLogRepository(),
+        habit_pending_confirmation_repository=DummyHabitPendingRepository(),
+        line_response_service=DummyLineResponseService(),
+    )
+    use_case.execute()
+    assert use_case._line_response_service.pushes == []
+
+
+def test_check_habit_monthly_task_sends_on_correct_day(monkeypatch):
+    # 14日にnotify_day_of_month=14のタスクが通知される
+    fixed_now = datetime(2026, 3, 14, 12, 0, 0)
+
+    class FixedDatetime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return fixed_now
+
+    monkeypatch.setattr("src.UseCases.Line.CheckHabitTaskUseCase.datetime", FixedDatetime)
+
+    line_users = [LineUser(line_user_name="u1", line_user_id="U1")]
+    web_users = []
+    tasks = [
+        HabitTask(_id="T1", owner_id="U1", task_name="家計簿",
+                  frequency="monthly", notify_time="12:00", notify_day_of_month=14)
+    ]
+
+    use_case = CheckHabitTaskUseCase(
+        line_user_repository=DummyLineUserRepository(line_users),
+        web_user_repository=DummyWebUserRepository(web_users),
+        habit_task_repository=DummyHabitTaskRepository(tasks),
+        habit_task_log_repository=DummyHabitTaskLogRepository(),
+        habit_pending_confirmation_repository=DummyHabitPendingRepository(),
+        line_response_service=DummyLineResponseService(),
+    )
+    use_case.execute()
+    assert use_case._line_response_service.pushes == ["U1"]
+
+
+def test_check_habit_monthly_task_not_sent_on_wrong_day(monkeypatch):
+    # 15日にnotify_day_of_month=14のタスクは通知されない
+    fixed_now = datetime(2026, 3, 15, 12, 0, 0)
+
+    class FixedDatetime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return fixed_now
+
+    monkeypatch.setattr("src.UseCases.Line.CheckHabitTaskUseCase.datetime", FixedDatetime)
+
+    line_users = [LineUser(line_user_name="u1", line_user_id="U1")]
+    web_users = []
+    tasks = [
+        HabitTask(_id="T1", owner_id="U1", task_name="家計簿",
+                  frequency="monthly", notify_time="12:00", notify_day_of_month=14)
+    ]
+
+    use_case = CheckHabitTaskUseCase(
+        line_user_repository=DummyLineUserRepository(line_users),
+        web_user_repository=DummyWebUserRepository(web_users),
+        habit_task_repository=DummyHabitTaskRepository(tasks),
+        habit_task_log_repository=DummyHabitTaskLogRepository(),
+        habit_pending_confirmation_repository=DummyHabitPendingRepository(),
+        line_response_service=DummyLineResponseService(),
+    )
+    use_case.execute()
+    assert use_case._line_response_service.pushes == []
+
+
 def test_handle_habit_task_response_other_flow():
     pending_repo = DummyHabitPendingRepository()
     pending_repo.create(

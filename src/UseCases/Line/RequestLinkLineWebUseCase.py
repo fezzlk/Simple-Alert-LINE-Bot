@@ -17,40 +17,9 @@ class RequestLinkLineWebUseCase(IUseCase):
         self._line_response_service = line_response_service
 
     def execute(self) -> None:
-        args = self._line_request_service.message.split()
-
-        if len(args) != 2:
-            self._line_response_service.add_message(
-                'Web アカウントと紐付けするには "アカウント連携 [メールアドレス]" と送ってください。')
-            return
-
-        email = args[1]
-        web_users = self._web_user_repository.find({'web_user_email': email})
-
-        if len(web_users) == 0:
-            self._line_response_service.add_message(
-                f'{email} は登録されていません。一度ブラウザでログインしてください。')
-            self._line_response_service.add_message(
-                f'{config.SERVER_URL}/line/approve?openExternalBrowser=1')
-            return
-
-        if web_users[0].is_linked_line_user:
-            self._line_response_service.add_message(
-                f'{email} はすでに LINE アカウントと紐付けされています。')
-            self._line_response_service.add_message(
-                f'{config.SERVER_URL}/line/approve?openExternalBrowser=1')
-            return
-
-        result = self._web_user_repository.update(
-            {'_id': web_users[0]._id},
-            {'linked_line_user_id': self._line_request_service.req_line_user_id},
+        self._line_response_service.add_message(
+            'アカウント連携機能は廃止されました。\n\n'
+            '現在はLINEアカウントで直接ログインできます。\n'
+            f'こちらからWebアプリにアクセスしてください👇\n'
+            f'{config.SERVER_URL}/stock?openExternalBrowser=1'
         )
-
-        if result == 0:
-            self._line_response_service.add_message('アカウント連携リクエストに失敗しました。')
-            return
-
-        self._line_response_service.add_message(
-            'アカウント連携リクエストを送信しました。ブラウザでログインし、承認してください。')
-        self._line_response_service.add_message(
-            f'{config.SERVER_URL}/line/approve?openExternalBrowser=1')

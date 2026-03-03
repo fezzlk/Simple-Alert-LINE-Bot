@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Optional
 
 STOCK_STATUS = ['disabled', 'active', 'archived']
 
@@ -11,7 +12,7 @@ class Stock:
     owner_id: str
     expiry_date: datetime
     status: int
-    notify_enabled: bool
+    notify_days_before: Optional[int]
     created_at: datetime
     updated_at: datetime
 
@@ -22,15 +23,16 @@ class Stock:
         owner_id: str = None,
         expiry_date: datetime = None,
         status: int = 0,
-        notify_enabled: bool = False,
+        notify_days_before: Optional[int] = None,
         created_at: datetime = datetime.now(),
         updated_at: datetime = datetime.now(),
+        **kwargs,
     ):
         self._id = _id
         self.item_name = item_name
         self.owner_id = owner_id
         self.expiry_date = expiry_date
         self.status = status
-        self.notify_enabled = notify_enabled
+        self.notify_days_before = notify_days_before
         self.created_at = created_at
         self.updated_at = updated_at

@@ -305,8 +305,8 @@ def test_followup_expiry_date_updates_recently_registered_item():
     assert pending.get("U1") is None
 
 
-def test_register_with_notify_enabled():
-    req = DummyLineRequestService(message="通知ありで確定申告 3/15まで")
+def test_register_with_notify_days_before():
+    req = DummyLineRequestService(message="7日前から通知で確定申告 3/15まで")
     res = DummyLineResponseService()
     repo = DummyStockRepository()
     parser = DummyIntentParserService(
@@ -314,7 +314,7 @@ def test_register_with_notify_enabled():
             "intent": "register",
             "item_name": "確定申告",
             "expiry_date": "2026-03-15",
-            "notify_enabled": True,
+            "notify_days_before": 7,
         }
     )
     pending = DummyPendingOperationService()
@@ -327,13 +327,13 @@ def test_register_with_notify_enabled():
     )
 
     use_case.execute()
-    assert any("通知あり" in m for m in res.messages)
+    assert any("7日前から通知" in m for m in res.messages)
 
     req.message = "はい"
     use_case.execute()
     assert repo.created is not None
     assert repo.created.item_name == "確定申告"
-    assert repo.created.notify_enabled is True
+    assert repo.created.notify_days_before == 7
 
 
 def test_register_habit_creates_habit_task():
@@ -369,6 +369,73 @@ def test_register_habit_creates_habit_task():
     assert habit_repo.created.task_name == "筋トレ"
     assert habit_repo.created.frequency == "daily"
     assert habit_repo.created.notify_time == "09:00"
+
+
+def test_register_habit_weekly():
+    req = DummyLineRequestService(message="毎週月曜9時に筋トレをリマインドして")
+    res = DummyLineResponseService()
+    repo = DummyStockRepository()
+    parser = DummyIntentParserService(
+        {
+            "intent": "register_habit",
+            "item_name": "筋トレ",
+            "expiry_date": None,
+            "frequency": "weekly",
+            "notify_time": "09:00",
+            "notify_day_of_week": 0,
+            "notify_day_of_month": None,
+        }
+    )
+    pending = DummyPendingOperationService()
+    habit_repo = DummyHabitTaskRepository()
+    use_case = HandleIntentOperationUseCase(
+        stock_repository=repo,
+        line_request_service=req,
+        line_response_service=res,
+        intent_parser_service=parser,
+        pending_operation_service=pending,
+        habit_task_repository=habit_repo,
+    )
+
+    use_case.execute()
+    assert any("毎週月曜日" in m for m in res.messages)
+
+    req.message = "はい"
+    use_case.execute()
+    assert habit_repo.created is not None
+    assert habit_repo.created.task_name == "筋トレ"
+    assert habit_repo.created.frequency == "weekly"
+    assert habit_repo.created.notify_day_of_week == 0
+    assert habit_repo.created.notify_day_of_month is None
+
+
+def test_update_habit_frequency():
+    req = DummyLineRequestService(message="筋トレを毎週水曜日に変更して")
+    res = DummyLineResponseService()
+    habit_repo = DummyHabitTaskRepository()
+    parser = DummyIntentParserService(
+        {
+            "intent": "update_habit_frequency",
+            "item_name": "筋トレ",
+            "expiry_date": None,
+            "frequency": "weekly",
+            "notify_day_of_week": 2,
+            "notify_day_of_month": None,
+        }
+    )
+    pending = DummyPendingOperationService()
+    use_case = _make_use_case(req, res, parser, pending, habit_repo=habit_repo)
+
+    use_case.execute()
+    assert any("毎週水曜日" in m for m in res.messages)
+
+    req.message = "はい"
+    use_case.execute()
+    assert habit_repo.updated_query["task_name"] == "筋トレ"
+    assert habit_repo.updated_values["frequency"] == "weekly"
+    assert habit_repo.updated_values["notify_day_of_week"] == 2
+    assert habit_repo.updated_values["notify_day_of_month"] is None
+    assert any("頻度を変更しました" in m for m in res.messages)
 
 
 def test_delete_with_exclude_expiry_filters_python_side():
@@ -494,22 +561,24 @@ def test_update_notification_setting_off():
     assert any("更新しました" in m for m in res.messages)
 
 
-def test_update_stock_notify_on():
-    req = DummyLineRequestService(message="牛乳の通知をオンにして")
+def test_update_stock_notify():
+    req = DummyLineRequestService(message="牛乳を3日前から通知して")
     res = DummyLineResponseService()
     repo = DummyStockRepository()
     parser = DummyIntentParserService(
-        {"intent": "update_stock_notify", "item_name": "牛乳", "notify_enabled": True, "expiry_date": None}
+        {"intent": "update_stock_notify", "item_name": "牛乳", "notify_days_before": 3, "expiry_date": None}
     )
     pending = DummyPendingOperationService()
     use_case = _make_use_case(req, res, parser, pending, repo=repo)
 
     use_case.execute()
+    assert any("3日前から通知" in m for m in res.messages)
+
     req.message = "はい"
     use_case.execute()
 
     assert repo.updated_query["item_name"] == "牛乳"
-    assert repo.updated_values["notify_enabled"] is True
+    assert repo.updated_values["notify_days_before"] == 3
     assert any("更新しました" in m for m in res.messages)
 
 

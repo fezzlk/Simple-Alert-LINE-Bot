@@ -194,6 +194,10 @@ def get_use_case_text_message(event: Event):
     # keep explicit commands direct
     if keyword in use_case_list['stock_keywords']:
         if event.source.type == 'user' and keyword == '登録':
+            # 「登録」単体はアイテム名がないので使い方ガイドを返す
+            if message == '登録':
+                line_request_service.message = '使い方 登録'
+                return help_use_case
             return HandleIntentOperationUseCase(
                 stock_repository=stock_repository,
                 line_request_service=line_request_service,

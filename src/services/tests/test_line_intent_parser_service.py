@@ -124,7 +124,7 @@ class TestFunctionCallingSuccess:
 
     def test_fc_register_with_date(self):
         resp = _make_tool_response("register_stock", {
-            "item_name": "確定申告", "expiry_date": "2026-03-15", "notify_enabled": False
+            "item_name": "確定申告", "expiry_date": "2026-03-15", "notify_days_before": None
         })
         with _mock_api(resp):
             result = self.svc.parse("確定申告は3/15まで")
@@ -134,7 +134,7 @@ class TestFunctionCallingSuccess:
 
     def test_fc_register_without_date(self):
         resp = _make_tool_response("register_stock", {
-            "item_name": "牛乳", "expiry_date": None, "notify_enabled": False
+            "item_name": "牛乳", "expiry_date": None, "notify_days_before": None
         })
         with _mock_api(resp):
             result = self.svc.parse("牛乳買った")
@@ -142,14 +142,14 @@ class TestFunctionCallingSuccess:
         assert result["item_name"] == "牛乳"
         assert result["expiry_date"] is None
 
-    def test_fc_register_notify_enabled(self):
+    def test_fc_register_notify_days_before(self):
         resp = _make_tool_response("register_stock", {
-            "item_name": "確定申告", "expiry_date": "2026-03-15", "notify_enabled": True
+            "item_name": "確定申告", "expiry_date": "2026-03-15", "notify_days_before": 7
         })
         with _mock_api(resp):
-            result = self.svc.parse("通知ありで確定申告 3/15まで")
+            result = self.svc.parse("7日前から通知で確定申告 3/15まで")
         assert result["intent"] == "register"
-        assert result["notify_enabled"] is True
+        assert result["notify_days_before"] == 7
         assert result["expiry_date"] == "2026-03-15"
 
     def test_fc_update(self):
@@ -195,7 +195,8 @@ class TestFunctionCallingSuccess:
 
     def test_fc_register_habit_with_time(self):
         resp = _make_tool_response("register_habit_task", {
-            "item_name": "筋トレ", "frequency": "daily", "notify_time": "09:00"
+            "item_name": "筋トレ", "frequency": "daily", "notify_time": "09:00",
+            "notify_day_of_week": None, "notify_day_of_month": None,
         })
         with _mock_api(resp):
             result = self.svc.parse("毎朝9時に筋トレをリマインドして")
@@ -203,16 +204,58 @@ class TestFunctionCallingSuccess:
         assert result["item_name"] == "筋トレ"
         assert result["frequency"] == "daily"
         assert result["notify_time"] == "09:00"
+        assert result["notify_day_of_week"] is None
+        assert result["notify_day_of_month"] is None
 
     def test_fc_register_habit_no_time(self):
         resp = _make_tool_response("register_habit_task", {
-            "item_name": "英語学習", "frequency": "daily", "notify_time": None
+            "item_name": "英語学習", "frequency": "daily", "notify_time": None,
+            "notify_day_of_week": None, "notify_day_of_month": None,
         })
         with _mock_api(resp):
             result = self.svc.parse("英語学習を毎日リマインドして")
         assert result["intent"] == "register_habit"
         assert result["item_name"] == "英語学習"
         assert result["notify_time"] is None
+
+    def test_fc_register_habit_weekly(self):
+        resp = _make_tool_response("register_habit_task", {
+            "item_name": "筋トレ", "frequency": "weekly", "notify_time": "09:00",
+            "notify_day_of_week": 0, "notify_day_of_month": None,
+        })
+        with _mock_api(resp):
+            result = self.svc.parse("毎週月曜9時に筋トレをリマインドして")
+        assert result["intent"] == "register_habit"
+        assert result["item_name"] == "筋トレ"
+        assert result["frequency"] == "weekly"
+        assert result["notify_day_of_week"] == 0
+        assert result["notify_day_of_month"] is None
+
+    def test_fc_register_habit_monthly(self):
+        resp = _make_tool_response("register_habit_task", {
+            "item_name": "家計簿", "frequency": "monthly", "notify_time": "12:00",
+            "notify_day_of_week": None, "notify_day_of_month": 1,
+        })
+        with _mock_api(resp):
+            result = self.svc.parse("毎月1日12時に家計簿をつけるリマインドして")
+        assert result["intent"] == "register_habit"
+        assert result["item_name"] == "家計簿"
+        assert result["frequency"] == "monthly"
+        assert result["notify_day_of_week"] is None
+        assert result["notify_day_of_month"] == 1
+
+    def test_fc_update_habit_frequency(self):
+        resp = _make_tool_response("update_habit_frequency", {
+            "task_name": "筋トレ", "frequency": "weekly",
+            "notify_day_of_week": 2, "notify_day_of_month": None,
+        })
+        with _mock_api(resp):
+            result = self.svc.parse("筋トレを毎週水曜日に変更して")
+        assert result["intent"] == "update_habit_frequency"
+        assert result["item_name"] == "筋トレ"
+        assert result["frequency"] == "weekly"
+        assert result["notify_day_of_week"] == 2
+        assert result["notify_day_of_month"] is None
 
     def test_fc_delete_habit(self):
         resp = _make_tool_response("delete_habit_task", {"task_name": "筋トレ"})
@@ -251,13 +294,13 @@ class TestFunctionCallingSuccess:
 
     def test_fc_update_stock_notify(self):
         resp = _make_tool_response("update_stock_notify", {
-            "item_name": "牛乳", "notify_enabled": True
+            "item_name": "牛乳", "notify_days_before": 3
         })
         with _mock_api(resp):
-            result = self.svc.parse("牛乳の通知をオンにして")
+            result = self.svc.parse("牛乳を3日前から通知して")
         assert result["intent"] == "update_stock_notify"
         assert result["item_name"] == "牛乳"
-        assert result["notify_enabled"] is True
+        assert result["notify_days_before"] == 3
 
     def test_fc_update_habit_log(self):
         resp = _make_tool_response("update_habit_log", {
@@ -319,7 +362,7 @@ class TestSanitize:
             "item_name": "牛乳",
             "expiry_date": "2026/03/15",
             "exclude_expiry_date": None,
-            "notify_enabled": False,
+            "notify_days_before": None,
             "frequency": None,
             "notify_time": None,
         }
@@ -332,7 +375,7 @@ class TestSanitize:
             "item_name": "a" * 101,
             "expiry_date": None,
             "exclude_expiry_date": None,
-            "notify_enabled": False,
+            "notify_days_before": None,
             "frequency": None,
             "notify_time": None,
         }
@@ -346,7 +389,7 @@ class TestSanitize:
             "item_name": "牛乳\n卵",
             "expiry_date": None,
             "exclude_expiry_date": None,
-            "notify_enabled": False,
+            "notify_days_before": None,
             "frequency": None,
             "notify_time": None,
         }
@@ -360,7 +403,7 @@ class TestSanitize:
             "item_name": "筋トレ",
             "expiry_date": None,
             "exclude_expiry_date": None,
-            "notify_enabled": False,
+            "notify_days_before": None,
             "frequency": "daily",
             "notify_time": "9:00",
         }
@@ -373,7 +416,7 @@ class TestSanitize:
             "item_name": "牛乳",
             "expiry_date": None,
             "exclude_expiry_date": None,
-            "notify_enabled": False,
+            "notify_days_before": None,
             "frequency": None,
             "notify_time": None,
         }
