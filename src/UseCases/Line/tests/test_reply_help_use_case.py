@@ -41,6 +41,7 @@ class DummyLineRequestService(ILineRequestService):
 class DummyLineResponseService(ILineResponseService):
     def __init__(self):
         self.messages = []
+        self.buttons = []
 
     def add_message(self, text: str) -> None:
         self.messages.append(text)
@@ -71,8 +72,16 @@ def test_reply_help_default_lists_commands():
 
     use_case.execute()
 
-    assert any("使い方ガイド" in message for message in line_response_service.messages)
-    assert any("一覧表示" in message for message in line_response_service.messages)
+    # キーワードなしはクイックリプライ付きメッセージとして buttons に追加される
+    assert len(line_response_service.buttons) == 1
+    msg = line_response_service.buttons[0]
+    assert "Simple Alert" in msg.text
+    assert "一覧" in msg.text
+    assert msg.quick_reply is not None
+    labels = [item.action.label for item in msg.quick_reply.items]
+    assert any("登録" in label for label in labels)
+    assert any("一覧" in label for label in labels)
+    assert any("連携" in label for label in labels)
 
 
 def test_reply_help_specific_keyword():
@@ -85,4 +94,4 @@ def test_reply_help_specific_keyword():
 
     use_case.execute()
 
-    assert any("期限が1週間前" in message for message in line_response_service.messages)
+    assert any("期限1週間前" in message for message in line_response_service.messages)

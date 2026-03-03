@@ -67,9 +67,11 @@ class HandleIntentOperationUseCase(IUseCase):
                 "item_name": parsed["item_name"],
                 "expiry_date": parsed["expiry_date"],
                 "exclude_expiry_date": parsed.get("exclude_expiry_date"),
-                "notify_enabled": parsed.get("notify_enabled", False),
+                "notify_days_before": parsed.get("notify_days_before"),
                 "frequency": parsed.get("frequency"),
                 "notify_time": parsed.get("notify_time"),
+                "notify_day_of_week": parsed.get("notify_day_of_week"),
+                "notify_day_of_month": parsed.get("notify_day_of_month"),
                 "enabled": parsed.get("enabled"),
                 "scheduled_date": parsed.get("scheduled_date"),
                 "result": parsed.get("result"),
@@ -83,22 +85,43 @@ class HandleIntentOperationUseCase(IUseCase):
         item_name = parsed["item_name"]
         expiry_date = parsed["expiry_date"]
         exclude_expiry_date = parsed.get("exclude_expiry_date")
-        notify_enabled = parsed.get("notify_enabled", False)
+        notify_days_before = parsed.get("notify_days_before")
         frequency = parsed.get("frequency")
         notify_time = parsed.get("notify_time")
 
         if intent == "register":
+            if notify_days_before is None:
+                notify_suffix = "（常に通知）"
+            else:
+                notify_suffix = f"（{notify_days_before}日前から通知）"
             if expiry_date:
                 date_text = datetime.strptime(expiry_date, "%Y-%m-%d").strftime("%Y年%m月%d日")
-                notify_suffix = "（通知あり）" if notify_enabled else ""
                 message = f'"{item_name}" を期限 {date_text} で登録します{notify_suffix}。よろしいですか？'
             else:
-                notify_suffix = "（通知あり）" if notify_enabled else ""
                 message = f'"{item_name}" を登録します{notify_suffix}。よろしいですか？'
         elif intent == "register_habit":
-            freq_text = "毎週" if frequency == "weekly" else "毎日"
+            DOW_NAMES = ["月", "火", "水", "木", "金", "土", "日"]
+            if frequency == "weekly":
+                dow = parsed.get("notify_day_of_week")
+                day_text = f"毎週{DOW_NAMES[dow]}曜日" if dow is not None else "毎週"
+            elif frequency == "monthly":
+                dom = parsed.get("notify_day_of_month")
+                day_text = f"毎月{dom}日" if dom is not None else "毎月"
+            else:
+                day_text = "毎日"
             time_text = notify_time or "12:00"
-            message = f'習慣タスク "{item_name}" を登録します（{freq_text} {time_text} にリマインド）。よろしいですか？'
+            message = f'習慣タスク "{item_name}" を登録します（{day_text} {time_text} にリマインド）。よろしいですか？'
+        elif intent == "update_habit_frequency":
+            DOW_NAMES = ["月", "火", "水", "木", "金", "土", "日"]
+            dow = parsed.get("notify_day_of_week")
+            dom = parsed.get("notify_day_of_month")
+            if frequency == "weekly":
+                label = f"毎週{DOW_NAMES[dow]}曜日" if dow is not None else "毎週"
+            elif frequency == "monthly":
+                label = f"毎月{dom}日" if dom is not None else "毎月"
+            else:
+                label = "毎日"
+            message = f'習慣タスク "{item_name}" の頻度を {label} に変更します。よろしいですか？'
         elif intent == "update":
             date_text = datetime.strptime(expiry_date, "%Y-%m-%d").strftime("%Y年%m月%d日")
             message = f'"{item_name}" の期限を {date_text} に更新します。よろしいですか？'
@@ -124,8 +147,8 @@ class HandleIntentOperationUseCase(IUseCase):
                 parts.append(f"時刻={notify_time}")
             message = f'通知設定を変更します（{" / ".join(parts)}）。よろしいですか？'
         elif intent == "update_stock_notify":
-            notify_enabled = parsed.get("notify_enabled", False)
-            message = f'"{item_name}" の通知を {"オン" if notify_enabled else "オフ"} にします。よろしいですか？'
+            label = "常に通知" if notify_days_before is None else f"{notify_days_before}日前から通知"
+            message = f'"{item_name}" の通知を {label} に設定します。よろしいですか？'
         elif intent == "update_habit_log":
             scheduled_date = parsed.get("scheduled_date")
             result = parsed.get("result")
@@ -170,7 +193,7 @@ class HandleIntentOperationUseCase(IUseCase):
                     owner_id=line_user_id,
                     expiry_date=parsed_expiry_date,
                     status=1,
-                    notify_enabled=operation.get("notify_enabled", False),
+                    notify_days_before=operation.get("notify_days_before"),
                 )
             )
             if parsed_expiry_date:
@@ -240,6 +263,7 @@ class HandleIntentOperationUseCase(IUseCase):
                 self._line_response_service.add_message("習慣タスク登録は現在利用できません。")
                 self._pending_operation_service.clear(line_user_id)
                 return
+            DOW_NAMES = ["月", "火", "水", "木", "金", "土", "日"]
             frequency = operation.get("frequency") or "daily"
             notify_time = operation.get("notify_time") or "12:00"
             self._habit_task_repository.create(
@@ -248,12 +272,21 @@ class HandleIntentOperationUseCase(IUseCase):
                     task_name=item_name,
                     frequency=frequency,
                     notify_time=notify_time,
+                    notify_day_of_week=operation.get("notify_day_of_week"),
+                    notify_day_of_month=operation.get("notify_day_of_month"),
                     is_active=True,
                 )
             )
-            freq_text = "毎週" if frequency == "weekly" else "毎日"
+            if frequency == "weekly":
+                dow = operation.get("notify_day_of_week")
+                day_text = f"毎週{DOW_NAMES[dow]}曜日" if dow is not None else "毎週"
+            elif frequency == "monthly":
+                dom = operation.get("notify_day_of_month")
+                day_text = f"毎月{dom}日" if dom is not None else "毎月"
+            else:
+                day_text = "毎日"
             self._line_response_service.add_message(
-                f'習慣タスク "{item_name}" を登録しました（{freq_text} {notify_time} にリマインド）。'
+                f'習慣タスク "{item_name}" を登録しました（{day_text} {notify_time} にリマインド）。'
             )
         elif intent == "delete_habit":
             if self._habit_task_repository is None:
@@ -303,10 +336,27 @@ class HandleIntentOperationUseCase(IUseCase):
         elif intent == "update_stock_notify":
             count = self._stock_repository.update(
                 query={"owner_id": line_user_id, "item_name": item_name, "status": 1},
-                new_values={"notify_enabled": operation.get("notify_enabled", False)},
+                new_values={"notify_days_before": operation.get("notify_days_before")},
             )
             if count > 0:
                 self._line_response_service.add_message(f'"{item_name}" の通知設定を更新しました。')
+            else:
+                self._line_response_service.add_message(f'"{item_name}" が見つかりませんでした。')
+        elif intent == "update_habit_frequency":
+            if self._habit_task_repository is None:
+                self._line_response_service.add_message("習慣タスク操作は現在利用できません。")
+                self._pending_operation_service.clear(line_user_id)
+                return
+            count = self._habit_task_repository.update(
+                query={"owner_id": line_user_id, "task_name": item_name, "is_active": True},
+                new_values={
+                    "frequency": operation.get("frequency") or "daily",
+                    "notify_day_of_week": operation.get("notify_day_of_week"),
+                    "notify_day_of_month": operation.get("notify_day_of_month"),
+                },
+            )
+            if count > 0:
+                self._line_response_service.add_message(f'習慣タスク "{item_name}" の頻度を変更しました。')
             else:
                 self._line_response_service.add_message(f'"{item_name}" が見つかりませんでした。')
         elif intent == "update_habit_log":

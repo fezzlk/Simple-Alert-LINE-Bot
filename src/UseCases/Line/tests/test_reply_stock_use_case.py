@@ -137,7 +137,8 @@ def test_reply_stock_with_and_without_expiry_dates(monkeypatch):
 
     messages = use_case._line_response_service.messages
     joined = "\n".join(messages)
-    assert "期限未設定:" in joined
-    assert "期限あり:" in joined
+    assert "期限なし" in joined
+    assert "期限あり" in joined
     assert "no_expiry" in joined
     assert "with_expiry" in joined
+    assert "残り" in joined  # 残り日数が表示される

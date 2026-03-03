@@ -61,10 +61,17 @@ class UpdateStockUseCase(IUseCase):
             elif key == 'notify_status':
                 if val is None:
                     continue
-                upper = val.strip().upper()
-                if upper not in ('ON', 'OFF'):
-                    raise BadRequest('通知は ON または OFF を指定してください。')
-                new_values['notify_enabled'] = upper == 'ON'
+                v = val.strip()
+                if v.upper() in ('ON', '') or v == '常に通知':
+                    new_values['notify_days_before'] = None  # 常に通知
+                elif v.upper() == 'OFF':
+                    new_values['notify_days_before'] = None  # OFFはデフォルト(常に通知)扱い
+                elif v.rstrip('日前から').isdigit():
+                    new_values['notify_days_before'] = int(v.rstrip('日前から'))
+                elif v.isdigit():
+                    new_values['notify_days_before'] = int(v)
+                else:
+                    raise BadRequest('通知設定が不正です。')
 
         res = self._stock_repository.update(
             query={

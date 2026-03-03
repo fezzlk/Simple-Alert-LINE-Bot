@@ -106,7 +106,6 @@ def test_check_expired_stock_sends_expected_messages(monkeypatch):
         "src.UseCases.Line.CheckExpiredStockUseCase.datetime",
         FixedDatetime,
     )
-    monkeypatch.setattr(config, "SERVER_URL", "https://example.com")
 
     due_schedule = NotificationSchedule(
         line_user_id="U1",
@@ -124,12 +123,18 @@ def test_check_expired_stock_sends_expected_messages(monkeypatch):
     )
 
     stocks = [
-        Stock(item_name="no_expiry", owner_id="U1", expiry_date=None, status=1, notify_enabled=True, created_at=fixed_now),
+        # expiry_date=None → 通知対象外（expiry_dateなしはスキップ）
+        Stock(item_name="no_expiry", owner_id="U1", expiry_date=None, status=1, created_at=fixed_now),
+        # 2日超過 → notify_days_before=None（常に通知）なので含まれる
         Stock(item_name="expired", owner_id="U1", expiry_date=datetime(2025, 1, 8), status=1, created_at=fixed_now),
+        # 今日まで → 常に通知
         Stock(item_name="today", owner_id="U1", expiry_date=datetime(2025, 1, 10), status=1, created_at=fixed_now),
+        # 明日まで → 常に通知
         Stock(item_name="tomorrow", owner_id="U1", expiry_date=datetime(2025, 1, 11), status=1, created_at=fixed_now),
-        Stock(item_name="three_days", owner_id="U1", expiry_date=datetime(2025, 1, 13), status=1, notify_enabled=True, created_at=fixed_now),
-        Stock(item_name="future", owner_id="U1", expiry_date=datetime(2025, 1, 20), status=1, notify_enabled=True, created_at=fixed_now),
+        # 残り3日 → notify_days_before=3 なので3日前から通知 → 含まれる
+        Stock(item_name="three_days", owner_id="U1", expiry_date=datetime(2025, 1, 13), status=1, notify_days_before=3, created_at=fixed_now),
+        # 残り10日 → notify_days_before=5 なので5日前から通知 → 10日 > 5日 → 含まれない
+        Stock(item_name="future", owner_id="U1", expiry_date=datetime(2025, 1, 20), status=1, notify_days_before=5, created_at=fixed_now),
     ]
 
     notification_schedule_repository = DummyNotificationScheduleRepository([due_schedule])
@@ -149,15 +154,14 @@ def test_check_expired_stock_sends_expected_messages(monkeypatch):
     assert notification_schedule_repository.claimed_line_user_ids == ["U1"]
     assert line_response_service.pushes == ["U1"]
     joined = "\n".join(line_response_service.messages)
-    assert "webで一覧を確認" in joined
-    assert "期限が3日以内のもの" in joined
-    assert "today: 今日まで" in joined
-    assert "tomorrow: 明日まで" in joined
-    assert "three_days: あと3日" in joined
-    assert "通知ONのアイテム" in joined
-    assert "no_expiry" in joined
-    assert "future" in joined
-    assert "expired" not in joined
+    assert "期限通知" in joined
+    assert "今日まで" in joined
+    assert "明日まで" in joined
+    assert "three_days" in joined
+    assert "日超過" in joined  # expiredアイテムが含まれる
+    assert "expired" in joined
+    assert "no_expiry" not in joined  # expiry_dateなしは除外
+    assert "future" not in joined    # notify_days_before=5 で10日先は除外
 
 
 def test_check_expired_stock_does_not_push_when_no_active_stocks(monkeypatch):
@@ -193,7 +197,9 @@ def test_check_expired_stock_does_not_push_when_no_active_stocks(monkeypatch):
     web_user_repository = DummyWebUserRepository([web_user])
     stock_repository = DummyStockRepository(
         [
-            Stock(item_name="far", owner_id="U1", expiry_date=datetime(2025, 1, 30), status=1),
+            # notify_days_before=5 かつ残り20日 → 5日前まで通知しないので対象外
+            Stock(item_name="far", owner_id="U1", expiry_date=datetime(2025, 1, 30), status=1, notify_days_before=5),
+            # expiry_dateなし → 常に通知でも期限なしはスキップ
             Stock(item_name="none", owner_id="U1", expiry_date=None, status=1),
         ]
     )

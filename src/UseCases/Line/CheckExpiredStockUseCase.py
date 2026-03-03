@@ -1,11 +1,16 @@
 from datetime import datetime, timezone
 
-from src import config
 from src.Domains.IRepositories.IStockRepository import IStockRepository
 from src.Domains.IRepositories.IWebUserRepository import IWebUserRepository
 from src.UseCases.Interface.ILineResponseService import ILineResponseService
 from src.UseCases.Interface.IUseCase import IUseCase
-from src.line_rich_messages import add_stock_web_link_button
+
+
+def _should_notify(stock, days_until_expire: int) -> bool:
+    """notify_days_beforeに基づいて通知すべきかを判定"""
+    if stock.notify_days_before is None:  # 常に通知
+        return True
+    return days_until_expire <= stock.notify_days_before
 
 
 class CheckExpiredStockUseCase(IUseCase):
@@ -52,41 +57,40 @@ class CheckExpiredStockUseCase(IUseCase):
                     "status": 1,
                 }
             )
-            near_due_stocks = []
-            notify_on_items = []
+            notify_stocks = []
             for stock in stocks:
-                if stock.notify_enabled:
-                    notify_on_items.append(stock.item_name)
-
                 if stock.expiry_date is None:
                     continue
 
                 days_until_expire = (stock.expiry_date.date() - today).days
-                if days_until_expire < 0 or days_until_expire > 3:
+
+                if not _should_notify(stock, days_until_expire):
                     continue
 
-                if days_until_expire == 0:
+                if days_until_expire < 0:
+                    label = f"{abs(days_until_expire)}日超過"
+                    icon = "🔴"
+                elif days_until_expire == 0:
                     label = "今日まで"
+                    icon = "🟠"
                 elif days_until_expire == 1:
                     label = "明日まで"
+                    icon = "🟠"
+                elif days_until_expire <= 3:
+                    label = f"残り{days_until_expire}日"
+                    icon = "🟠"
+                elif days_until_expire <= 7:
+                    label = f"残り{days_until_expire}日"
+                    icon = "🟡"
                 else:
-                    label = f"あと{days_until_expire}日"
-                near_due_stocks.append(f"{stock.item_name}: {label}")
+                    label = f"残り{days_until_expire}日"
+                    icon = "🟢"
+                notify_stocks.append(f"{icon} {stock.item_name}（{label}）")
 
-            if len(near_due_stocks) == 0:
+            if not notify_stocks:
                 continue
 
             self._line_response_service.add_message(
-                "期限が3日以内のもの:\n" + "\n".join(near_due_stocks)
+                f"📋 期限通知（{len(notify_stocks)}件）\n" + "\n".join(notify_stocks)
             )
-            add_stock_web_link_button(
-                line_response_service=self._line_response_service,
-                server_url=config.SERVER_URL,
-            )
-            if len(notify_on_items) == 0:
-                self._line_response_service.add_message("通知ONのアイテム: なし")
-            else:
-                self._line_response_service.add_message(
-                    "通知ONのアイテム:\n" + "\n".join(notify_on_items)
-                )
             self._line_response_service.push(to=schedule.line_user_id)
