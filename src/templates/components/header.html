@@ -1,8 +1,8 @@
 {% macro render(page_contents) -%}
-<nav class="navbar navbar-light bg-light border-bottom">
+<nav class="navbar navbar-dark bg-app-header border-bottom border-0">
   <div class="container-fluid">
     <div class="navbar-header">
-      <a class="navbar-brand" href="/">Simple Alert LINE Bot</a>
+      <a class="navbar-brand fw-bold" href="/">Simple Alert LINE Bot</a>
     </div>
     <div class="navbar-right">
       <!-- PC, タブレット画面 -->
@@ -10,43 +10,42 @@
         {% if login_user %}
         <div class="nav-item dropdown">
           <div
-            class="nav-link dropdown-toggle"
+            class="nav-link nav-link-app dropdown-toggle d-flex align-items-center gap-1"
             id="navbarDropdown"
             role="button"
             data-bs-toggle="dropdown"
             aria-expanded="false"
           >
-            {% if login_user.web_user_name %}
-              {{ login_user.web_user_name }}
-            {% elif login_user.web_user_email %}
-              {{ login_user.web_user_email }}
-            {% else %}
-              {{ login_user.linked_line_user_id }}
-            {% endif %}
+            <i class="fas fa-user-circle"></i>
+            <span>
+              {% if login_user.web_user_name %}
+                {{ login_user.web_user_name }}
+              {% elif login_user.web_user_email %}
+                {{ login_user.web_user_email }}
+              {% else %}
+                {{ login_user.linked_line_user_id }}
+              {% endif %}
+            </span>
           </div>
-          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
             <li><a class="dropdown-item" href="/">ホーム</a></li>
             <li><a class="dropdown-item" href="/stock">アイテム一覧</a></li>
             <li><a class="dropdown-item" href="/habit">習慣タスク</a></li>
-            <li>
-              <a class="dropdown-item" href="/stock/delete"
-                >削除済みアイテム一覧</a
-              >
-            </li>
             <li><a class="dropdown-item" href="/line/approve">LINE 連携</a></li>
+            <li><hr class="dropdown-divider" /></li>
             <li><a class="dropdown-item" href="/logout">ログアウト</a></li>
           </ul>
         </div>
         {% else %}
-        <a class="nav-link text-dark" href="{{ login_url }}">ログイン</a>
+        <a class="nav-link nav-link-app" href="{{ login_url }}">ログイン</a>
         {% endif %}
       </div>
       <!-- スマートフォン画面 -->
       <div class="d-block d-sm-none">
         <div class="nav-item dropdown">
           <div
-            class="nav-link dropdown-toggle"
-            id="navbarDropdown"
+            class="nav-link nav-link-app dropdown-toggle"
+            id="navbarDropdownMobile"
             role="button"
             data-bs-toggle="dropdown"
             aria-expanded="false"
@@ -56,10 +55,11 @@
           {% if login_user %}
           <ul
             class="dropdown-menu dropdown-menu-end"
-            aria-labelledby="navbarDropdown"
+            aria-labelledby="navbarDropdownMobile"
           >
             <li>
-              <a class="dropdown-item">
+              <span class="dropdown-item text-muted small">
+                <i class="fas fa-user-circle me-1"></i>
                 {% if login_user.web_user_name %}
                   {{ login_user.web_user_name }}
                 {% elif login_user.web_user_email %}
@@ -67,27 +67,23 @@
                 {% else %}
                   {{ login_user.linked_line_user_id }}
                 {% endif %}
-              </a>
+              </span>
             </li>
             <li><hr class="dropdown-divider" /></li>
             <li><a class="dropdown-item" href="/">ホーム</a></li>
             <li><a class="dropdown-item" href="/stock">アイテム一覧</a></li>
             <li><a class="dropdown-item" href="/habit">習慣タスク</a></li>
-            <li>
-              <a class="dropdown-item" href="/stock/delete"
-                >削除済みアイテム一覧</a
-              >
-            </li>
             <li><a class="dropdown-item" href="/line/approve">LINE 連携</a></li>
+            <li><hr class="dropdown-divider" /></li>
             <li><a class="dropdown-item" href="/logout">ログアウト</a></li>
           </ul>
           {% else %}
           <ul
             class="dropdown-menu dropdown-menu-end"
-            aria-labelledby="navbarDropdown"
+            aria-labelledby="navbarDropdownMobile"
           >
             <li>
-              <a class="nav-link text-dark" href="{{ login_url }}">ログイン</a>
+              <a class="dropdown-item" href="{{ login_url }}">ログイン</a>
             </li>
           </ul>
           {% endif %}
