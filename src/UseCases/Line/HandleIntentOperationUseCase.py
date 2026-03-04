@@ -261,7 +261,22 @@ class HandleIntentOperationUseCase(IUseCase):
                 )
 
             if count == 0:
-                self._line_response_service.add_message(f'"{item_name}" が見つかりませんでした。')
+                if filter_expiry or exclude_expiry:
+                    remaining = self._stock_repository.find(
+                        query={"owner_id": line_user_id, "item_name": item_name, "status": 1}
+                    )
+                    if remaining:
+                        dates = [s.expiry_date.strftime("%Y/%m/%d") if s.expiry_date else "期限なし" for s in remaining]
+                        self._line_response_service.add_message(
+                            f'その条件に一致する "{item_name}" は見つかりませんでした。\n'
+                            f'現在登録中: {", ".join(dates)}'
+                        )
+                    else:
+                        self._line_response_service.add_message(
+                            f'"{item_name}" は見つかりませんでした（削除済みか未登録）。'
+                        )
+                else:
+                    self._line_response_service.add_message(f'"{item_name}" が見つかりませんでした。')
             else:
                 self._line_response_service.add_message(f'"{item_name}" を削除しました。')
         elif intent == "register_habit":
