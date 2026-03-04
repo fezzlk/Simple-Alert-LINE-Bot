@@ -41,7 +41,7 @@ def index():
         near_due_count = 0
         notify_on_count = 0
         for stock in stocks:
-            if stock.notify_enabled:
+            if stock.notify_days_before is not None:
                 notify_on_count += 1
             if stock.expiry_date is None:
                 continue
