@@ -52,7 +52,7 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "delete_stock",
-            "description": "在庫・タスクを削除する。expiry_dateは完全一致フィルタ、exclude_expiry_dateは除外フィルタ（「以外を削除」）。",
+            "description": "在庫・タスクを削除する。expiry_dateは完全一致フィルタ（M/D・M月D日・相対日付を今日の日付を基準にYYYY-MM-DDに変換）、exclude_expiry_dateは除外フィルタ（「以外を削除」）。",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -206,8 +206,21 @@ FUNCTION_TO_INTENT = {
 
 
 class LineIntentParserService:
+    @staticmethod
+    def _normalize(text: str) -> str:
+        """全角英数字・記号を半角に正規化する。"""
+        result = []
+        for ch in text:
+            cp = ord(ch)
+            # 全角英数字・記号 (！〜) → 半角
+            if 0xFF01 <= cp <= 0xFF5E:
+                result.append(chr(cp - 0xFEE0))
+            else:
+                result.append(ch)
+        return "".join(result)
+
     def parse(self, message: str) -> Dict[str, Any]:
-        text = (message or "").strip()
+        text = self._normalize((message or "").strip())
         if not text:
             return self._none_result()
         lower = text.lower()
@@ -241,7 +254,10 @@ class LineIntentParserService:
             f"Today's date is {today_str} (JST).\n"
             "You are an intent parser for a Japanese LINE bot.\n"
             "Call exactly one tool that matches the user's intent.\n"
-            "Convert relative dates (今日/明日/明後日) to YYYY-MM-DD.\n"
+            "Convert all date expressions to YYYY-MM-DD format:\n"
+            "  - Relative: 今日/明日/明後日/昨日\n"
+            "  - M/D or M月D日 format: use the most recent occurrence (past or future based on context)\n"
+            "  - When M/D is in the past (e.g. 2/27 and today is 3/4), interpret as the same year unless context implies otherwise\n"
             "If the intent is unclear or unsafe, do NOT call any tool."
         )
         payload = {
