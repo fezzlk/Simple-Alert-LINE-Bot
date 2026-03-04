@@ -99,10 +99,15 @@ class DummyStockRepository(IStockRepository):
 
 
 class DummyIntentParserService:
-    def __init__(self, parsed):
+    def __init__(self, parsed, extra_responses=None):
         self.parsed = parsed
+        # メッセージ部分文字列 → 返却値 のマッピング（テスト用）
+        self.extra_responses = extra_responses or {}
 
     def parse(self, message: str):
+        for substring, response in self.extra_responses.items():
+            if substring in message:
+                return response
         return self.parsed
 
 
@@ -302,7 +307,8 @@ def test_followup_expiry_date_updates_recently_registered_item():
     assert repo.updated_query == {"_id": "S1"}
     assert repo.updated_values is not None
     assert repo.updated_values["expiry_date"] is not None
-    assert pending.get("U1") is None
+    # 期限更新後は通知フォローアップコンテキストが保存される
+    assert pending.get("U1")["operation"]["intent"] == "update_recent_notify"
 
 
 def test_register_with_notify_days_before():
@@ -630,3 +636,113 @@ def test_update_habit_log_not_found_creates():
     assert log_repo.created.result == "done"
     assert log_repo.created.habit_task_id == "HT1"
     assert any("修正しました" in m for m in res.messages)
+
+
+def test_followup_notify_after_register_with_expiry():
+    """期限あり登録の直後に「通知は3日前から」で通知設定が反映される。"""
+    req = DummyLineRequestService(message="確定申告は3/15まで")
+    res = DummyLineResponseService()
+    repo = DummyStockRepository()
+    repo.found_stocks = [Stock(_id="S1", item_name="確定申告", owner_id="U1", status=1)]
+    # 「通知は3日前から」を含む補完済みメッセージが来たら update_stock_notify を返す
+    parser = DummyIntentParserService(
+        {"intent": "register", "item_name": "確定申告", "expiry_date": "2026-03-15"},
+        extra_responses={
+            "通知は3日前から": {
+                "intent": "update_stock_notify",
+                "item_name": "確定申告",
+                "notify_days_before": 3,
+            }
+        },
+    )
+    pending = DummyPendingOperationService()
+    use_case = HandleIntentOperationUseCase(
+        stock_repository=repo,
+        line_request_service=req,
+        line_response_service=res,
+        intent_parser_service=parser,
+        pending_operation_service=pending,
+    )
+
+    use_case.execute()
+    req.message = "はい"
+    use_case.execute()
+
+    # 登録完了後、通知フォローアップコンテキストが保存される
+    assert pending.get("U1")["operation"]["intent"] == "update_recent_notify"
+    assert pending.get("U1")["operation"]["item_name"] == "確定申告"
+
+    # 「通知は3日前から」を送ると通知設定が更新される
+    req.message = "通知は3日前から"
+    use_case.execute()
+
+    assert repo.updated_values["notify_days_before"] == 3
+    assert any("3日前から通知" in m for m in res.messages)
+    assert pending.get("U1") is None
+
+
+def test_followup_notify_after_expiry_set():
+    """期限なし登録 → 期限設定 → 「通知は3日前から」で通知設定が反映される。"""
+    res = DummyLineResponseService()
+    repo = DummyStockRepository()
+    repo.found_stocks = [Stock(_id="S1", item_name="卵", owner_id="U1", status=1)]
+    parser = DummyIntentParserService(
+        {"intent": "none", "item_name": None, "expiry_date": None},
+        extra_responses={
+            "通知は3日前から": {
+                "intent": "update_stock_notify",
+                "item_name": "卵",
+                "notify_days_before": 3,
+            }
+        },
+    )
+    pending = DummyPendingOperationService()
+    pending.save("U1", {"intent": "update_recent_expiry", "item_name": "卵"})
+    req = DummyLineRequestService(message="明日で")
+    use_case = HandleIntentOperationUseCase(
+        stock_repository=repo,
+        line_request_service=req,
+        line_response_service=res,
+        intent_parser_service=parser,
+        pending_operation_service=pending,
+    )
+
+    use_case.execute()
+
+    # 期限設定後、通知フォローアップコンテキストに切り替わる
+    assert pending.get("U1")["operation"]["intent"] == "update_recent_notify"
+
+    # 「通知は3日前から」を送ると通知設定が更新される
+    req.message = "通知は3日前から"
+    use_case.execute()
+
+    assert repo.updated_values["notify_days_before"] == 3
+    assert any("3日前から通知" in m for m in res.messages)
+    assert pending.get("U1") is None
+
+
+def test_followup_notify_unrelated_message_falls_through():
+    """update_recent_notify 中に無関係なメッセージを送るとコンテキストが破棄される。"""
+    res = DummyLineResponseService()
+    repo = DummyStockRepository()
+    # NLPは「none」を返す（通知設定変更として解釈できない）
+    parser = DummyIntentParserService(
+        {"intent": "none", "item_name": None, "expiry_date": None}
+    )
+    pending = DummyPendingOperationService()
+    pending.save("U1", {"intent": "update_recent_notify", "item_name": "牛乳"})
+    req = DummyLineRequestService(message="ありがとう")
+    use_case = HandleIntentOperationUseCase(
+        stock_repository=repo,
+        line_request_service=req,
+        line_response_service=res,
+        intent_parser_service=parser,
+        pending_operation_service=pending,
+    )
+
+    use_case.execute()
+
+    # コンテキスト破棄
+    assert pending.get("U1") is None
+    # notify_days_before は更新されない
+    assert repo.updated_values is None

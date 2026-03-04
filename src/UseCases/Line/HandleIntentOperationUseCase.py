@@ -200,6 +200,12 @@ class HandleIntentOperationUseCase(IUseCase):
                 self._line_response_service.add_message(
                     f'"{item_name}" を期限{parsed_expiry_date.strftime("%Y年%m月%d日")}で登録しました。'
                 )
+                self._pending_operation_service.clear(line_user_id)
+                self._pending_operation_service.save(
+                    line_user_id,
+                    {"intent": "update_recent_notify", "item_name": item_name},
+                )
+                return
             else:
                 self._line_response_service.add_message(f'"{item_name}" を登録しました。')
                 self._line_response_service.add_message(
@@ -410,11 +416,20 @@ class HandleIntentOperationUseCase(IUseCase):
             return False
 
         operation = pending["operation"]
+        if operation.get("intent") == "update_recent_notify":
+            return self._handle_recent_notify_update(line_user_id, message, operation)
+
         if operation.get("intent") != "update_recent_expiry":
             return False
 
+        item_name = operation.get("item_name")
+
         if message in ("なし", "不要", "いらない", "NO", "no"):
             self._pending_operation_service.clear(line_user_id)
+            self._pending_operation_service.save(
+                line_user_id,
+                {"intent": "update_recent_notify", "item_name": item_name},
+            )
             self._line_response_service.add_message("期限なしのままにしました。")
             return True
 
@@ -425,7 +440,6 @@ class HandleIntentOperationUseCase(IUseCase):
             )
             return True
 
-        item_name = operation.get("item_name")
         stocks = self._stock_repository.find(
             query={"owner_id": line_user_id, "item_name": item_name, "status": 1},
             sort=[("created_at", "desc")],
@@ -441,10 +455,47 @@ class HandleIntentOperationUseCase(IUseCase):
             new_values={"expiry_date": parsed_date},
         )
         self._pending_operation_service.clear(line_user_id)
+        self._pending_operation_service.save(
+            line_user_id,
+            {"intent": "update_recent_notify", "item_name": item_name},
+        )
         self._line_response_service.add_message(
             f'"{item_name}" の期限を{parsed_date.strftime("%Y年%m月%d日")}に更新しました。'
         )
         return True
+
+    def _handle_recent_notify_update(self, line_user_id: str, message: str, operation: dict) -> bool:
+        """直近登録アイテムへの通知設定フォローアップを処理する。"""
+        item_name = operation.get("item_name")
+
+        # アイテム名を補完してNLPに渡す（例: "確定申告の通知は3日前から"）
+        parsed = self._intent_parser_service.parse(f"{item_name}の{message}")
+
+        if parsed.get("intent") != "update_stock_notify":
+            # 通知設定変更として解釈できない → コンテキスト破棄して通常処理へ
+            self._pending_operation_service.clear(line_user_id)
+            return False
+
+        self._update_recent_item_notify(line_user_id, item_name, parsed.get("notify_days_before"))
+        self._pending_operation_service.clear(line_user_id)
+        return True
+
+    def _update_recent_item_notify(self, line_user_id: str, item_name: str, notify_days_before) -> None:
+        stocks = self._stock_repository.find(
+            query={"owner_id": line_user_id, "item_name": item_name, "status": 1},
+            sort=[("created_at", "desc")],
+        )
+        if not stocks:
+            self._line_response_service.add_message(f'"{item_name}" が見つかりませんでした。')
+            return
+        self._stock_repository.update(
+            query={"_id": stocks[0]._id},
+            new_values={"notify_days_before": notify_days_before},
+        )
+        label = "常に通知" if notify_days_before is None else f"{notify_days_before}日前から通知"
+        self._line_response_service.add_message(
+            f'"{item_name}" の通知を{label}に設定しました。'
+        )
 
     def _parse_followup_expiry_date(self, message: str):
         text = message.strip()
