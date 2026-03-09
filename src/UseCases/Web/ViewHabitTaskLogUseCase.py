@@ -60,6 +60,7 @@ class ViewHabitTaskLogUseCase(IUseCase):
                         "is_current_month": d.month == target_month.month,
                         "status": status,
                         "note": "" if log is None else (log.note or ""),
+                        "log_id": "" if log is None else (log._id or ""),
                     }
                 )
             weeks.append(week_cells)

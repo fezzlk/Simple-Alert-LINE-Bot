@@ -13,7 +13,7 @@
     <form
       action="{{ url_for('views_blueprint.update_notify_schedule') }}"
       method="POST"
-      class="d-flex align-items-center gap-2"
+      class="d-flex align-items-center flex-wrap gap-2"
     >
       <label for="notify_time" class="form-label m-0 text-nowrap">通知時刻</label>
       <input
@@ -21,11 +21,11 @@
         name="notify_time"
         type="time"
         class="form-control form-control-sm"
+        style="width: 120px; flex: 0 0 auto"
         value="{{ notify_time }}"
-        style="max-width: 160px"
         required
       />
-      <button type="submit" class="btn btn-sm btn-outline-primary">
+      <button type="submit" class="btn btn-sm btn-outline-primary text-nowrap">
         保存
       </button>
     </form>

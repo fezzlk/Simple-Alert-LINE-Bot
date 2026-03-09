@@ -33,6 +33,7 @@
             <th>タスク名</th>
             <th>通知時刻</th>
             <th>頻度</th>
+            <th style="width: 160px">操作</th>
           </tr>
         </thead>
         <tbody>
@@ -55,14 +56,82 @@
               <span class="badge bg-secondary">{{ task.frequency }}</span>
               {% endif %}
             </td>
+            <td>
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-primary me-1"
+                data-bs-toggle="modal"
+                data-bs-target="#editModal-{{ task._id }}"
+              >編集</button>
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-danger"
+                data-bs-toggle="modal"
+                data-bs-target="#deleteModal-{{ task._id }}"
+              >停止</button>
+            </td>
           </tr>
           {% endfor %}
           {% if page_contents.data.tasks|length == 0 %}
-          <tr><td colspan="3" class="text-muted py-3">習慣タスクはまだありません。</td></tr>
+          <tr><td colspan="4" class="text-muted py-3">習慣タスクはまだありません。</td></tr>
           {% endif %}
         </tbody>
       </table>
     </div>
   </div>
 </div>
+
+<!-- 編集モーダル -->
+{% for task in page_contents.data.tasks %}
+<div class="modal fade" id="editModal-{{ task._id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="{{ url_for('views_blueprint.update_habit_task') }}" method="post">
+        <div class="modal-header">
+          <h5 class="modal-title">タスクを編集</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="task_id" value="{{ task._id }}">
+          <div class="mb-3">
+            <label class="form-label">タスク名</label>
+            <input type="text" name="task_name" class="form-control" value="{{ task.task_name }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">通知時刻</label>
+            <input type="time" name="notify_time" class="form-control" value="{{ task.notify_time }}" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 削除確認モーダル -->
+<div class="modal fade" id="deleteModal-{{ task._id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="{{ url_for('views_blueprint.delete_habit_task') }}" method="post">
+        <div class="modal-header">
+          <h5 class="modal-title">タスクを停止</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="task_id" value="{{ task._id }}">
+          <p>習慣タスク「<strong>{{ task.task_name }}</strong>」を停止しますか？</p>
+          <p class="text-muted small">停止すると通知が送られなくなります。実績データは保持されます。</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+          <button type="submit" class="btn btn-danger">停止する</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
 {% endblock %}

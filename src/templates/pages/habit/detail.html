@@ -58,7 +58,16 @@
             {% for week in page_contents.data.calendar_weeks %}
             <tr>
               {% for cell in week %}
-              <td class="{% if not cell.is_current_month %}text-muted bg-light{% endif %}" style="width: 14.2%; height: 72px;">
+              <td
+                class="{% if not cell.is_current_month %}text-muted bg-light{% endif %} habit-cell"
+                style="width: 14.2%; height: 72px; cursor: pointer;"
+                data-bs-toggle="modal"
+                data-bs-target="#logModal"
+                data-date="{{ cell.date_str }}"
+                data-status="{{ cell.status }}"
+                data-note="{{ cell.note }}"
+                data-log-id="{{ cell.log_id|default('') }}"
+              >
                 <div class="d-flex justify-content-between align-items-start">
                   <span>{{ cell.day }}</span>
                   {% if cell.status == 'done' %}
@@ -95,6 +104,7 @@
             <th>結果</th>
             <th>その他内容</th>
             <th>記録時刻</th>
+            <th style="width: 60px">操作</th>
           </tr>
         </thead>
         <tbody>
@@ -112,14 +122,89 @@
             </td>
             <td>{{ log.note or '' }}</td>
             <td>{% if log.recorded_at %}{{ log.recorded_at.strftime('%Y-%m-%d %H:%M') }}{% endif %}</td>
+            <td>
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#logModal"
+                data-date="{{ log.scheduled_date }}"
+                data-status="{{ log.result }}"
+                data-note="{{ log.note or '' }}"
+                data-log-id="{{ log._id }}"
+              >編集</button>
+            </td>
           </tr>
           {% endfor %}
           {% if page_contents.data.logs|length == 0 %}
-          <tr><td colspan="4" class="text-muted py-3">実績はまだありません。</td></tr>
+          <tr><td colspan="5" class="text-muted py-3">実績はまだありません。</td></tr>
           {% endif %}
         </tbody>
       </table>
     </div>
   </div>
 </div>
+
+<!-- 実績編集モーダル -->
+<div class="modal fade" id="logModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form
+        action="{{ url_for('views_blueprint.update_habit_task_log', task_id=page_contents.data.task._id) }}"
+        method="post"
+      >
+        <div class="modal-header">
+          <h5 class="modal-title">実績を編集</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="task_id" value="{{ page_contents.data.task._id }}">
+          <input type="hidden" name="month" value="{{ page_contents.data.calendar_month }}">
+          <input type="hidden" name="log_id" id="logModalLogId" value="">
+          <div class="mb-3">
+            <label class="form-label">対象日</label>
+            <input type="date" name="scheduled_date" id="logModalDate" class="form-control" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">結果</label>
+            <select name="result" id="logModalResult" class="form-select" required>
+              <option value="done">実施 (OK)</option>
+              <option value="not_done">未実施 (NG)</option>
+              <option value="other">その他</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">メモ（任意）</label>
+            <input type="text" name="note" id="logModalNote" class="form-control" maxlength="200">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var logModal = document.getElementById('logModal');
+  if (logModal) {
+    logModal.addEventListener('show.bs.modal', function(event) {
+      var btn = event.relatedTarget;
+      document.getElementById('logModalDate').value = btn.getAttribute('data-date') || '';
+      document.getElementById('logModalLogId').value = btn.getAttribute('data-log-id') || '';
+      document.getElementById('logModalNote').value = btn.getAttribute('data-note') || '';
+      var status = btn.getAttribute('data-status') || 'done';
+      var sel = document.getElementById('logModalResult');
+      if (status === 'done' || status === 'not_done' || status === 'other') {
+        sel.value = status;
+      } else {
+        sel.value = 'done';
+      }
+    });
+  }
+});
+</script>
 {% endblock %}

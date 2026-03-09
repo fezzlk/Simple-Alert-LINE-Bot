@@ -7,6 +7,9 @@ from src.models.PageContents import HabitTaskListData, HabitTaskLogListData
 from src.routes.web import views_blueprint
 from src.routes.web.helpers import build_page_contents, flash_form_errors
 from src.UseCases.Web.AddHabitTaskUseCase import AddHabitTaskUseCase
+from src.UseCases.Web.UpdateHabitTaskUseCase import UpdateHabitTaskUseCase
+from src.UseCases.Web.DeleteHabitTaskUseCase import DeleteHabitTaskUseCase
+from src.UseCases.Web.UpdateHabitTaskLogUseCase import UpdateHabitTaskLogUseCase
 from src.UseCases.Web.ViewHabitTaskListUseCase import ViewHabitTaskListUseCase
 from src.UseCases.Web.ViewHabitTaskLogUseCase import ViewHabitTaskLogUseCase
 from src.models.Forms.AddHabitTaskForm import AddHabitTaskForm
@@ -42,6 +45,36 @@ def add_habit_task():
     return redirect(url_for('views_blueprint.view_habit_task_list'))
 
 
+@views_blueprint.route('/habit/update', methods=['POST'])
+@login_required
+def update_habit_task():
+    page_contents = build_page_contents(session, request)
+    try:
+        task_name = UpdateHabitTaskUseCase(
+            habit_task_repository=habit_task_repository
+        ).execute(page_contents=page_contents)
+    except BadRequest as e:
+        flash(str(e), 'danger')
+        return redirect(url_for('views_blueprint.view_habit_task_list'))
+    flash(f'習慣タスク「{task_name}」を更新しました。', 'success')
+    return redirect(url_for('views_blueprint.view_habit_task_list'))
+
+
+@views_blueprint.route('/habit/delete', methods=['POST'])
+@login_required
+def delete_habit_task():
+    page_contents = build_page_contents(session, request)
+    try:
+        task_name = DeleteHabitTaskUseCase(
+            habit_task_repository=habit_task_repository
+        ).execute(page_contents=page_contents)
+    except BadRequest as e:
+        flash(str(e), 'danger')
+        return redirect(url_for('views_blueprint.view_habit_task_list'))
+    flash(f'習慣タスク「{task_name}」を停止しました。', 'success')
+    return redirect(url_for('views_blueprint.view_habit_task_list'))
+
+
 @views_blueprint.route('/habit/<task_id>', methods=['GET'])
 @login_required
 def view_habit_task_log(task_id: str):
@@ -52,3 +85,20 @@ def view_habit_task_log(task_id: str):
         habit_task_log_repository=habit_task_log_repository,
     ).execute(page_contents=page_contents, task_id=task_id, month=month)
     return render_template('pages/habit/detail.html', page_contents=page_contents)
+
+
+@views_blueprint.route('/habit/<task_id>/log', methods=['POST'])
+@login_required
+def update_habit_task_log(task_id: str):
+    page_contents = build_page_contents(session, request)
+    month = request.form.get("month", "")
+    try:
+        UpdateHabitTaskLogUseCase(
+            habit_task_repository=habit_task_repository,
+            habit_task_log_repository=habit_task_log_repository,
+        ).execute(page_contents=page_contents)
+    except BadRequest as e:
+        flash(str(e), 'danger')
+        return redirect(url_for('views_blueprint.view_habit_task_log', task_id=task_id, month=month))
+    flash('実績を更新しました。', 'success')
+    return redirect(url_for('views_blueprint.view_habit_task_log', task_id=task_id, month=month))

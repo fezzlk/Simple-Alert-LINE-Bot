@@ -25,6 +25,7 @@ class HandleIntentOperationUseCase(IUseCase):
         habit_task_repository=None,
         notification_schedule_repository=None,
         habit_task_log_repository=None,
+        web_user_repository=None,
     ):
         self._stock_repository = stock_repository
         self._line_request_service = line_request_service
@@ -34,6 +35,18 @@ class HandleIntentOperationUseCase(IUseCase):
         self._habit_task_repository = habit_task_repository
         self._notification_schedule_repository = notification_schedule_repository
         self._habit_task_log_repository = habit_task_log_repository
+        self._web_user_repository = web_user_repository
+
+    def _get_habit_owner_ids(self, line_user_id: str) -> list:
+        """LINE user ID に紐づく Web user ID も含めた owner_id リストを返す。"""
+        ids = [line_user_id]
+        if self._web_user_repository is not None:
+            web_users = self._web_user_repository.find(
+                {"linked_line_user_id": line_user_id, "is_linked_line_user": True}
+            )
+            if web_users:
+                ids.append(web_users[0]._id)
+        return ids
 
     def execute(self) -> None:
         message = (self._line_request_service.message or "").strip()
@@ -315,7 +328,7 @@ class HandleIntentOperationUseCase(IUseCase):
                 self._pending_operation_service.clear(line_user_id)
                 return
             count = self._habit_task_repository.update(
-                query={"owner_id": line_user_id, "task_name": item_name, "is_active": True},
+                query={"owner_id__in": self._get_habit_owner_ids(line_user_id), "task_name": item_name, "is_active": True},
                 new_values={"is_active": False},
             )
             if count > 0:
@@ -329,7 +342,7 @@ class HandleIntentOperationUseCase(IUseCase):
                 return
             notify_time = operation.get("notify_time")
             count = self._habit_task_repository.update(
-                query={"owner_id": line_user_id, "task_name": item_name, "is_active": True},
+                query={"owner_id__in": self._get_habit_owner_ids(line_user_id), "task_name": item_name, "is_active": True},
                 new_values={"notify_time": notify_time},
             )
             if count > 0:
@@ -369,7 +382,7 @@ class HandleIntentOperationUseCase(IUseCase):
                 self._pending_operation_service.clear(line_user_id)
                 return
             count = self._habit_task_repository.update(
-                query={"owner_id": line_user_id, "task_name": item_name, "is_active": True},
+                query={"owner_id__in": self._get_habit_owner_ids(line_user_id), "task_name": item_name, "is_active": True},
                 new_values={
                     "frequency": operation.get("frequency") or "daily",
                     "notify_day_of_week": operation.get("notify_day_of_week"),
@@ -389,7 +402,7 @@ class HandleIntentOperationUseCase(IUseCase):
             result = operation.get("result")
             note = operation.get("note")
             tasks = self._habit_task_repository.find(
-                {"owner_id": line_user_id, "task_name": item_name, "is_active": True}
+                {"owner_id__in": self._get_habit_owner_ids(line_user_id), "task_name": item_name, "is_active": True}
             )
             if not tasks:
                 self._line_response_service.add_message(f'習慣タスク "{item_name}" が見つかりませんでした。')

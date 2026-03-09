@@ -149,7 +149,7 @@ CELLS = [
     ("登録",      draw_plus_icon),
     ("使い方",    draw_question_icon),
     ("Web一覧",   draw_globe_icon),
-    ("連携",      draw_link_icon),
+    ("カレンダー",  draw_check_icon),
     ("習慣タスク", draw_check_icon),
 ]
 
