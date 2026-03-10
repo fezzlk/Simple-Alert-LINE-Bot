@@ -79,6 +79,55 @@
       </table>
     </div>
   </div>
+
+  <!-- 停止済みタスク -->
+  {% if page_contents.data.stopped_tasks|length > 0 %}
+  <div class="app-card mt-4">
+    <div class="app-card-header">停止済みタスク</div>
+    <div class="table-responsive">
+      <table class="table app-table mb-0">
+        <thead>
+          <tr>
+            <th>タスク名</th>
+            <th>通知時刻</th>
+            <th>頻度</th>
+            <th style="width: 100px">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for task in page_contents.data.stopped_tasks %}
+          <tr class="text-muted">
+            <td>
+              <a href="{{ url_for('views_blueprint.view_habit_task_log', task_id=task._id) }}">
+                {{ task.task_name }}
+              </a>
+              <span class="badge bg-secondary ms-1">停止中</span>
+            </td>
+            <td>{{ task.notify_time }}</td>
+            <td>
+              {% if task.frequency == 'daily' %}
+              <span class="badge badge-frequency-daily">毎日</span>
+              {% elif task.frequency == 'weekly' %}
+              <span class="badge badge-frequency-weekly">毎週</span>
+              {% elif task.frequency == 'monthly' %}
+              <span class="badge badge-frequency-monthly">毎月</span>
+              {% else %}
+              <span class="badge bg-secondary">{{ task.frequency }}</span>
+              {% endif %}
+            </td>
+            <td>
+              <form action="{{ url_for('views_blueprint.reactivate_habit_task') }}" method="post" class="d-inline">
+                <input type="hidden" name="task_id" value="{{ task._id }}">
+                <button type="submit" class="btn btn-sm btn-outline-success">再開</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
 </div>
 
 <!-- 編集モーダル -->

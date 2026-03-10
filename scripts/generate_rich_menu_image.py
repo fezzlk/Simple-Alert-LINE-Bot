@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate a modern dark-themed rich menu image for LINE Bot.
+"""Generate a modern white-themed rich menu image for LINE Bot.
 
 Output: scripts/assets/rich_menu_default.png (2500x1686)
 Layout: 3 columns x 2 rows
@@ -14,12 +14,20 @@ WIDTH, HEIGHT = 2500, 1686
 ROW_H = HEIGHT // 2  # 843
 COL_W = [833, 833, 834]
 
-# --- Color palette ---
-BG = (18, 18, 38)            # #12122e deep dark navy
-DIVIDER = (40, 40, 72)       # #282848
-ICON_BG = (32, 32, 68)       # #202044 subtle circle behind icon
-ICON_COLOR = (255, 255, 255) # white
-LABEL_COLOR = (210, 210, 230) # soft white
+# --- Color palette (white theme matching rich_menu_preview.html) ---
+BG = (255, 255, 255)          # white
+DIVIDER = (216, 216, 224)     # #d8d8e0
+LABEL_COLOR = (45, 45, 62)   # #2d2d3e
+
+# Per-cell icon circle background and icon colors
+CELL_STYLES = [
+    {"icon_bg": (238, 240, 255), "icon_color": (92, 107, 192)},   # cell-1: #eef0ff / #5c6bc0
+    {"icon_bg": (224, 247, 250), "icon_color": (0, 151, 167)},    # cell-2: #e0f7fa / #0097a7
+    {"icon_bg": (243, 238, 255), "icon_color": (126, 87, 194)},   # cell-3: #f3eeff / #7e57c2
+    {"icon_bg": (224, 242, 241), "icon_color": (0, 137, 123)},    # cell-4: #e0f2f1 / #00897b
+    {"icon_bg": (232, 245, 233), "icon_color": (67, 160, 71)},    # cell-5: #e8f5e9 / #43a047
+    {"icon_bg": (225, 245, 254), "icon_color": (2, 136, 209)},    # cell-6: #e1f5fe / #0288d1
+]
 
 # --- Sizes ---
 ICON_SIZE = 210   # icon drawing area (radius = half)
@@ -87,10 +95,8 @@ def draw_globe_icon(draw, cx, cy, sz, color, lw):
     # two latitude arcs (drawn as ellipses, clipped to circle bbox)
     for yo_frac in (-0.35, 0.35):
         yo = int(r * yo_frac)
-        # horizontal width at latitude yo
         inner_r = int(math.sqrt(max(0, r ** 2 - yo ** 2))) - lw // 2
         if inner_r > lw:
-            # draw as a flat ellipse
             ey = cy + yo
             ew = inner_r
             eh = max(inner_r // 3, lw * 2)
@@ -100,40 +106,31 @@ def draw_globe_icon(draw, cx, cy, sz, color, lw):
             )
 
 
-def draw_link_icon(draw, cx, cy, sz, color, lw):
-    """Two overlapping chain-link ovals at 45 degrees."""
-    # Simulate by drawing two pill shapes rotated via a temporary image
-    link_w = sz * 2 // 3
-    link_h = sz // 3
-    gap = sz // 5
-
-    def draw_pill(img_layer, ox, oy):
-        d = ImageDraw.Draw(img_layer)
-        _rr(d, ox - link_w // 2, oy - link_h // 2,
-            ox + link_w // 2, oy + link_h // 2,
-            link_h // 2, outline=color, width=lw)
-
-    # Upper-left link
-    layer = Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0))
-    draw_pill(layer, cx - gap, cy - gap)
-    rotated = layer.rotate(-45, center=(cx, cy))
-
-    # Lower-right link
-    layer2 = Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0))
-    draw_pill(layer2, cx + gap, cy + gap)
-    rotated2 = layer2.rotate(-45, center=(cx, cy))
-
-    # Composite onto draw's image
-    base = draw._image
-    base.alpha_composite(rotated)
-    base.alpha_composite(rotated2)
+def draw_calendar_icon(draw, cx, cy, sz, color, lw):
+    """Calendar icon: rectangle with top hooks and grid dots."""
+    half = sz // 2
+    # Body
+    _rr(draw, cx - half, cy - half + sz // 6, cx + half, cy + half, lw, outline=color, width=lw)
+    # Top bar
+    _rr(draw, cx - half, cy - half + sz // 6, cx + half, cy - half + sz // 3 + lw, lw, fill=color)
+    # Two hooks on top
+    hook_y_top = cy - half - sz // 12
+    hook_y_bot = cy - half + sz // 4
+    for hx in (cx - sz // 4, cx + sz // 4):
+        draw.line([hx, hook_y_top, hx, hook_y_bot], fill=color, width=lw)
+    # Grid dots
+    dot_r = lw // 2
+    for row in range(2):
+        for col in range(3):
+            dx = cx - sz // 4 + col * (sz // 4)
+            dy = cy + sz // 12 + row * (sz // 4)
+            draw.ellipse([dx - dot_r, dy - dot_r, dx + dot_r, dy + dot_r], fill=color)
 
 
 def draw_check_icon(draw, cx, cy, sz, color, lw):
     """Circle with checkmark inside."""
     r = sz // 2
     draw.ellipse([cx - r, cy - r, cx + r, cy + r], outline=color, width=lw)
-    # Checkmark: short left stroke + long right stroke
     pts = [
         (cx - sz // 4, cy + sz // 16),
         (cx - sz // 10 + 4, cy + sz // 4),
@@ -145,12 +142,12 @@ def draw_check_icon(draw, cx, cy, sz, color, lw):
 # ---------- Main ----------
 
 CELLS = [
-    ("一覧",      draw_list_icon),
-    ("登録",      draw_plus_icon),
-    ("使い方",    draw_question_icon),
-    ("Web一覧",   draw_globe_icon),
-    ("カレンダー",  draw_check_icon),
-    ("習慣タスク", draw_check_icon),
+    ("一覧",       draw_list_icon),
+    ("登録",       draw_plus_icon),
+    ("使い方",     draw_question_icon),
+    ("Web一覧",    draw_globe_icon),
+    ("カレンダー",  draw_calendar_icon),
+    ("習慣タスク",  draw_check_icon),
 ]
 
 
@@ -175,20 +172,18 @@ def main(output: str = "scripts/assets/rich_menu_default.png"):
     icon_dy = -90   # icon center offset from cell center
     label_dy = 210  # label center offset from cell center
 
-    for (label, draw_fn), (cx, cy) in zip(CELLS, centers):
+    for idx, ((label, draw_fn), (cx, cy)) in enumerate(zip(CELLS, centers)):
         icy = cy + icon_dy
+        style = CELL_STYLES[idx]
 
         # Icon background circle
         draw.ellipse(
             [cx - ICON_BG_R, icy - ICON_BG_R, cx + ICON_BG_R, icy + ICON_BG_R],
-            fill=(*ICON_BG, 255),
+            fill=(*style["icon_bg"], 255),
         )
 
-        # Icon — link icon needs the composited image; others use draw directly
-        if draw_fn is draw_link_icon:
-            draw_link_icon(draw, cx, icy, ICON_SIZE, ICON_COLOR, LINE_W)
-        else:
-            draw_fn(draw, cx, icy, ICON_SIZE, ICON_COLOR, LINE_W)
+        # Icon
+        draw_fn(draw, cx, icy, ICON_SIZE, style["icon_color"], LINE_W)
 
         # Label
         draw.text((cx, cy + label_dy), label, font=font, fill=(*LABEL_COLOR, 255), anchor="mm")

@@ -41,12 +41,14 @@ class StockListData:
 @dataclass()
 class HabitTaskListData:
     tasks: list
+    stopped_tasks: list
 
     def __init__(
         self,
         session: SessionMixin,
     ):
         self.tasks = []
+        self.stopped_tasks = []
 
 
 @dataclass()
