@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% block content %}
+{% set mode = request.args.get('mode', 'detail') %}
 <div class="container py-3">
   <!-- ページヘッダー -->
   <div class="page-header d-flex justify-content-between align-items-center">
@@ -22,25 +23,43 @@
     <div class="app-card-header d-flex justify-content-between align-items-center">
       <a
         class="btn btn-outline-secondary btn-sm"
-        href="{{ url_for('views_blueprint.view_habit_task_log', task_id=page_contents.data.task._id, month=page_contents.data.prev_month) }}"
+        href="{{ url_for('views_blueprint.view_habit_task_log', task_id=page_contents.data.task._id, month=page_contents.data.prev_month, mode=mode) }}"
       >
         前月
       </a>
       <strong>{{ page_contents.data.calendar_month_label }}</strong>
       <a
         class="btn btn-outline-secondary btn-sm"
-        href="{{ url_for('views_blueprint.view_habit_task_log', task_id=page_contents.data.task._id, month=page_contents.data.next_month) }}"
+        href="{{ url_for('views_blueprint.view_habit_task_log', task_id=page_contents.data.task._id, month=page_contents.data.next_month, mode=mode) }}"
       >
         次月
       </a>
     </div>
     <div class="p-3">
-      <div class="mb-3 small d-flex gap-2 flex-wrap">
-        <span class="badge badge-done">実施</span>
-        <span class="badge badge-not-done">未実施</span>
-        <span class="badge badge-other">その他</span>
-        <span class="badge badge-no-log">未記録</span>
+      <!-- デザイン切り替え -->
+      <div class="mb-3 d-flex justify-content-between align-items-center">
+        <div class="small d-flex gap-2 flex-wrap">
+          {% if mode == 'detail' %}
+          <span class="badge badge-done">実施</span>
+          <span class="badge badge-not-done">未実施</span>
+          <span class="badge badge-other">その他</span>
+          <span class="badge badge-no-log">未記録</span>
+          {% else %}
+          <span class="text-muted"><span style="color: #22c55e; font-size: 1.1em; font-weight: bold;">&#10003;</span> = 実施済み</span>
+          {% endif %}
+        </div>
+        <div class="btn-group btn-group-sm" role="group">
+          <a
+            href="{{ url_for('views_blueprint.view_habit_task_log', task_id=page_contents.data.task._id, month=page_contents.data.calendar_month, mode='detail') }}"
+            class="btn {{ 'btn-primary' if mode == 'detail' else 'btn-outline-primary' }}"
+          >詳細</a>
+          <a
+            href="{{ url_for('views_blueprint.view_habit_task_log', task_id=page_contents.data.task._id, month=page_contents.data.calendar_month, mode='simple') }}"
+            class="btn {{ 'btn-primary' if mode == 'simple' else 'btn-outline-primary' }}"
+          >シンプル</a>
+        </div>
       </div>
+
       <div class="table-responsive">
         <table class="table table-bordered app-table mb-0">
           <thead>
@@ -59,7 +78,7 @@
             <tr>
               {% for cell in week %}
               <td
-                class="{% if not cell.is_current_month %}text-muted bg-light{% endif %} habit-cell"
+                class="{% if not cell.is_current_month %}text-muted bg-light{% endif %} habit-cell{% if mode == 'simple' and cell.is_current_month and cell.status == 'done' %} habit-cell-done{% endif %}"
                 style="width: 14.2%; height: 72px; cursor: pointer;"
                 data-bs-toggle="modal"
                 data-bs-target="#logModal"
@@ -68,6 +87,7 @@
                 data-note="{{ cell.note }}"
                 data-log-id="{{ cell.log_id|default('') }}"
               >
+                {% if mode == 'detail' %}
                 <div class="d-flex justify-content-between align-items-start">
                   <span>{{ cell.day }}</span>
                   {% if cell.status == 'done' %}
@@ -82,6 +102,15 @@
                 </div>
                 {% if cell.note %}
                 <div class="small mt-1 text-truncate" title="{{ cell.note }}">{{ cell.note }}</div>
+                {% endif %}
+                {% else %}
+                {# simple mode #}
+                <div class="text-center">
+                  <div class="small">{{ cell.day }}</div>
+                  {% if cell.is_current_month and cell.status == 'done' %}
+                  <div style="color: #22c55e; font-size: 1.5em; line-height: 1;">&#10003;</div>
+                  {% endif %}
+                </div>
                 {% endif %}
               </td>
               {% endfor %}
@@ -207,4 +236,10 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 </script>
+
+<style>
+  .habit-cell-done {
+    background-color: #f0fdf4 !important;
+  }
+</style>
 {% endblock %}
