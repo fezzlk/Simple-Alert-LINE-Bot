@@ -206,38 +206,109 @@ FUNCTION_TO_INTENT = {
 
 
 class LineIntentParserService:
-    @staticmethod
-    def _normalize(text: str) -> str:
-        """全角英数字・記号を半角に正規化する。"""
+    # ゼロ幅・不可視 Unicode 文字（フィルタバイパス対策）
+    _INVISIBLE_RE = re.compile(
+        "[\u200b\u200c\u200d\u200e\u200f"   # ZWS, ZWNJ, ZWJ, LRM, RLM
+        "\u2060\u2061\u2062\u2063\u2064"     # word joiner, function application, etc.
+        "\ufeff\ufffe"                        # BOM, non-character
+        "\u00ad"                              # soft hyphen
+        "\u034f"                              # combining grapheme joiner
+        "\u061c"                              # Arabic letter mark
+        "\u115f\u1160"                        # Hangul filler
+        "\u17b4\u17b5"                        # Khmer vowel inherent
+        "\u180e"                              # Mongolian vowel separator
+        "\u2000-\u200a"                       # various spaces
+        "\u202a-\u202e"                       # bidi controls
+        "\u2066-\u2069"                       # bidi isolates
+        "\ufff9-\ufffb"                       # interlinear annotations
+        "]"
+    )
+
+    # ASCII ホモグリフ（キリル文字・ギリシャ文字で英字に見える文字）→ ASCII
+    _HOMOGLYPH_MAP = str.maketrans({
+        "\u0410": "A", "\u0430": "a",  # Cyrillic А/а
+        "\u0412": "B", "\u0432": "b",  # Cyrillic В/в (looks like B)
+        "\u0421": "C", "\u0441": "c",  # Cyrillic С/с
+        "\u0415": "E", "\u0435": "e",  # Cyrillic Е/е
+        "\u041d": "H", "\u043d": "h",  # Cyrillic Н/н
+        "\u041a": "K", "\u043a": "k",  # Cyrillic К/к
+        "\u041c": "M", "\u043c": "m",  # Cyrillic М/м
+        "\u041e": "O", "\u043e": "o",  # Cyrillic О/о
+        "\u0420": "P", "\u0440": "p",  # Cyrillic Р/р
+        "\u0422": "T", "\u0442": "t",  # Cyrillic Т/т
+        "\u0425": "X", "\u0445": "x",  # Cyrillic Х/х
+        "\u0423": "Y", "\u0443": "y",  # Cyrillic У/у
+        "\u0392": "B",                  # Greek Β
+        "\u03b2": "b",                  # Greek β (approximation)
+        "\u0395": "E", "\u03b5": "e",  # Greek Ε/ε
+        "\u0397": "H", "\u03b7": "h",  # Greek Η/η
+        "\u039a": "K", "\u03ba": "k",  # Greek Κ/κ
+        "\u039c": "M",                  # Greek Μ
+        "\u039d": "N",                  # Greek Ν
+        "\u039f": "O", "\u03bf": "o",  # Greek Ο/ο
+        "\u03a1": "P", "\u03c1": "p",  # Greek Ρ/ρ
+        "\u03a4": "T", "\u03c4": "t",  # Greek Τ/τ
+        "\u03a7": "X", "\u03c7": "x",  # Greek Χ/χ
+        "\u0405": "S", "\u0455": "s",  # Cyrillic Ѕ/ѕ
+        "\u0406": "I", "\u0456": "i",  # Cyrillic І/і
+        "\u0408": "J", "\u0458": "j",  # Cyrillic Ј/ј
+    })
+
+    @classmethod
+    def _normalize(cls, text: str) -> str:
+        """全角英数字・記号を半角に正規化し、不可視文字・ホモグリフを除去する。"""
+        # ゼロ幅・不可視文字を除去
+        text = cls._INVISIBLE_RE.sub("", text)
+        # ホモグリフを ASCII に正規化
+        text = text.translate(cls._HOMOGLYPH_MAP)
+        # 全角英数字・記号 (！〜) → 半角
         result = []
         for ch in text:
             cp = ord(ch)
-            # 全角英数字・記号 (！〜) → 半角
             if 0xFF01 <= cp <= 0xFF5E:
                 result.append(chr(cp - 0xFEE0))
             else:
                 result.append(ch)
         return "".join(result)
 
-    @staticmethod
-    def _sanitize_item_names(names: list) -> list:
+    # アイテム名インジェクション検出パターン（英語 + 日本語 + 構造攻撃）
+    _ITEM_INJECTION_RE = re.compile(
+        r"("
+        # 英語キーワード
+        r"ignore|system|prompt|instruction|role|assistant|forget|disregard"
+        r"|override|pretend|act\s+as|you\s+are|new\s+instructions|bypass"
+        r"|jailbreak|do\s+not|don'?t|reveal|secret|password|admin"
+        # 日本語キーワード
+        r"|指示を?無視|無視して|プロンプト|内部ルール|開発者指示"
+        r"|システムプロンプト|ロールを|ルールを|命令を|忘れて|新しい指示"
+        r"|ふりをして|なりきって|設定を?変更|制約を?解除|制限を?解除"
+        r"|あなたは今から|以下の指示|以下は新しい"
+        # 構造攻撃（ロールタグ・デリミタ偽装）
+        r"|\[system\]|\[user\]|\[assistant\]|<\|system\|>|<\|user\|>"
+        r"|```|---\n|===\n"
+        r")",
+        re.IGNORECASE,
+    )
+
+    @classmethod
+    def _sanitize_item_names(cls, names: list) -> list:
         """既存アイテム名リストをサニタイズ（インジェクション対策）。"""
         sanitized = []
         for name in names:
             if not isinstance(name, str):
                 continue
-            # 制御文字・改行を除去
-            clean = re.sub(r"[\r\n\t]", "", name).strip()
+            # 不可視文字・ホモグリフを正規化してからチェック
+            clean = cls._INVISIBLE_RE.sub("", name)
+            clean = clean.translate(cls._HOMOGLYPH_MAP)
+            clean = re.sub(r"[\r\n\t]", "", clean).strip()
             # 長すぎるものは切り捨て
             if not clean or len(clean) > 50:
                 continue
-            # prompt injection 的なパターンを除外（英語 + 日本語）
-            if re.search(
-                r"(ignore|system|prompt|instruction|role|assistant"
-                r"|指示を?無視|無視して|プロンプト|内部ルール|開発者指示"
-                r"|システムプロンプト|ロールを|ルールを|命令を)",
-                clean, re.IGNORECASE,
-            ):
+            # デリミタインジェクション対策: 括弧・カンマ・引用符を含むものを除外
+            if re.search(r"[\[\]{}()\",;\\]", clean):
+                continue
+            # prompt injection 的なパターンを除外
+            if cls._ITEM_INJECTION_RE.search(clean):
                 continue
             sanitized.append(clean)
         # 最大30件に制限
@@ -259,8 +330,21 @@ class LineIntentParserService:
         if any(a in lower for a in LOGIN_ALIASES):
             return {**self._none_result(), "intent": "login"}
 
+        # Tier-1B: メッセージ長制限（過剰に長い入力は拒否）
+        if len(text) > 500:
+            return self._none_result()
+
         # Tier-1B: セキュリティフィルタ
-        if re.search(r"(ignore|system prompt|開発者指示|内部ルール|プロンプト)", text, re.IGNORECASE):
+        if re.search(
+            r"(ignore|system\s*prompt|forget\s+(all|previous|your)|disregard"
+            r"|override|pretend|act\s+as|you\s+are\s+now|new\s+instructions"
+            r"|jailbreak|bypass|do\s+anything\s+now|DAN"
+            r"|開発者指示|内部ルール|プロンプト|指示を?無視|無視して"
+            r"|忘れて|新しい指示|ふりをして|なりきって|制約を?解除|制限を?解除"
+            r"|あなたは今から|以下の指示|以下は新しい|設定を?変更して"
+            r"|\[system\]|\[INST\]|<\|system\|>)",
+            text, re.IGNORECASE,
+        ):
             return self._none_result()
         if re.search(r"(全部|全て|すべて).*(削除|消去|消して|消す|期限|更新|変更)", text):
             return self._none_result()
@@ -405,6 +489,17 @@ class LineIntentParserService:
         else:
             notify_days_before = None
 
+        # note フィールドのサニタイズ（LLM出力をそのまま信頼しない）
+        note = parsed.get("note")
+        if isinstance(note, str):
+            note = re.sub(r"[\r\n\t]", " ", note).strip()
+            if len(note) > 200:
+                note = note[:200]
+            if not note:
+                note = None
+        else:
+            note = None
+
         return {
             "intent":              intent,
             "item_name":           item_name,
@@ -418,7 +513,7 @@ class LineIntentParserService:
             "enabled":             parsed.get("enabled"),
             "scheduled_date":      _check_date(parsed.get("scheduled_date")),
             "result":              parsed.get("result"),
-            "note":                parsed.get("note"),
+            "note":                note,
         }
 
     def _none_result(self) -> Dict[str, Any]:

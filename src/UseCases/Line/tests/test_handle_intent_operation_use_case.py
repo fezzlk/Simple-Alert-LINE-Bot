@@ -104,7 +104,7 @@ class DummyIntentParserService:
         # メッセージ部分文字列 → 返却値 のマッピング（テスト用）
         self.extra_responses = extra_responses or {}
 
-    def parse(self, message: str):
+    def parse(self, message: str, existing_items=None):
         for substring, response in self.extra_responses.items():
             if substring in message:
                 return response
