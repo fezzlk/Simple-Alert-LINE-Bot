@@ -37,6 +37,28 @@ class HandleIntentOperationUseCase(IUseCase):
         self._habit_task_log_repository = habit_task_log_repository
         self._web_user_repository = web_user_repository
 
+    def _collect_existing_item_names(self, line_user_id: str) -> list:
+        """ユーザーの登録済みアイテム名・習慣タスク名を収集する。"""
+        names = []
+        try:
+            stocks = self._stock_repository.find(
+                query={"owner_id": line_user_id, "status": 1}
+            )
+            names.extend(s.item_name for s in stocks if s.item_name)
+        except Exception:
+            pass
+        if self._habit_task_repository is not None:
+            try:
+                owner_ids = self._get_habit_owner_ids(line_user_id)
+                tasks = self._habit_task_repository.find(
+                    {"owner_id__in": owner_ids, "is_active": True}
+                )
+                names.extend(t.task_name for t in tasks if t.task_name)
+            except Exception:
+                pass
+        # 重複排除
+        return list(dict.fromkeys(names))
+
     def _get_habit_owner_ids(self, line_user_id: str) -> list:
         """LINE user ID に紐づく Web user ID も含めた owner_id リストを返す。"""
         ids = [line_user_id]
@@ -66,7 +88,8 @@ class HandleIntentOperationUseCase(IUseCase):
             self._line_response_service.add_message("キャンセルしました。")
             return
 
-        parsed = self._intent_parser_service.parse(message)
+        existing_items = self._collect_existing_item_names(line_user_id)
+        parsed = self._intent_parser_service.parse(message, existing_items=existing_items)
         if parsed["intent"] == "none":
             self._line_response_service.add_message(
                 "操作を特定できませんでした。登録/更新/削除したい内容をもう一度送ってください。"

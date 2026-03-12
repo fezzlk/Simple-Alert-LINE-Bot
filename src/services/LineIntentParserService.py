@@ -219,7 +219,31 @@ class LineIntentParserService:
                 result.append(ch)
         return "".join(result)
 
-    def parse(self, message: str) -> Dict[str, Any]:
+    @staticmethod
+    def _sanitize_item_names(names: list) -> list:
+        """既存アイテム名リストをサニタイズ（インジェクション対策）。"""
+        sanitized = []
+        for name in names:
+            if not isinstance(name, str):
+                continue
+            # 制御文字・改行を除去
+            clean = re.sub(r"[\r\n\t]", "", name).strip()
+            # 長すぎるものは切り捨て
+            if not clean or len(clean) > 50:
+                continue
+            # prompt injection 的なパターンを除外（英語 + 日本語）
+            if re.search(
+                r"(ignore|system|prompt|instruction|role|assistant"
+                r"|指示を?無視|無視して|プロンプト|内部ルール|開発者指示"
+                r"|システムプロンプト|ロールを|ルールを|命令を)",
+                clean, re.IGNORECASE,
+            ):
+                continue
+            sanitized.append(clean)
+        # 最大30件に制限
+        return sanitized[:30]
+
+    def parse(self, message: str, existing_items: Optional[list] = None) -> Dict[str, Any]:
         text = self._normalize((message or "").strip())
         if not text:
             return self._none_result()
@@ -246,9 +270,10 @@ class LineIntentParserService:
             return self._none_result()
 
         # Tier-2: Function Calling
-        return self._parse_with_function_calling(text)
+        safe_items = self._sanitize_item_names(existing_items or [])
+        return self._parse_with_function_calling(text, safe_items)
 
-    def _parse_with_function_calling(self, message: str) -> Dict[str, Any]:
+    def _parse_with_function_calling(self, message: str, existing_items: list = None) -> Dict[str, Any]:
         today_str = datetime.now().strftime("%Y-%m-%d")
         system_prompt = (
             f"Today's date is {today_str} (JST).\n"
@@ -260,6 +285,13 @@ class LineIntentParserService:
             "  - When M/D is in the past (e.g. 2/27 and today is 3/4), interpret as the same year unless context implies otherwise\n"
             "If the intent is unclear or unsafe, do NOT call any tool."
         )
+        if existing_items:
+            items_str = ", ".join(existing_items)
+            system_prompt += (
+                f"\n\nThe user's registered items/tasks are: [{items_str}].\n"
+                "When the user mentions an item, match it to one of these names if possible. "
+                "Use the exact registered name as item_name/task_name."
+            )
         payload = {
             "model": config.OPENAI_MODEL,
             "messages": [
