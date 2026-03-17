@@ -36,7 +36,7 @@ class ReplyHelpUseCase(IUseCase):
     def _get_description(self, keyword) -> str:
         if keyword is None:
             return (
-                '📋 Simple Alert の使い方\n\n'
+                '📋 remily の使い方\n\n'
                 'このBotでできること：\n'
                 '• 期限・締切のあるものを登録して通知を受け取る\n'
                 '• 期限1週間前から毎日12時にリマインド\n'
@@ -78,7 +78,7 @@ class ReplyHelpUseCase(IUseCase):
             return 'WebアプリのURLを表示します。'
         else:
             return (
-                '📋 Simple Alert の使い方\n\n'
+                '📋 remily の使い方\n\n'
                 'やりたいことを日本語で送るだけで操作できます。\n\n'
                 '「卵 3/15まで」→ 登録\n'
                 '「卵の期限を3/22にして」→ 更新\n'

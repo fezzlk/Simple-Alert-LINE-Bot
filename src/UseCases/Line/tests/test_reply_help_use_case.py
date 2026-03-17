@@ -75,7 +75,7 @@ def test_reply_help_default_lists_commands():
     # キーワードなしはクイックリプライ付きメッセージとして buttons に追加される
     assert len(line_response_service.buttons) == 1
     msg = line_response_service.buttons[0]
-    assert "Simple Alert" in msg.text
+    assert "remily" in msg.text
     assert "一覧" in msg.text
     assert msg.quick_reply is not None
     labels = [item.action.label for item in msg.quick_reply.items]
