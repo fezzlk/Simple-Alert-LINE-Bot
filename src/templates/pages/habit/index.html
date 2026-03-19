@@ -16,6 +16,9 @@
             {% from "components/_formhelpers.html" import render_field %}
             <div class="mb-2">{{ render_field(form.task_name) }}</div>
             <div class="mb-2">{{ render_field(form.notify_time) }}</div>
+            <div class="mb-2">{{ render_field(form.frequency, **{"onchange": "toggleAddFrequencyFields()"}) }}</div>
+            <div class="mb-2" id="add-dow-field" style="display:none;">{{ render_field(form.notify_day_of_week) }}</div>
+            <div class="mb-2" id="add-dom-field" style="display:none;">{{ render_field(form.notify_day_of_month) }}</div>
             <div>{{ form.csrf_token }}{{ form.submit() }}</div>
           </form>
         </div>
@@ -48,6 +51,10 @@
             <td>
               {% if task.frequency == 'daily' %}
               <span class="badge badge-frequency-daily">毎日</span>
+              {% elif task.frequency == 'every_other_day' %}
+              <span class="badge badge-frequency-every-other-day">1日おき</span>
+              {% elif task.frequency == 'every_two_days' %}
+              <span class="badge badge-frequency-every-two-days">2日おき</span>
               {% elif task.frequency == 'weekly' %}
               <span class="badge badge-frequency-weekly">毎週</span>
               {% elif task.frequency == 'monthly' %}
@@ -107,6 +114,10 @@
             <td>
               {% if task.frequency == 'daily' %}
               <span class="badge badge-frequency-daily">毎日</span>
+              {% elif task.frequency == 'every_other_day' %}
+              <span class="badge badge-frequency-every-other-day">1日おき</span>
+              {% elif task.frequency == 'every_two_days' %}
+              <span class="badge badge-frequency-every-two-days">2日おき</span>
               {% elif task.frequency == 'weekly' %}
               <span class="badge badge-frequency-weekly">毎週</span>
               {% elif task.frequency == 'monthly' %}
@@ -117,6 +128,7 @@
             </td>
             <td>
               <form action="{{ url_for('views_blueprint.reactivate_habit_task') }}" method="post" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="task_id" value="{{ task._id }}">
                 <button type="submit" class="btn btn-sm btn-outline-success">再開</button>
               </form>
@@ -136,6 +148,7 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <form action="{{ url_for('views_blueprint.update_habit_task') }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="modal-header">
           <h5 class="modal-title">タスクを編集</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
@@ -149,6 +162,34 @@
           <div class="mb-3">
             <label class="form-label">通知時刻</label>
             <input type="time" name="notify_time" class="form-control" value="{{ task.notify_time }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">頻度</label>
+            <select name="frequency" class="form-select" onchange="toggleEditFrequencyFields(this, '{{ task._id }}')">
+              <option value="daily" {% if task.frequency == 'daily' %}selected{% endif %}>毎日</option>
+              <option value="every_other_day" {% if task.frequency == 'every_other_day' %}selected{% endif %}>1日おき</option>
+              <option value="every_two_days" {% if task.frequency == 'every_two_days' %}selected{% endif %}>2日おき</option>
+              <option value="weekly" {% if task.frequency == 'weekly' %}selected{% endif %}>毎週</option>
+              <option value="monthly" {% if task.frequency == 'monthly' %}selected{% endif %}>毎月</option>
+            </select>
+          </div>
+          <div class="mb-3" id="edit-dow-{{ task._id }}" style="display:{% if task.frequency == 'weekly' %}block{% else %}none{% endif %};">
+            <label class="form-label">曜日</label>
+            <select name="notify_day_of_week" class="form-select">
+              <option value="">選択してください</option>
+              {% for val, label in [("0","月曜日"),("1","火曜日"),("2","水曜日"),("3","木曜日"),("4","金曜日"),("5","土曜日"),("6","日曜日")] %}
+              <option value="{{ val }}" {% if task.notify_day_of_week is not none and task.notify_day_of_week|string == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3" id="edit-dom-{{ task._id }}" style="display:{% if task.frequency == 'monthly' %}block{% else %}none{% endif %};">
+            <label class="form-label">日</label>
+            <select name="notify_day_of_month" class="form-select">
+              <option value="">選択してください</option>
+              {% for i in range(1, 32) %}
+              <option value="{{ i }}" {% if task.notify_day_of_month is not none and task.notify_day_of_month == i %}selected{% endif %}>{{ i }}日</option>
+              {% endfor %}
+            </select>
           </div>
         </div>
         <div class="modal-footer">
@@ -165,6 +206,7 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <form action="{{ url_for('views_blueprint.delete_habit_task') }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="modal-header">
           <h5 class="modal-title">タスクを停止</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
@@ -183,4 +225,18 @@
   </div>
 </div>
 {% endfor %}
+
+<script>
+function toggleAddFrequencyFields() {
+  var freq = document.getElementById('frequency').value;
+  document.getElementById('add-dow-field').style.display = (freq === 'weekly') ? 'block' : 'none';
+  document.getElementById('add-dom-field').style.display = (freq === 'monthly') ? 'block' : 'none';
+}
+function toggleEditFrequencyFields(sel, taskId) {
+  var freq = sel.value;
+  document.getElementById('edit-dow-' + taskId).style.display = (freq === 'weekly') ? 'block' : 'none';
+  document.getElementById('edit-dom-' + taskId).style.display = (freq === 'monthly') ? 'block' : 'none';
+}
+document.addEventListener('DOMContentLoaded', function() { toggleAddFrequencyFields(); });
+</script>
 {% endblock %}

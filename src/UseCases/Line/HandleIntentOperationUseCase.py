@@ -137,6 +137,7 @@ class HandleIntentOperationUseCase(IUseCase):
                 message = f'"{item_name}" を登録します{notify_suffix}。よろしいですか？'
         elif intent == "register_habit":
             DOW_NAMES = ["月", "火", "水", "木", "金", "土", "日"]
+            FREQ_LABELS = {"daily": "毎日", "every_other_day": "1日おき", "every_two_days": "2日おき"}
             if frequency == "weekly":
                 dow = parsed.get("notify_day_of_week")
                 day_text = f"毎週{DOW_NAMES[dow]}曜日" if dow is not None else "毎週"
@@ -144,11 +145,12 @@ class HandleIntentOperationUseCase(IUseCase):
                 dom = parsed.get("notify_day_of_month")
                 day_text = f"毎月{dom}日" if dom is not None else "毎月"
             else:
-                day_text = "毎日"
+                day_text = FREQ_LABELS.get(frequency, "毎日")
             time_text = notify_time or "12:00"
             message = f'習慣タスク "{item_name}" を登録します（{day_text} {time_text} にリマインド）。よろしいですか？'
         elif intent == "update_habit_frequency":
             DOW_NAMES = ["月", "火", "水", "木", "金", "土", "日"]
+            FREQ_LABELS = {"daily": "毎日", "every_other_day": "1日おき", "every_two_days": "2日おき"}
             dow = parsed.get("notify_day_of_week")
             dom = parsed.get("notify_day_of_month")
             if frequency == "weekly":
@@ -156,7 +158,7 @@ class HandleIntentOperationUseCase(IUseCase):
             elif frequency == "monthly":
                 label = f"毎月{dom}日" if dom is not None else "毎月"
             else:
-                label = "毎日"
+                label = FREQ_LABELS.get(frequency, "毎日")
             message = f'習慣タスク "{item_name}" の頻度を {label} に変更します。よろしいですか？'
         elif intent == "update":
             date_text = datetime.strptime(expiry_date, "%Y-%m-%d").strftime("%Y年%m月%d日")

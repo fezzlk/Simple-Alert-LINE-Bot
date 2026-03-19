@@ -3,6 +3,7 @@
 from src import config
 import logging
 from flask import Flask, session
+from flask_wtf.csrf import CSRFProtect
 from webassets import Environment, Bundle
 from webassets.ext.jinja2 import AssetsExtension
 from src.routes.views import views_blueprint
@@ -16,8 +17,19 @@ from src.web_context import build_login_user
 # setup flask app
 app = Flask(__name__)
 app.debug = bool(config.DEBUG)
-app.secret_key = 'random secret'
+
+if not config.FLASK_SECRET_KEY and not config.IS_DEVELOPMENT:
+    raise RuntimeError(
+        'FLASK_SECRET_KEY environment variable is required in production. '
+        'Generate one with: python -c "import secrets; print(secrets.token_hex(32))"'
+    )
+app.secret_key = config.FLASK_SECRET_KEY or 'dev-only-insecure-key'
+
 oauth.init_app(app)
+
+# CSRF protection
+csrf = CSRFProtect(app)
+
 if config.IS_DEVELOPMENT:
     logging.warning(
         'FLASK_ENV is development. Production deploys should set FLASK_ENV=production.'
@@ -27,6 +39,10 @@ if config.IS_DEVELOPMENT:
 app.register_blueprint(views_blueprint)
 app.register_blueprint(api_blueprint)
 app.register_blueprint(line_blueprint)
+
+# LINE Webhook / internal API は独自認証のため CSRF を除外
+csrf.exempt(api_blueprint)
+csrf.exempt(line_blueprint)
 
 # set middleware
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)

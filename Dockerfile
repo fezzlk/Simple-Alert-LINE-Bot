@@ -2,10 +2,10 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY ./ /app
+COPY requirements.txt /app/requirements.txt
+RUN python -m pip install --upgrade pip \
+    && pip install --no-cache-dir -r /app/requirements.txt
 
-RUN python -m pip install --upgrade pip
-RUN pip install -r /app/requirements.txt
-RUN pip install -r /app/requirements.dev.txt
+COPY ./ /app
 
 CMD ["sh", "-c", "gunicorn -b 0.0.0.0:${PORT} src:app"]

@@ -70,15 +70,15 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "register_habit_task",
-            "description": "毎日・毎週・毎月の習慣タスクを登録する。notify_timeはHH:MM形式、不明ならnull。weeklyの場合はnotify_day_of_week（0=月〜6=日）、monthlyの場合はnotify_day_of_month（1〜31）を指定。dailyはどちらもnull。",
+            "description": "習慣タスクを登録する。頻度はdaily（毎日）、every_other_day（1日おき）、every_two_days（2日おき）、weekly（毎週）、monthly（毎月）から選択。notify_timeはHH:MM形式、不明ならnull。weeklyの場合はnotify_day_of_week（0=月〜6=日）、monthlyの場合はnotify_day_of_month（1〜31）を指定。それ以外はどちらもnull。",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "item_name":           {"type": "string"},
-                    "frequency":           {"type": "string", "enum": ["daily", "weekly", "monthly"]},
+                    "frequency":           {"type": "string", "enum": ["daily", "every_other_day", "every_two_days", "weekly", "monthly"]},
                     "notify_time":         {"type": ["string", "null"]},
-                    "notify_day_of_week":  {"type": ["integer", "null"], "description": "週次の場合の曜日（0=月〜6=日）。daily/monthlyはnull。"},
-                    "notify_day_of_month": {"type": ["integer", "null"], "description": "月次の場合の日（1〜31）。daily/weeklyはnull。"},
+                    "notify_day_of_week":  {"type": ["integer", "null"], "description": "週次の場合の曜日（0=月〜6=日）。weekly以外はnull。"},
+                    "notify_day_of_month": {"type": ["integer", "null"], "description": "月次の場合の日（1〜31）。monthly以外はnull。"},
                 },
                 "required": ["item_name", "frequency", "notify_time", "notify_day_of_week", "notify_day_of_month"],
                 "additionalProperties": False,
@@ -90,12 +90,12 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "update_habit_frequency",
-            "description": "習慣タスクの頻度を変更する。weekly→notify_day_of_week（0〜6）、monthly→notify_day_of_month（1〜31）を指定。",
+            "description": "習慣タスクの頻度を変更する。頻度はdaily/every_other_day/every_two_days/weekly/monthlyから選択。weekly→notify_day_of_week（0〜6）、monthly→notify_day_of_month（1〜31）を指定。",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "task_name":           {"type": "string"},
-                    "frequency":           {"type": "string", "enum": ["daily", "weekly", "monthly"]},
+                    "frequency":           {"type": "string", "enum": ["daily", "every_other_day", "every_two_days", "weekly", "monthly"]},
                     "notify_day_of_week":  {"type": ["integer", "null"]},
                     "notify_day_of_month": {"type": ["integer", "null"]},
                 },
@@ -444,7 +444,7 @@ class LineIntentParserService:
             return None
 
         frequency = parsed.get("frequency")
-        if frequency not in ("daily", "weekly", "monthly"):
+        if frequency not in ("daily", "every_other_day", "every_two_days", "weekly", "monthly"):
             frequency = None
 
         dow = parsed.get("notify_day_of_week")

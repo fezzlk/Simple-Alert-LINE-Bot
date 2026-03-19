@@ -51,6 +51,7 @@ AddStockModal.render(page_contents, form) }}
           method="POST"
           class="m-0"
         >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="stock_id" value="{{ stock._id }}" />
           <input
             type="hidden"
@@ -75,6 +76,7 @@ AddStockModal.render(page_contents, form) }}
           id="{{stock._id}}_{{key}}_form"
           name="{{key}}"
         >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input
             type="hidden"
             id="{{stock._id}}_{{key}}_input"
@@ -176,6 +178,7 @@ AddStockModal.render(page_contents, form) }}
           action="{{ url_for('views_blueprint.delete_stock') }}"
           method="post"
         >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <div class="text-end">
             <input type="hidden" name="stock_id" value="{{ stock._id }}" />
             <button type="submit" class="btn btn-sm text-danger">

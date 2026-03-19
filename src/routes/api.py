@@ -10,6 +10,7 @@ from src.Infrastructure.Repositories import (
     stock_repository,
     web_user_repository,
 )
+from src.middlewares.api_auth import internal_api_auth_required
 from src.services import line_response_service
 api_blueprint = Blueprint('api_blueprint', __name__, url_prefix='/_api/v1')
 
@@ -18,7 +19,13 @@ Endpoints for line push message
 '''
 
 
+@api_blueprint.route('/health', methods=['GET'])
+def health():
+    return {'status': 'ok'}, 200
+
+
 @api_blueprint.route('/check_expire', methods=['post'])
+@internal_api_auth_required
 def check_expire():
     CheckExpiredStockUseCase(
         notification_schedule_repository=notification_schedule_repository,
@@ -30,6 +37,7 @@ def check_expire():
 
 
 @api_blueprint.route('/check_habit_tasks', methods=['post'])
+@internal_api_auth_required
 def check_habit_tasks():
     CheckHabitTaskUseCase(
         line_user_repository=line_user_repository,

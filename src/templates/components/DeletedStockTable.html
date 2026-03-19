@@ -19,6 +19,7 @@
           action="{{ url_for('views_blueprint.restore_stock') }}"
           method="post"
         >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="stock_id" value="{{ stock._id }}" />
           <button type="submit" class="btn btn-sm">
             <i class="fas fa-reply"></i>
@@ -33,6 +34,7 @@
           action="{{ url_for('views_blueprint.complete_delete_stock') }}"
           method="post"
         >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <div class="text-end">
             <input type="hidden" name="stock_id" value="{{ stock._id }}" />
             <button type="submit" class="btn btn-sm text-danger">

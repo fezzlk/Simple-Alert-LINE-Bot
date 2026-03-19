@@ -54,6 +54,20 @@ class CheckHabitTaskUseCase(IUseCase):
             for task in all_time_tasks:
                 if task.frequency == "daily":
                     tasks.append(task)
+                elif task.frequency == "every_other_day":
+                    if task.created_at:
+                        delta = (now.date() - task.created_at.date()).days if hasattr(task.created_at, 'date') else (now.date() - task.created_at).days
+                        if delta % 2 == 0:
+                            tasks.append(task)
+                    else:
+                        tasks.append(task)
+                elif task.frequency == "every_two_days":
+                    if task.created_at:
+                        delta = (now.date() - task.created_at.date()).days if hasattr(task.created_at, 'date') else (now.date() - task.created_at).days
+                        if delta % 3 == 0:
+                            tasks.append(task)
+                    else:
+                        tasks.append(task)
                 elif task.frequency == "weekly" and task.notify_day_of_week == today_weekday:
                     tasks.append(task)
                 elif task.frequency == "monthly" and task.notify_day_of_month == today_day_of_month:

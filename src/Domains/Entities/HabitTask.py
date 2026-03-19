@@ -3,6 +3,9 @@ from datetime import datetime
 from typing import Optional
 
 
+VALID_FREQUENCIES = ("daily", "every_other_day", "every_two_days", "weekly", "monthly")
+
+
 @dataclass()
 class HabitTask:
     _id: str

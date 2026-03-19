@@ -2,6 +2,7 @@ from datetime import datetime
 
 from werkzeug.exceptions import BadRequest
 
+from src.Domains.Entities.HabitTask import VALID_FREQUENCIES
 from src.UseCases.Interface.IUseCase import IUseCase
 
 
@@ -36,6 +37,30 @@ class UpdateHabitTaskUseCase(IUseCase):
                 new_values["notify_time"] = notify_time
             except ValueError:
                 raise BadRequest("通知時刻は HH:MM 形式で入力してください。")
+
+        frequency = form.get("frequency", "").strip()
+        if frequency:
+            if frequency not in VALID_FREQUENCIES:
+                raise BadRequest("無効な頻度が指定されました。")
+            new_values["frequency"] = frequency
+
+            if frequency == "weekly":
+                dow = form.get("notify_day_of_week", "").strip()
+                if dow != "":
+                    new_values["notify_day_of_week"] = int(dow)
+                else:
+                    raise BadRequest("毎週の場合は曜日を選択してください。")
+                new_values["notify_day_of_month"] = None
+            elif frequency == "monthly":
+                dom = form.get("notify_day_of_month", "").strip()
+                if dom != "":
+                    new_values["notify_day_of_month"] = int(dom)
+                else:
+                    raise BadRequest("毎月の場合は日を選択してください。")
+                new_values["notify_day_of_week"] = None
+            else:
+                new_values["notify_day_of_week"] = None
+                new_values["notify_day_of_month"] = None
 
         if not new_values:
             raise BadRequest("変更内容がありません。")

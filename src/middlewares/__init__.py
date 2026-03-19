@@ -7,8 +7,6 @@ from src import config
 def login_required(f):
     @wraps(f)
     def decorated_login_required(*args, **kwargs):
-        print('call login required')
-
         # 認証を通っていない場合はログイン画面に遷移
         if 'login_user' not in session:
             next_path = request.full_path.rstrip('?')

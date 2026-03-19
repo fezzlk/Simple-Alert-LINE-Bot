@@ -1,4 +1,8 @@
+import logging
+
 from werkzeug.wrappers import Request
+
+logger = logging.getLogger(__name__)
 
 
 class WerkzeugMiddleware():
@@ -11,7 +15,5 @@ class WerkzeugMiddleware():
 
     def __call__(self, environ, start_response):
         request = Request(environ)
-        print('call WerkzeugMiddleware')
-        print(request)
-        print(start_response)
+        logger.debug('WerkzeugMiddleware: %s %s', request.method, request.path)
         return self.app(environ, start_response)
