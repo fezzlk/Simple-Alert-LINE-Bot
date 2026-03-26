@@ -1,8 +1,11 @@
 import json
+import logging
 import re
 import urllib.request
 from datetime import datetime
 from typing import Any, Dict, Optional
+
+logger = logging.getLogger(__name__)
 
 from src import config
 from src.services.LineIntentRulebook import (
@@ -70,7 +73,7 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "register_habit_task",
-            "description": "習慣タスクを登録する。頻度はdaily（毎日）、every_other_day（1日おき）、every_two_days（2日おき）、weekly（毎週）、monthly（毎月）から選択。notify_timeはHH:MM形式、不明ならnull。weeklyの場合はnotify_day_of_week（0=月〜6=日）、monthlyの場合はnotify_day_of_month（1〜31）を指定。それ以外はどちらもnull。",
+            "description": "習慣タスクを登録する。頻度はdaily（毎日）、every_other_day（1日おき）、every_two_days（2日おき）、weekly（毎週）、monthly（毎月）から選択。頻度が明示されていない場合はdailyをデフォルトとする。notify_timeはHH:MM形式、不明ならnull。weeklyの場合はnotify_day_of_week（0=月〜6=日）、monthlyの場合はnotify_day_of_month（1〜31）を指定。それ以外はどちらもnull。",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -400,11 +403,14 @@ class LineIntentParserService:
                 data = json.loads(resp.read().decode("utf-8"))
             tool_calls = data["choices"][0]["message"].get("tool_calls")
             if not tool_calls:
+                logger.warning("OpenAI returned no tool_calls for message: %s | response: %s", message, json.dumps(data, ensure_ascii=False))
                 return self._none_result()
             tc = tool_calls[0]
             args = json.loads(tc["function"]["arguments"])
+            logger.info("OpenAI tool_call: %s args=%s for message: %s", tc["function"]["name"], json.dumps(args, ensure_ascii=False), message)
             return self._sanitize(self._build_result_from_tool_call(tc["function"]["name"], args))
-        except Exception:
+        except Exception as e:
+            logger.exception("OpenAI API call failed for message: %s", message)
             return self._none_result()
 
     def _build_result_from_tool_call(self, tool_name: str, args: dict) -> dict:

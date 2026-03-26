@@ -211,14 +211,13 @@ def get_use_case_text_message(event: Event):
         return use_case_list['stock_keywords'][keyword]
     elif keyword in use_case_list['system_keywords']:
         return use_case_list['system_keywords'][keyword]
+    elif any(alias in message for alias in LIST_DISPLAY_ALIASES) or (
+        '登録済み' in message and '一覧' in message
+    ):
+        return use_case_list['stock_keywords']['一覧']
+    elif any(alias in lower_message for alias in WEB_LINK_ALIASES):
+        return use_case_list['system_keywords']['URL']
     elif event.source.type == 'user' and message != '':
-        parsed = line_intent_parser_service.parse(message)
-        if parsed["intent"] == "help":
-            return help_use_case
-        if parsed["intent"] == "list":
-            return use_case_list['stock_keywords']['一覧']
-        if parsed["intent"] in ("web", "login"):
-            return use_case_list['system_keywords']['URL']
         return HandleIntentOperationUseCase(
             stock_repository=stock_repository,
             line_request_service=line_request_service,
@@ -230,12 +229,6 @@ def get_use_case_text_message(event: Event):
             habit_task_log_repository=habit_task_log_repository,
             web_user_repository=web_user_repository,
         )
-    elif any(alias in message for alias in LIST_DISPLAY_ALIASES) or (
-        '登録済み' in message and '一覧' in message
-    ):
-        return use_case_list['stock_keywords']['一覧']
-    elif any(alias in lower_message for alias in WEB_LINK_ALIASES):
-        return use_case_list['system_keywords']['URL']
     else:
         return TextMessageUseCase(
             line_response_service=line_response_service,
