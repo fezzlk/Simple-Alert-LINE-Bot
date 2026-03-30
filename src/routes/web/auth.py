@@ -8,6 +8,7 @@ from flask import (
     request,
     abort,
 )
+from authlib.integrations.base_client.errors import MismatchingStateError
 from werkzeug.exceptions import BadRequest
 
 from src.routes.web import views_blueprint
@@ -109,7 +110,12 @@ def login():
 @views_blueprint.route('/line/authorize')
 def authorize():
     line = oauth.create_client('line')
-    token = line.authorize_access_token()
+    try:
+        token = line.authorize_access_token()
+    except MismatchingStateError:
+        logging.warning('OAuth state mismatch - redirecting to login')
+        flash('セッションが無効になりました。もう一度ログインしてください。', 'warning')
+        return redirect(url_for('views_blueprint.login'))
     profile = line.get('v2/profile', token=token).json()
     line_user_id = profile.get('userId')
     display_name = profile.get('displayName')
