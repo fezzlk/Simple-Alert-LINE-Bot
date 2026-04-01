@@ -25,6 +25,16 @@ if not config.FLASK_SECRET_KEY and not config.IS_DEVELOPMENT:
     )
 app.secret_key = config.FLASK_SECRET_KEY or 'dev-only-insecure-key'
 
+# Session Cookie 設定
+# LINE OAuth はクロスサイトリダイレクト（access.line.me → 自サイト）を伴うため、
+# SameSite=None にしないとコールバック時にセッション Cookie が送信されない。
+# SameSite=None は Secure=True（HTTPS）が必須。
+if config.IS_DEVELOPMENT:
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+else:
+    app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+    app.config['SESSION_COOKIE_SECURE'] = True
+
 oauth.init_app(app)
 
 # CSRF protection
