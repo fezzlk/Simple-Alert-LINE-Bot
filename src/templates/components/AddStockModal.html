@@ -33,7 +33,7 @@ import render_field %}
           >
             閉じる
           </button>
-          {{ form.csrf_token }} {{ form.submit() }}
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"> {{ form.submit() }}
         </div>
       </form>
     </div>

@@ -4,6 +4,6 @@
 <form action="/login" method="post">
   <p>{{ render_field(form.user_code) }}</p>
   <p>{{ render_field(form.password) }}</p>
-  <p>{{ form.csrf_token }} {{ form.submit() }}</p>
+  <p><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"> {{ form.submit() }}</p>
 </form>
 {% endblock %}

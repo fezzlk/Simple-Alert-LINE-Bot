@@ -19,7 +19,7 @@
             <div class="mb-2">{{ render_field(form.frequency, **{"onchange": "toggleAddFrequencyFields()"}) }}</div>
             <div class="mb-2" id="add-dow-field" style="display:none;">{{ render_field(form.notify_day_of_week) }}</div>
             <div class="mb-2" id="add-dom-field" style="display:none;">{{ render_field(form.notify_day_of_month) }}</div>
-            <div>{{ form.csrf_token }}{{ form.submit() }}</div>
+            <div><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{{ form.submit() }}</div>
           </form>
         </div>
       </div>
