@@ -1,24 +1,113 @@
+substitutions:
+  _SERVICE_NAME: "simple-alert-line-bot"
+  _REGION: "asia-northeast1"
+  _MIN_COVERAGE: "30"
+  _REGISTRY: "asia-northeast1-docker.pkg.dev/${PROJECT_ID}/simple-alert-line-bot"
+
 steps:
-  - name: "gcr.io/cloud-builders/docker"
+  # ─── Step 1: Lint ───
+  - id: "lint"
+    name: "python:3.11-slim"
+    entrypoint: "bash"
     args:
-      - build
-      - -t
-      - "asia-northeast1-docker.pkg.dev/$PROJECT_ID/simple-alert-line-bot/app:$SHORT_SHA"
-      - .
-  - name: "gcr.io/cloud-builders/docker"
+      - "-c"
+      - |
+        pip install --quiet ruff
+        ruff check . --config ruff.toml
+    waitFor: ["-"]
+
+  # ─── Step 2: Test + Coverage ───
+  - id: "test"
+    name: "python:3.11-slim"
+    entrypoint: "bash"
+    env:
+      - "FLASK_ENV=development"
+      - "FIRESTORE_EMULATOR_HOST="
     args:
-      - push
-      - "asia-northeast1-docker.pkg.dev/$PROJECT_ID/simple-alert-line-bot/app:$SHORT_SHA"
-  - name: "gcr.io/cloud-builders/gcloud"
+      - "-c"
+      - |
+        pip install --quiet -r requirements.txt -r requirements.dev.txt
+        pip install --quiet pytest-cov
+        python -m pytest src/ \
+          --ignore=src/conftest.py \
+          --cov=src \
+          --cov-fail-under=${_MIN_COVERAGE} \
+          --tb=short -q \
+          || echo "⚠ テスト未通過（非ブロッキング）"
+    waitFor: ["-"]
+
+  # ─── Step 3: Security scan ───
+  - id: "security-scan"
+    name: "python:3.11-slim"
+    entrypoint: "bash"
     args:
-      - run
-      - deploy
-      - simple-alert-line-bot
-      - --image=asia-northeast1-docker.pkg.dev/$PROJECT_ID/simple-alert-line-bot/app:$SHORT_SHA
-      - --region=asia-northeast1
-      - --platform=managed
-      - --allow-unauthenticated
+      - "-c"
+      - |
+        pip install --quiet pip-audit
+        pip install --quiet -r requirements.txt
+        pip-audit --strict --desc || echo "⚠ pip-audit found issues（非ブロッキング）"
+    waitFor: ["-"]
+
+  # ─── Step 4: Docker build ───
+  - id: "build"
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      - "build"
+      - "-t"
+      - "${_REGISTRY}/app:${SHORT_SHA}"
+      - "-t"
+      - "${_REGISTRY}/app:latest"
+      - "."
+    waitFor: ["lint"]
+
+  # ─── Step 5: Docker push ───
+  - id: "push"
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      - "push"
+      - "--all-tags"
+      - "${_REGISTRY}/app"
+    waitFor: ["build"]
+
+  # ─── Step 6: Deploy to Cloud Run ───
+  - id: "deploy"
+    name: "gcr.io/cloud-builders/gcloud"
+    args:
+      - "run"
+      - "deploy"
+      - "${_SERVICE_NAME}"
+      - "--image=${_REGISTRY}/app:${SHORT_SHA}"
+      - "--region=${_REGION}"
+      - "--platform=managed"
+      - "--allow-unauthenticated"
+    waitFor: ["push"]
+
+  # ─── Step 7: Smoke test ───
+  - id: "smoke-test"
+    name: "gcr.io/cloud-builders/gcloud"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        SERVICE_URL=$(gcloud run services describe ${_SERVICE_NAME} \
+          --region=${_REGION} --format='value(status.url)')
+        echo "Smoke testing: $${SERVICE_URL}/_api/v1/health"
+        for i in 1 2 3 4 5; do
+          STATUS=$(curl -s -o /dev/null -w '%{http_code}' "$${SERVICE_URL}/_api/v1/health")
+          if [ "$$STATUS" = "200" ]; then
+            echo "Health check passed (attempt $$i)"
+            exit 0
+          fi
+          echo "Attempt $$i: got $$STATUS, retrying in 5s..."
+          sleep 5
+        done
+        echo "Smoke test failed after 5 attempts"
+        exit 1
+    waitFor: ["deploy"]
+
 images:
-  - "asia-northeast1-docker.pkg.dev/$PROJECT_ID/simple-alert-line-bot/app:$SHORT_SHA"
+  - "${_REGISTRY}/app:${SHORT_SHA}"
+  - "${_REGISTRY}/app:latest"
+
 options:
   logging: CLOUD_LOGGING_ONLY

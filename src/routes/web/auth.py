@@ -55,6 +55,12 @@ def register():
 @views_blueprint.route('/line/login', methods=['GET', 'POST'])
 def login():
     capture_next_url(session, request)
+
+    # 既にログイン済みならリダイレクト先へ直接遷移（OAuth をスキップ）
+    if 'login_user' in session:
+        redirect_to = session.pop('next_page_url', '/')
+        return redirect(redirect_to)
+
     if config.IS_DEVELOPMENT and request.path == '/login':
         form = LocalLoginForm(request.form)
         if request.method == 'POST':
@@ -114,8 +120,17 @@ def authorize():
         token = line.authorize_access_token()
     except MismatchingStateError:
         logging.warning('OAuth state mismatch - redirecting to login')
+        # ループ検出: 短時間に MismatchingStateError が連続した場合はトップに逃がす
+        retry_count = session.get('_oauth_retry_count', 0)
+        if retry_count >= 1:
+            session.pop('_oauth_retry_count', None)
+            session.pop('next_page_url', None)
+            flash('ログインに失敗しました。ブラウザで直接アクセスしてください。', 'warning')
+            return redirect(url_for('views_blueprint.index'))
+        session['_oauth_retry_count'] = retry_count + 1
         flash('セッションが無効になりました。もう一度ログインしてください。', 'warning')
         return redirect(url_for('views_blueprint.login'))
+    session.pop('_oauth_retry_count', None)
     profile = line.get('v2/profile', token=token).json()
     line_user_id = profile.get('userId')
     display_name = profile.get('displayName')

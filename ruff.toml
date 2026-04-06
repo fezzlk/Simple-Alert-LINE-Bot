@@ -1,0 +1,34 @@
+# =============================================================================
+# ruff 共通設定（Python 3.11+ / Flask プロジェクト向け）
+# =============================================================================
+
+target-version = "py311"
+line-length = 120
+
+[lint]
+# 有効なルールセット
+select = [
+  "E",    # pycodestyle errors
+  "W",    # pycodestyle warnings
+  "F",    # pyflakes
+  "I",    # isort (import 順序)
+  "B",    # flake8-bugbear
+  "UP",   # pyupgrade (Python バージョン互換)
+]
+
+# 無視するルール
+ignore = [
+  "E501",   # 行長は line-length で制御（個別無視不要だが念のため）
+  "B008",   # function call in default argument（Flask/FastAPI でよくある）
+  "B905",   # zip() without strict= (Python 3.10+ 向け、既存コードに多い)
+  "UP007",  # Optional[X] -> X | None (段階的移行のため)
+]
+
+# 除外ディレクトリ
+[lint.per-file-ignores]
+"__init__.py" = ["F401"]  # init での未使用 import は許容
+"conftest.py" = ["F401", "F811"]  # fixture の再エクスポート
+"tests/**/*.py" = ["B011"]  # assert False in tests
+
+[lint.isort]
+known-first-party = ["src"]
