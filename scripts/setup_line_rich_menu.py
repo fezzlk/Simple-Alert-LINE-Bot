@@ -49,8 +49,8 @@ def _parse_args():
 
 def _build_rich_menu(name: str, chat_bar_text: str, server_url: str) -> RichMenu:
     base_url = server_url.rstrip("/")
-    stock_url = f"{base_url}/stock?openExternalBrowser=1"
-    habit_url = f"{base_url}/habit?openExternalBrowser=1"
+    stock_url = f"{base_url}/stock"
+    habit_url = f"{base_url}/habit"
 
     # 2500x1686 split into 3 columns x 2 rows
     # col widths: 833, 833, 834 / row heights: 843, 843
