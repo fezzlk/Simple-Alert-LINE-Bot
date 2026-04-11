@@ -24,6 +24,9 @@ def build_page_contents(
 
 
 def capture_next_url(session: SessionMixin, request: Request) -> None:
+    from urllib.parse import urlparse
     next_url = request.args.get('next')
     if next_url:
-        session['next_page_url'] = next_url
+        # 絶対URLが来ても相対パスに変換（ドメイン跨ぎを防止）
+        parsed = urlparse(next_url)
+        session['next_page_url'] = parsed.path or '/'

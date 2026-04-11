@@ -105,10 +105,9 @@ def login():
         abort(404)
 
     line = oauth.create_client('line')
-    if config.SERVER_URL:
-        redirect_uri = f'{config.SERVER_URL.rstrip("/")}/line/authorize'
-    else:
-        redirect_uri = url_for('views_blueprint.authorize', _external=True)
+    # リクエスト元のドメインでコールバックURLを構築
+    # → LINE内ブラウザのCookieドメインと一致させ、state ミスマッチを防止
+    redirect_uri = url_for('views_blueprint.authorize', _external=True)
     return line.authorize_redirect(redirect_uri)
 
 
