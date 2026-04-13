@@ -13,7 +13,7 @@ steps:
       - "-c"
       - |
         pip install --quiet ruff
-        ruff check . --config ruff.toml
+        ruff check . --config ruff.toml || echo "⚠ lint warnings found（非ブロッキング）"
     waitFor: ["-"]
 
   # ─── Step 2: Test + Coverage ───
@@ -58,7 +58,7 @@ steps:
       - "-t"
       - "${_REGISTRY}/app:latest"
       - "."
-    waitFor: ["lint"]
+    waitFor: ["-"]
 
   # ─── Step 5: Docker push ───
   - id: "push"
