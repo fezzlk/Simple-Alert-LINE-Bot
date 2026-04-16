@@ -1,0 +1,65 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-3">
+  <!-- ページヘッダー -->
+  <div class="page-header">
+    <h1 class="page-title">設定</h1>
+  </div>
+
+  <!-- OpenAI API キー設定 -->
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <div class="app-card">
+        <div class="app-card-header">OpenAI API キー設定</div>
+        <div class="p-3">
+          {% if masked_key %}
+          <div class="mb-3">
+            <span class="text-muted">現在のキー:</span>
+            <span class="badge bg-success ms-1">設定済み</span>
+            <code class="ms-2">{{ masked_key }}</code>
+          </div>
+          <form action="{{ url_for('views_blueprint.save_settings') }}" method="post" class="mb-3">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="openai_api_key" value="">
+            <button type="submit" class="btn btn-sm btn-outline-danger">
+              <i class="fas fa-times me-1"></i>クリア
+            </button>
+          </form>
+          <hr>
+          {% endif %}
+
+          <form action="{{ url_for('views_blueprint.save_settings') }}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="mb-3">
+              <label for="openai_api_key" class="form-label">{% if masked_key %}新しいAPIキー{% else %}APIキー{% endif %}</label>
+              <input
+                type="text"
+                class="form-control"
+                id="openai_api_key"
+                name="openai_api_key"
+                placeholder="sk-..."
+                autocomplete="off"
+              >
+            </div>
+            <div class="mb-3">
+              <small class="text-muted">
+                自分のOpenAI APIキーを設定すると、LINE上の自然言語解析にあなた自身のキーが使用されます。キーはサーバー上で暗号化して保存されます。未設定の場合はサービス共通のキーが使われます。
+              </small>
+            </div>
+            <div class="mb-3">
+              <small>
+                <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">
+                  <i class="fas fa-external-link-alt me-1"></i>OpenAI APIキーの取得はこちら
+                </a>
+              </small>
+            </div>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save me-1"></i>保存
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

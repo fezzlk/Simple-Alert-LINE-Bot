@@ -9,4 +9,5 @@ from . import stock  # noqa: E402,F401
 from . import habit  # noqa: E402,F401
 from . import line  # noqa: E402,F401
 from . import legal  # noqa: E402,F401
+from . import settings  # noqa: E402,F401
 from . import errors  # noqa: E402,F401

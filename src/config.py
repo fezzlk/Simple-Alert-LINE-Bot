@@ -18,6 +18,7 @@ LINE_LOGIN_CALLBACK_URL = os.getenv('LINE_LOGIN_CALLBACK_URL')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
 FLASK_SECRET_KEY = os.getenv('FLASK_SECRET_KEY', '')
+API_KEY_ENCRYPTION_KEY = os.getenv('API_KEY_ENCRYPTION_KEY', '')
 INTERNAL_API_KEY = os.getenv('INTERNAL_API_KEY', '')
 FLASK_ENV = (os.getenv('FLASK_ENV') or '').lower()
 IS_DEVELOPMENT = FLASK_ENV == 'development'

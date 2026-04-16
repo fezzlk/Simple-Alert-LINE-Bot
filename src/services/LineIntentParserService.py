@@ -317,7 +317,7 @@ class LineIntentParserService:
         # 最大30件に制限
         return sanitized[:30]
 
-    def parse(self, message: str, existing_items: Optional[list] = None) -> Dict[str, Any]:
+    def parse(self, message: str, existing_items: Optional[list] = None, openai_api_key: str = None) -> Dict[str, Any]:
         text = self._normalize((message or "").strip())
         if not text:
             return self._none_result()
@@ -352,15 +352,18 @@ class LineIntentParserService:
         if re.search(r"(全部|全て|すべて).*(削除|消去|消して|消す|期限|更新|変更)", text):
             return self._none_result()
 
+        # Resolve API key: per-user key takes priority over global config
+        api_key = openai_api_key or config.OPENAI_API_KEY
+
         # APIキーなし → none
-        if not config.OPENAI_API_KEY:
+        if not api_key:
             return self._none_result()
 
         # Tier-2: Function Calling
         safe_items = self._sanitize_item_names(existing_items or [])
-        return self._parse_with_function_calling(text, safe_items)
+        return self._parse_with_function_calling(text, safe_items, api_key=api_key)
 
-    def _parse_with_function_calling(self, message: str, existing_items: list = None) -> Dict[str, Any]:
+    def _parse_with_function_calling(self, message: str, existing_items: list = None, api_key: str = None) -> Dict[str, Any]:
         today_str = datetime.now().strftime("%Y-%m-%d")
         system_prompt = (
             f"Today's date is {today_str} (JST).\n"
@@ -393,7 +396,7 @@ class LineIntentParserService:
             "https://api.openai.com/v1/chat/completions",
             data=json.dumps(payload).encode("utf-8"),
             headers={
-                "Authorization": f"Bearer {config.OPENAI_API_KEY}",
+                "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
             },
             method="POST",

@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
+import logging
 import re
+from typing import Optional
 
 from linebot.models import ButtonsTemplate, PostbackAction, TemplateSendMessage
 
@@ -10,8 +12,11 @@ from src.Domains.IRepositories.IStockRepository import IStockRepository
 from src.UseCases.Interface.IUseCase import IUseCase
 from src.UseCases.Interface.ILineRequestService import ILineRequestService
 from src.UseCases.Interface.ILineResponseService import ILineResponseService
+from src.services.encryption import decrypt_api_key
 from src.services.LineIntentParserService import LineIntentParserService
 from src.services.PendingLineOperationService import PendingLineOperationService
+
+logger = logging.getLogger(__name__)
 
 
 class HandleIntentOperationUseCase(IUseCase):
@@ -36,6 +41,24 @@ class HandleIntentOperationUseCase(IUseCase):
         self._notification_schedule_repository = notification_schedule_repository
         self._habit_task_log_repository = habit_task_log_repository
         self._web_user_repository = web_user_repository
+
+    def _resolve_openai_api_key(self, line_user_id: str) -> Optional[str]:
+        """Look up the per-user OpenAI API key via the linked WebUser, if any."""
+        if self._web_user_repository is None:
+            return None
+        try:
+            web_users = self._web_user_repository.find(
+                {"linked_line_user_id": line_user_id, "is_linked_line_user": True}
+            )
+            if not web_users:
+                return None
+            encrypted_key = getattr(web_users[0], "encrypted_openai_api_key", None)
+            if not encrypted_key:
+                return None
+            return decrypt_api_key(encrypted_key)
+        except Exception:
+            logger.warning("Failed to resolve per-user OpenAI API key for %s", line_user_id, exc_info=True)
+            return None
 
     def _collect_existing_item_names(self, line_user_id: str) -> list:
         """ユーザーの登録済みアイテム名・習慣タスク名を収集する。"""
@@ -89,7 +112,8 @@ class HandleIntentOperationUseCase(IUseCase):
             return
 
         existing_items = self._collect_existing_item_names(line_user_id)
-        parsed = self._intent_parser_service.parse(message, existing_items=existing_items)
+        user_api_key = self._resolve_openai_api_key(line_user_id)
+        parsed = self._intent_parser_service.parse(message, existing_items=existing_items, openai_api_key=user_api_key)
         if parsed["intent"] == "none":
             self._line_response_service.add_message(
                 "操作を特定できませんでした。登録/更新/削除したい内容をもう一度送ってください。"
@@ -522,7 +546,8 @@ class HandleIntentOperationUseCase(IUseCase):
         item_name = operation.get("item_name")
 
         # アイテム名を補完してNLPに渡す（例: "確定申告の通知は3日前から"）
-        parsed = self._intent_parser_service.parse(f"{item_name}の{message}")
+        user_api_key = self._resolve_openai_api_key(line_user_id)
+        parsed = self._intent_parser_service.parse(f"{item_name}の{message}", openai_api_key=user_api_key)
 
         if parsed.get("intent") != "update_stock_notify":
             # 通知設定変更として解釈できない → コンテキスト破棄して通常処理へ
