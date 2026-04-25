@@ -20,7 +20,7 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "register_stock",
-            "description": "在庫・タスク・締切付き作業を登録する。expiry_dateは相対日付（今日/明日/明後日）を具体的なYYYY-MM-DDに変換。",
+            "description": "新しい在庫アイテム・タスク・締切付き作業を新規登録（追加）する。「〇〇を登録」「〇〇を追加」「〇〇 明日まで」「〇〇 3/15まで」など登録・追加を意図するメッセージで呼ぶ。item_nameはユーザーが指定したアイテム名をそのまま使う（既存アイテム名に置き換えない）。expiry_dateは相対日付（今日/明日/明後日）を具体的なYYYY-MM-DDに変換。期限の指定がない場合はnull。",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -379,8 +379,8 @@ class LineIntentParserService:
             items_str = ", ".join(existing_items)
             system_prompt += (
                 f"\n\nThe user's registered items/tasks are: [{items_str}].\n"
-                "When the user mentions an item, match it to one of these names if possible. "
-                "Use the exact registered name as item_name/task_name."
+                "For UPDATE and DELETE operations on existing items, match the mentioned item name to one of these registered names (use the exact registered name as item_name/task_name).\n"
+                "For NEW registrations (register_stock, register_habit_task), always use the user's exact input as item_name — do NOT substitute with a registered name."
             )
         payload = {
             "model": config.OPENAI_MODEL,
