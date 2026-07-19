@@ -1,0 +1,19 @@
+[
+  {
+    "name": "keep-latest-10",
+    "action": {"type": "Keep"},
+    "mostRecentVersions": {
+      "packageNamePrefixes": ["app"],
+      "keepCount": 10
+    }
+  },
+  {
+    "name": "delete-old-versions",
+    "action": {"type": "Delete"},
+    "condition": {
+      "packageNamePrefixes": ["app"],
+      "tagState": "ANY",
+      "olderThan": "1209600s"
+    }
+  }
+]

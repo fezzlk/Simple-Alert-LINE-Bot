@@ -1,0 +1,20 @@
+# Eventarc passes a matching Cloud Audit Logs event as `event`.
+# The workflow reads the Slack webhook only at execution time; it never logs it.
+main:
+  params: [event]
+  steps:
+    - get_webhook:
+        call: googleapis.secretmanager.v1.projects.secrets.versions.accessString
+        args:
+          project_id: simple-alert-line-bot
+          secret_id: simple-alert-maintenance-slack-webhook
+          version: latest
+        result: webhook_url
+    - notify_slack:
+        call: http.post
+        args:
+          url: ${webhook_url}
+          headers:
+            Content-Type: application/json
+          body:
+            text: '${"Artifact Registry maintenance executed | Repository: simple-alert-line-bot (asia-northeast1) | Operation: " + event.data.protoPayload.methodName + " | Resource: " + event.data.protoPayload.resourceName}'
