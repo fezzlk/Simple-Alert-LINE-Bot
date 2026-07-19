@@ -13,7 +13,7 @@ steps:
       - "-c"
       - |
         pip install --quiet ruff
-        ruff check . --config ruff.toml || echo "⚠ lint warnings found（非ブロッキング）"
+        ruff check . --config ruff.toml --select E9,F63,F7,F82
     waitFor: ["-"]
 
   # ─── Step 2: Test + Coverage ───
@@ -23,6 +23,7 @@ steps:
     env:
       - "FLASK_ENV=development"
       - "FIRESTORE_EMULATOR_HOST="
+      - "RUN_FIRESTORE_INTEGRATION_TESTS=0"
     args:
       - "-c"
       - |
@@ -32,9 +33,8 @@ steps:
           --ignore=src/conftest.py \
           --cov=src \
           --cov-fail-under=${_MIN_COVERAGE} \
-          --tb=short -q \
-          || echo "⚠ テスト未通過（非ブロッキング）"
-    waitFor: ["-"]
+          --tb=short -q
+    waitFor: ["lint", "test", "security-scan"]
 
   # ─── Step 3: Security scan ───
   - id: "security-scan"
@@ -45,7 +45,7 @@ steps:
       - |
         pip install --quiet pip-audit
         pip install --quiet -r requirements.txt
-        pip-audit --strict --desc || echo "⚠ pip-audit found issues（非ブロッキング）"
+        pip-audit --strict --desc -r requirements.txt
     waitFor: ["-"]
 
   # ─── Step 4: Docker build ───
