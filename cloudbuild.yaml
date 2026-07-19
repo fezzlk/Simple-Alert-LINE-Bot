@@ -79,6 +79,13 @@ steps:
       - "--image=${_REGISTRY}/app:${SHORT_SHA}"
       - "--region=${_REGION}"
       - "--platform=managed"
+      - "--cpu-throttling"
+      - "--no-cpu-boost"
+      - "--no-session-affinity"
+      - "--min-instances=0"
+      - "--max-instances=10"
+      - "--timeout=300"
+      - "--service-account=simple-alert-line-bot@simple-alert-line-bot.iam.gserviceaccount.com"
       - "--allow-unauthenticated"
     waitFor: ["push"]
 
