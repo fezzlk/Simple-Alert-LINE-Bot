@@ -9,16 +9,6 @@
 - Linear is the only source of task status, priority, owner, due date, and next actions. Do not duplicate them here or in pico.
 - For AI features, add versioned evaluation cases, expected behavior, and failure handling before expanding scope.
 
-## Existing project guidance
+## Project-specific guidance
 
-# Repository Rules
-
-## Cloud Run
-
-- project_id: simple-alert-line-bot
-- service_name: simple-alert-line-bot
-
-## Test Policy
-
-- Use the repository `venv` for running tests and installing dependencies.
-- Use the Firestore Emulator for local integration tests.
+Add repository-specific commands, architecture constraints, and verification steps here.
