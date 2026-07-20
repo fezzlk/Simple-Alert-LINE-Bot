@@ -34,7 +34,7 @@ steps:
           --cov=src \
           --cov-fail-under=${_MIN_COVERAGE} \
           --tb=short -q
-    waitFor: ["lint", "test", "security-scan"]
+    waitFor: ["-"]
 
   # ─── Step 3: Security scan ───
   - id: "security-scan"
@@ -49,6 +49,8 @@ steps:
     waitFor: ["-"]
 
   # ─── Step 4: Docker build ───
+  # lint / test / security-scan がすべて成功しないと build 以降（push/deploy）へ進まない。
+  # これによりデプロイを検査でゲートする（失敗時はデプロイしない）。
   - id: "build"
     name: "gcr.io/cloud-builders/docker"
     args:
@@ -58,7 +60,7 @@ steps:
       - "-t"
       - "${_REGISTRY}/app:latest"
       - "."
-    waitFor: ["-"]
+    waitFor: ["lint", "test", "security-scan"]
 
   # ─── Step 5: Docker push ───
   - id: "push"
