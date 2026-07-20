@@ -1,13 +1,15 @@
 # flake8: noqa
 import os
 import sys
+from pathlib import Path
+
 import pytest
 from dotenv import load_dotenv
 from src.firestore_client import firestore_client
 from src import app
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
-load_dotenv()
+load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / '.env')
 
 
 @pytest.fixture()
