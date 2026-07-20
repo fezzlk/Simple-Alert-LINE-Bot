@@ -39,6 +39,20 @@ class NotificationScheduleRepository:
         data["line_user_id"] = snapshot.id
         return NotificationSchedule(**data)
 
+    def delete_by_line_user_id(self, line_user_id: str) -> int:
+        """Delete the schedule document keyed by ``line_user_id``.
+
+        Returns the number of documents removed (0 or 1). The collection uses
+        ``line_user_id`` as the document id, so there is at most one match.
+        """
+        if not line_user_id:
+            return 0
+        doc_ref = self._collection().document(line_user_id)
+        if not doc_ref.get().exists:
+            return 0
+        doc_ref.delete()
+        return 1
+
     def compute_next_notify_at(
         self,
         notify_time: Optional[str],

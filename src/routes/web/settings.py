@@ -2,11 +2,21 @@ import logging
 
 from flask import flash, redirect, render_template, request, session, url_for
 
-from src.Infrastructure.Repositories import web_user_repository
+from src.Infrastructure.Repositories import (
+    habit_pending_confirmation_repository,
+    habit_task_log_repository,
+    habit_task_repository,
+    line_user_repository,
+    notification_schedule_repository,
+    stock_repository,
+    web_user_repository,
+)
 from src.middlewares import login_required
 from src.routes.web import views_blueprint
 from src.routes.web.helpers import build_page_contents
 from src.services.encryption import decrypt_api_key, encrypt_api_key
+from src.services.PendingLineOperationService import PendingLineOperationService
+from src.UseCases.Web.WithdrawAccountUseCase import WithdrawAccountUseCase
 
 logger = logging.getLogger(__name__)
 
@@ -82,3 +92,44 @@ def save_settings():
     )
     flash('OpenAI APIキーを保存しました。', 'success')
     return redirect(url_for('views_blueprint.view_settings'))
+
+
+@views_blueprint.route('/settings/withdraw', methods=['POST'])
+@login_required
+def withdraw_account():
+    page_contents = build_page_contents(session, request, page_title='退会')
+    login_user = page_contents.login_user
+
+    if not login_user or not login_user._id:
+        flash('ユーザー情報が見つかりません。', 'danger')
+        return redirect(url_for('views_blueprint.view_settings'))
+
+    # 誤操作防止: 明示的な確認チェックが無い場合は実行しない
+    if request.form.get('confirm') != 'delete':
+        flash('退会するには確認チェックが必要です。', 'warning')
+        return redirect(url_for('views_blueprint.view_settings'))
+
+    use_case = WithdrawAccountUseCase(
+        stock_repository=stock_repository,
+        habit_task_repository=habit_task_repository,
+        habit_task_log_repository=habit_task_log_repository,
+        habit_pending_confirmation_repository=habit_pending_confirmation_repository,
+        notification_schedule_repository=notification_schedule_repository,
+        line_user_repository=line_user_repository,
+        web_user_repository=web_user_repository,
+        pending_line_operation_service=PendingLineOperationService(),
+    )
+
+    try:
+        use_case.execute(
+            web_user_id=login_user._id,
+            linked_line_user_id=login_user.linked_line_user_id,
+        )
+    except Exception as e:
+        logger.error("Account withdrawal failed for %s: %s", login_user._id, e)
+        flash('退会処理に失敗しました。時間をおいて再度お試しください。', 'danger')
+        return redirect(url_for('views_blueprint.view_settings'))
+
+    session.clear()
+    flash('退会が完了しました。ご利用ありがとうございました。', 'success')
+    return redirect(url_for('views_blueprint.index'))
