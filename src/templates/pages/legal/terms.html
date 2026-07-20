@@ -2,10 +2,10 @@
 <div class="container py-4" style="max-width: 800px;">
   <div class="app-card p-4 mb-4">
     <h1 class="home-panel-title mb-4">利用規約</h1>
-    <p class="text-muted small mb-4">最終更新日: 2026年3月20日</p>
+    <p class="text-muted small mb-4">最終更新日: 2026年7月20日</p>
 
     <p>
-      本利用規約（以下「本規約」といいます）は、[サービス提供者名]（以下「当方」といいます）が提供するサービス「remily」（以下「本サービス」といいます）の利用条件を定めるものです。ユーザーの皆様（以下「ユーザー」といいます）には、本規約に同意の上、本サービスをご利用いただきます。
+      本利用規約（以下「本規約」といいます）は、{{ service_provider_name }}（以下「当方」といいます）が提供するサービス「remily」（以下「本サービス」といいます）の利用条件を定めるものです。ユーザーの皆様（以下「ユーザー」といいます）には、本規約に同意の上、本サービスをご利用いただきます。
     </p>
 
     <h2 class="h5 fw-bold mt-4 mb-3">第1条（サービス概要）</h2>
@@ -95,10 +95,15 @@
     </ol>
 
     <h2 class="h5 fw-bold mt-4 mb-3">第11条（お問い合わせ）</h2>
-    <p>本規約に関するお問い合わせは、下記までご連絡ください。</p>
+    <p>本規約に関するお問い合わせは、下記の窓口までご連絡ください。</p>
     <p>
-      サービス提供者: [サービス提供者名]<br />
-      メールアドレス: [連絡先メールアドレス]
+      サービス提供者: {{ service_provider_name }}<br />
+      お問い合わせ窓口:
+      {% if contact_form_url %}
+      <a href="{{ contact_form_url }}" target="_blank" rel="noopener noreferrer">お問い合わせフォーム</a>
+      {% else %}
+      本サービスのLINE公式アカウントのトーク、またはお問い合わせフォーム（準備中）
+      {% endif %}
     </p>
   </div>
 </div>

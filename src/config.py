@@ -24,3 +24,7 @@ FLASK_ENV = (os.getenv('FLASK_ENV') or '').lower()
 IS_DEVELOPMENT = FLASK_ENV == 'development'
 LOCAL_AUTH_USER_CODE = os.getenv('LOCAL_AUTH_USER_CODE', '')
 LOCAL_AUTH_PASSWORD = os.getenv('LOCAL_AUTH_PASSWORD', '')
+# 規約・プライバシーポリシーに表示する提供者名と問い合わせ導線。
+# 無料βではハンドル名を既定とし、有料化時に特商法表記へ差し替える。
+SERVICE_PROVIDER_NAME = os.getenv('SERVICE_PROVIDER_NAME', 'fezzlk')
+CONTACT_FORM_URL = os.getenv('CONTACT_FORM_URL', '')

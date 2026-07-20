@@ -61,5 +61,34 @@
       </div>
     </div>
   </div>
+
+  <!-- 退会（アカウント削除） -->
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <div class="app-card border-danger">
+        <div class="app-card-header text-danger">退会（アカウント削除）</div>
+        <div class="p-3">
+          <p class="mb-3">
+            退会すると、登録したアイテム・習慣タスク・実績・通知設定・保存したOpenAI APIキーなど、
+            <strong>あなたに関するすべてのデータが即時に削除されます</strong>。この操作は取り消せません。
+          </p>
+          <form action="{{ url_for('views_blueprint.withdraw_account') }}" method="post"
+                onsubmit="return confirm('本当に退会しますか？すべてのデータが削除され、元に戻せません。');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" id="withdraw_confirm"
+                     name="confirm" value="delete" required>
+              <label class="form-check-label" for="withdraw_confirm">
+                上記の内容を理解し、すべてのデータの削除に同意します。
+              </label>
+            </div>
+            <button type="submit" class="btn btn-danger">
+              <i class="fas fa-user-slash me-1"></i>退会してすべてのデータを削除する
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
