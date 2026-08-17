@@ -2,6 +2,12 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+# 週次習慣カレンダー画像(Pillow)を開発コンテナ内でも正しく(日本語込みで)描画・確認できるように、
+# 本番と同じCJKフォントを入れておく(fonts-noto-cjkはDebianの無料パッケージ)。
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends fonts-noto-cjk \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt requirements.dev.txt /app/
 RUN python -m pip install --upgrade pip \
     && pip install --no-cache-dir -r /app/requirements.txt \
