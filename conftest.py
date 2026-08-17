@@ -84,6 +84,7 @@ def pytest_collection_modifyitems(config, items):
             or (
                 "src/services/tests" in path
                 and "test_line_intent_parser_service" not in path
+                and "test_habit_calendar_token_service" not in path
             )
             or path.endswith("src/tests/test_db_connect.py")
         ):
