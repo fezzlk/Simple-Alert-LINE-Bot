@@ -1,7 +1,7 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from linebot.models import ButtonsTemplate, PostbackAction, TemplateSendMessage
+from linebot.v3.messaging import ButtonsTemplate, PostbackAction, TemplateMessage
 
 from src.Domains.Entities.HabitPendingConfirmation import HabitPendingConfirmation
 from src.UseCases.Interface.IUseCase import IUseCase
@@ -104,7 +104,7 @@ class CheckHabitTaskUseCase(IUseCase):
                     f'習慣タスク確認: "{task.task_name}" を実施しましたか？'
                 )
                 self._line_response_service.buttons.append(
-                    TemplateSendMessage(
+                    TemplateMessage(
                         alt_text="習慣タスク確認",
                         template=ButtonsTemplate(
                             text="結果を選んでください",

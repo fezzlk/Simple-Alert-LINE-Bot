@@ -1,4 +1,4 @@
-from linebot.models import MessageAction, QuickReply, QuickReplyButton, TextSendMessage
+from linebot.v3.messaging import MessageAction, QuickReply, QuickReplyItem, TextMessage
 
 from src import config
 from src.UseCases.Interface.IUseCase import IUseCase
@@ -6,9 +6,9 @@ from src.UseCases.Interface.ILineRequestService import ILineRequestService
 from src.UseCases.Interface.ILineResponseService import ILineResponseService
 
 _QUICK_REPLY_BUTTONS = QuickReply(items=[
-    QuickReplyButton(action=MessageAction(label='➕ 登録の使い方', text='使い方 登録')),
-    QuickReplyButton(action=MessageAction(label='📄 一覧の使い方', text='使い方 一覧')),
-    QuickReplyButton(action=MessageAction(label='🔗 連携の使い方', text='使い方 アカウント連携')),
+    QuickReplyItem(action=MessageAction(label='➕ 登録の使い方', text='使い方 登録')),
+    QuickReplyItem(action=MessageAction(label='📄 一覧の使い方', text='使い方 一覧')),
+    QuickReplyItem(action=MessageAction(label='🔗 連携の使い方', text='使い方 アカウント連携')),
 ])
 
 
@@ -28,7 +28,7 @@ class ReplyHelpUseCase(IUseCase):
 
         if keyword is None and hasattr(self._line_response_service, 'buttons'):
             self._line_response_service.buttons.append(
-                TextSendMessage(text=text, quick_reply=_QUICK_REPLY_BUTTONS)
+                TextMessage(text=text, quick_reply=_QUICK_REPLY_BUTTONS)
             )
         else:
             self._line_response_service.add_message(text)

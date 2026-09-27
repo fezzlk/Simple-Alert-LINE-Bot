@@ -1,4 +1,4 @@
-from linebot.models.events import Event
+from linebot.v3.webhooks import Event
 from src.line_bot_api import line_bot_api
 from src.UseCases.Interface.ILineRequestService import ILineRequestService
 
