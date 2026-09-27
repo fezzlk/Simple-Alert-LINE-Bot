@@ -1,7 +1,7 @@
 import traceback
 from flask import Blueprint, request, abort
-from linebot.exceptions import InvalidSignatureError
-from linebot.models.events import Event
+from linebot.v3.exceptions import InvalidSignatureError
+from linebot.v3.webhooks import Event
 from src.Infrastructure.Repositories import (
     habit_pending_confirmation_repository,
     habit_task_log_repository,
@@ -42,13 +42,13 @@ from src.services.LineIntentRulebook import (
 )
 
 from src import config
-from linebot.models import (
+from linebot.v3.webhooks import (
     FollowEvent,
     UnfollowEvent,
     JoinEvent,
     MessageEvent,
-    TextMessage,
-    ImageMessage,
+    TextMessageContent,
+    ImageMessageContent,
     PostbackEvent,
 )
 
@@ -107,7 +107,7 @@ def handle_event_decorater(function):
     return handle_event
 
 
-@handler.add(MessageEvent, message=TextMessage)
+@handler.add(MessageEvent, message=TextMessageContent)
 @handle_event_decorater
 def handle_message(event: Event, destination: str) -> None:
     get_use_case_text_message(event).execute()
@@ -141,7 +141,7 @@ def handle_join(event: Event, destination: str) -> None:
     ).execute()
 
 
-@handler.add(MessageEvent, message=ImageMessage)
+@handler.add(MessageEvent, message=ImageMessageContent)
 @handle_event_decorater
 def handle_image_message(event: Event, destination: str) -> None:
     ImageMessageUseCase(
