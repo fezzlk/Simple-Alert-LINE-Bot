@@ -11,3 +11,4 @@ Authlib==1.6.12
 Werkzeug==3.1.8
 cryptography==48.0.1
 protobuf==5.29.6
+Pillow==11.1.0
