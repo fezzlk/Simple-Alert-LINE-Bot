@@ -7,8 +7,8 @@ python-dotenv==1.2.2
 google-cloud-firestore==2.27.0
 webassets==2.0
 libsass==0.23.0
-Authlib==1.6.12
-Werkzeug==3.1.8
-cryptography==48.0.1
+Authlib==1.9.5
+Werkzeug==3.1.9
+cryptography==50.0.2
 protobuf==5.29.6
-Pillow==11.1.0
+Pillow==13.0.0
