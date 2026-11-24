@@ -83,3 +83,44 @@ def test_artist_routes_require_login(web):
         session.clear()
     assert client.get("/artists").status_code == 302
     repository.list_for_owner.assert_not_called()
+
+
+def test_source_plan_is_visible_before_first_record_without_custom_urls(web):
+    client, repository = web
+    repository.list_for_owner.return_value = [ArtistWatch("A1", "W1", "Chris Dave", ["クリス・デイヴ"])]
+    text = client.get("/artists").get_data(as_text=True)
+    assert 'href="https://www.billboard-live.com/tokyo/schedules"' in text
+    assert 'href="https://www.billboard-live.com/yokohama/schedules"' in text
+    assert "検索語（次回予定）" in text
+    assert "来日 OR 公演 OR ライブ" in text
+    assert "次回の巡回後に表示されます" in text
+
+
+def test_last_scan_shows_individual_pages_failures_and_queries(web):
+    client, repository = web
+    repository.list_for_owner.return_value = [ArtistWatch(
+        "A1", "W1", "Chris Dave", last_page_checks=[
+            {"url": "https://example.com/show", "title": "Chris Dave live", "kind": "linked", "status": "ok", "event_count": 1},
+            {"url": "https://example.com/blocked", "title": "Blocked", "kind": "search", "status": "error", "reason": "HTTP 403"},
+        ], last_search_checks=[{"query": '"Chris Dave" Tokyo live', "status": "ok"}], last_skipped_details=3,
+    )]
+    text = client.get("/artists").get_data(as_text=True)
+    assert 'href="https://example.com/show"' in text
+    assert "公式ページから発見" in text
+    assert "Web検索から発見" in text
+    assert "公演情報 1件" in text
+    assert "取得できず" in text
+    assert "HTTP 403" in text
+    assert "前回のWeb検索" in text
+    assert "3件" in text
+
+
+def test_stored_invalid_history_url_is_never_rendered_as_a_link(web):
+    client, repository = web
+    repository.list_for_owner.return_value = [ArtistWatch("A1", "W1", "Chris Dave", last_page_checks=[
+        {"url": "javascript:alert(1)", "title": "<script>bad</script>", "kind": "search", "status": "error"},
+    ])]
+    text = client.get("/artists").get_data(as_text=True)
+    assert 'href="javascript:' not in text
+    assert "<script>bad</script>" not in text
+    assert "&lt;script&gt;bad&lt;/script&gt;" in text

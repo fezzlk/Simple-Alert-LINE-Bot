@@ -50,23 +50,30 @@ class Reference:
 
 
 class Collection:
-    def __init__(self, db, path, filters=()):
+    def __init__(self, db, path, filters=(), projection=None):
         self.db = db
         self.path = path
         self.filters = filters
+        self.projection = projection
 
     def document(self, doc_id=None):
         return Reference(self.db, (*self.path, doc_id or str(uuid4())))
 
     def where(self, field, op, value):
         assert op == "=="
-        return Collection(self.db, self.path, (*self.filters, (field, value)))
+        return Collection(self.db, self.path, (*self.filters, (field, value)), self.projection)
+
+    def select(self, fields):
+        return Collection(self.db, self.path, self.filters, tuple(fields))
 
     def stream(self):
         snapshots = []
         for path, data in list(self.db.data.items()):
             if path[:-1] == self.path and all(data.get(field) == value for field, value in self.filters):
-                snapshots.append(Snapshot(Reference(self.db, path)))
+                snapshot = Snapshot(Reference(self.db, path))
+                if self.projection is not None:
+                    snapshot.data = {key: value for key, value in snapshot.data.items() if key in self.projection}
+                snapshots.append(snapshot)
         return iter(snapshots)
 
 
@@ -203,3 +210,15 @@ def test_reinstated_show_gets_new_retry_key_after_cancelled_notification(databas
         keys.append(item["retry_key"])
         repo.mark_sent(watch_id, item["_id"], item["fingerprint"])
     assert len(set(keys)) == 3
+
+
+def test_minute_poll_omits_history_but_claim_preserves_the_full_previous_record(database):
+    ref = database.collection("artist_watches").document("A1")
+    history = [{"url": "https://example.com/show", "title": "Chris Dave concert", "status": "ok"}]
+    ref.set({"owner_id": "W1", "artist_name": "Chris Dave", "enabled": True, "last_page_checks": history})
+    repo = repository_class()
+    due = repo.due_watches(NOW)
+    assert len(due) == 1
+    assert due[0].last_page_checks == []
+    claimed, _ = repo.claim("A1", NOW)
+    assert claimed.last_page_checks == history

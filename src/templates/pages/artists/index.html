@@ -37,7 +37,13 @@
     <p class="mb-2 small">横断検索：今月 {{ search_used }} / {{ search_limit }} 回（全ユーザー共通）</p>
     <details class="small">
       <summary>巡回する情報源と取得できない情報</summary>
-      <p class="text-muted mt-2 mb-0">Billboard Live東京・横浜、Blue Note Tokyo、Cotton Club、SMASH、Creativemanの公式ページと、登録した公式URLを確認します。横断検索ではその他の会場・主催者・チケットサイトも探します。SNS限定情報や自動取得できないページは対象にできません。</p>
+      <p class="mt-2">公式URLを追加しなくても、次のページを毎回確認します。</p>
+      <ul class="ps-3">
+        {% for source in standard_sources %}
+        <li class="mb-1"><a href="{{ source.url }}" target="_blank" rel="noopener noreferrer">{{ source.title }}</a></li>
+        {% endfor %}
+      </ul>
+      <p class="text-muted mb-0">各一覧で登録名や別名に一致するリンクを探し、公演の詳細ページへ進みます。Web検索ではその他の会場・主催者・チケットサイトも探します。SNS限定情報や自動取得できないページは対象にできません。</p>
     </details>
   </div>
   <div class="row g-4">
@@ -69,6 +75,68 @@
         <p class="small mb-1">最終チェック：{{ local_time(watch.last_checked_at) }}{% if watch.last_checked_at %} JST{% endif %}</p>
         <p class="small mb-2">状態：{{ {'waiting':'チェック待ち', 'ok':'確認済み', 'partial':'一部の情報源を確認できませんでした', 'error':'確認に失敗しました', 'notification_pending':'LINE通知を保留中', 'line_unlinked':'LINE連携を確認してください'}.get(watch.status, 'チェック待ち') }}</p>
         {% for warning in watch.warnings %}<p class="small text-warning-emphasis mb-1">{{ warning }}</p>{% endfor %}
+        <details class="mt-3" data-testid="source-details-{{ watch._id }}">
+          <summary class="text-primary">探すページと前回の結果{% if watch.last_page_checks %}（{{ watch.last_page_checks | length }}ページ）{% endif %}</summary>
+          <div class="small mt-3">
+            <h4 class="h6">毎回確認するページ</h4>
+            <ul class="ps-3 mb-3">
+              {% for source in source_plans[watch._id].sources %}
+              <li class="mb-1">
+                <a href="{{ source.url }}" target="_blank" rel="noopener noreferrer">{{ source.title }}</a>
+                {% if source.kind == 'custom' %}<span class="badge bg-secondary">追加したURL</span>{% endif %}
+              </li>
+              {% endfor %}
+            </ul>
+            {% if watch.last_search_checks %}
+            <h4 class="h6">前回のWeb検索</h4>
+            {% for check in watch.last_search_checks %}
+            <div class="border rounded p-2 mb-2">
+              <span class="badge {{ 'bg-success-subtle text-success-emphasis' if check.status == 'ok' else 'bg-warning-subtle text-warning-emphasis' }}">{{ search_status_labels.get(check.status, '未確認') }}</span>
+              <div class="text-break mt-1">{{ check.query }}</div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <h4 class="h6">Webで探す検索語（次回予定）</h4>
+            <p class="text-muted">登録名・別名と、来日・ライブ・首都圏の地域名を組み合わせて探します。</p>
+            {% for query in source_plans[watch._id].queries %}
+            <div class="border rounded p-2 mb-2 text-break">{{ query }}</div>
+            {% endfor %}
+            {% endif %}
+            <h4 class="h6 mt-3">前回確認したページ</h4>
+            {% if watch.last_page_checks %}
+            <p class="text-muted">{{ local_time(watch.last_checked_at) }} JSTの記録です。日付・会場などを確認できた公演は件数も表示します。</p>
+            {% for check in watch.last_page_checks %}
+            <div class="border rounded p-2 mb-2">
+              <div class="d-flex flex-wrap gap-1 mb-1">
+                <span class="badge bg-light text-dark border">{{ source_kind_labels.get(check.kind, '確認先') }}</span>
+                {% if check.status == 'ok' %}
+                <span class="badge bg-success-subtle text-success-emphasis">取得済み</span>
+                {% elif check.status == 'parse_error' %}
+                <span class="badge bg-warning-subtle text-warning-emphasis">取得済み・読み取りに失敗</span>
+                {% else %}
+                <span class="badge bg-warning-subtle text-warning-emphasis">取得できず</span>
+                {% endif %}
+                {% if check.event_count %}<span class="badge bg-primary-subtle text-primary-emphasis">公演情報 {{ check.event_count }}件</span>{% endif %}
+                {% if check.candidate_links %}<span class="badge bg-secondary-subtle text-secondary-emphasis">詳細候補 {{ check.candidate_links }}件</span>{% endif %}
+              </div>
+              {% if check.url %}
+              <a class="text-break" href="{{ check.url }}" target="_blank" rel="noopener noreferrer">{{ check.title }}</a>
+              <div class="text-muted text-break">{{ check.url }}</div>
+              {% else %}
+              <span>{{ check.title }}</span>
+              {% endif %}
+              {% if check.reason %}<p class="text-warning-emphasis mt-1 mb-0">{{ check.reason }}</p>{% endif %}
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="text-muted">ページごとの記録はまだありません。次回の巡回後に表示されます。</p>
+            {% endif %}
+            {% if watch.last_skipped_details %}
+            <p class="text-warning-emphasis">詳細候補のうち {{ watch.last_skipped_details }}件は、確認件数または時間の上限により今回は確認できませんでした。</p>
+            {% endif %}
+            <p class="text-muted mb-0">この欄には直近1回分の確認先を表示します。</p>
+          </div>
+        </details>
         <details class="mt-3">
           <summary class="text-primary">登録内容を編集</summary>
           <form class="mt-3" method="post" action="{{ url_for('views_blueprint.save_artist') }}">
