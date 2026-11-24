@@ -5,6 +5,7 @@ from flask import Blueprint, Response, abort
 
 from src.Infrastructure.Repositories import (
     artist_watch_repository,
+    artist_source_cache_repository,
     habit_pending_confirmation_repository,
     habit_task_log_repository,
     habit_task_repository,
@@ -21,6 +22,7 @@ from src import config
 from src.services.ArtistLiveSourceService import ArtistLiveSourceService
 from src.services.ArtistLiveNotificationService import ArtistLiveNotificationService
 from src.UseCases.Line.CheckArtistLiveUseCase import CheckArtistLiveUseCase
+from src.UseCases.Line.RefreshArtistSourcesUseCase import RefreshArtistSourcesUseCase
 from src.UseCases.Line.CheckExpiredStockUseCase import CheckExpiredStockUseCase
 from src.UseCases.Line.CheckHabitTaskUseCase import CheckHabitTaskUseCase
 from src.UseCases.Line.SendWeeklyHabitCalendarUseCase import SendWeeklyHabitCalendarUseCase
@@ -48,17 +50,27 @@ def check_expire():
     ).execute()
     # Reuse the existing minute scheduler. Each artist is scanned once per JST day;
     # only one due artist is processed per call to keep requests short.
+    artist_idle = False
     try:
-        CheckArtistLiveUseCase(
+        result = CheckArtistLiveUseCase(
             repository=artist_watch_repository,
             web_user_repository=web_user_repository,
             line_user_repository=line_user_repository,
-            source_service=ArtistLiveSourceService(config.BRAVE_SEARCH_API_KEY),
+            source_service=ArtistLiveSourceService(config.BRAVE_SEARCH_API_KEY, cache_repository=artist_source_cache_repository),
             notification_service=ArtistLiveNotificationService(),
         ).execute()
+        artist_idle = result.get('status') == 'idle'
     except Exception:
         # A source outage must not prevent existing stock reminders from succeeding.
         logging.getLogger(__name__).warning('Artist watch batch failed; stock check completed.')
+    # Never stack the shared six-second fetch on an eighteen-second artist scan.
+    # Artist checks / notification retries take priority; idle ticks refresh one
+    # public source. No new scheduler or longer worker timeout is required.
+    if artist_idle:
+        try:
+            RefreshArtistSourcesUseCase(artist_source_cache_repository, artist_watch_repository).execute()
+        except Exception:
+            logging.getLogger(__name__).warning('Shared artist source refresh failed; existing reminders continue.')
     return 'done'
 
 

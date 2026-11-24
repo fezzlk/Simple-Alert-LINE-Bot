@@ -16,6 +16,11 @@ class ArtistWatchRepository:
     def _collection(self):
         return firestore_client.collection("artist_watches")
 
+    def has_enabled(self):
+        return next(self._collection().where("enabled", "==", True).limit(1).select([]).stream(
+            retry=None, timeout=3
+        ), None) is not None
+
     def list_for_owner(self, owner_id: str) -> list[ArtistWatch]:
         documents = self._collection().where("owner_id", "==", owner_id).stream()
         return sorted(

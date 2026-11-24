@@ -30,8 +30,11 @@ class Reference:
         self.path = path
         self.id = path[-1]
 
-    def get(self, transaction=None):
-        return Snapshot(self)
+    def get(self, transaction=None, field_paths=None, **kwargs):
+        snapshot = Snapshot(self)
+        if field_paths is not None:
+            snapshot.data = {key: value for key, value in snapshot.data.items() if key in field_paths}
+        return snapshot
 
     def set(self, data, merge=False):
         previous = self.db.data.get(self.path, {}) if merge else {}
@@ -50,23 +53,27 @@ class Reference:
 
 
 class Collection:
-    def __init__(self, db, path, filters=(), projection=None):
+    def __init__(self, db, path, filters=(), projection=None, count=None):
         self.db = db
         self.path = path
         self.filters = filters
         self.projection = projection
+        self.count = count
 
     def document(self, doc_id=None):
         return Reference(self.db, (*self.path, doc_id or str(uuid4())))
 
     def where(self, field, op, value):
         assert op == "=="
-        return Collection(self.db, self.path, (*self.filters, (field, value)), self.projection)
+        return Collection(self.db, self.path, (*self.filters, (field, value)), self.projection, self.count)
 
     def select(self, fields):
-        return Collection(self.db, self.path, self.filters, tuple(fields))
+        return Collection(self.db, self.path, self.filters, tuple(fields), self.count)
 
-    def stream(self):
+    def limit(self, count):
+        return Collection(self.db, self.path, self.filters, self.projection, count)
+
+    def stream(self, **kwargs):
         snapshots = []
         for path, data in list(self.db.data.items()):
             if path[:-1] == self.path and all(data.get(field) == value for field, value in self.filters):
@@ -74,7 +81,7 @@ class Collection:
                 if self.projection is not None:
                     snapshot.data = {key: value for key, value in snapshot.data.items() if key in self.projection}
                 snapshots.append(snapshot)
-        return iter(snapshots)
+        return iter(snapshots[:self.count] if self.count is not None else snapshots)
 
 
 class Database:

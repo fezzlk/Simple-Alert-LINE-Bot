@@ -22,9 +22,9 @@
 <div class="container py-4" style="max-width:1000px">
   <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
     <h1 class="page-title mb-0">アーティストウォッチ</h1>
-    <span class="badge bg-secondary">首都圏 · 1日1回</span>
+    <span class="badge bg-secondary">関東1都6県 · 1日1回</span>
   </div>
-  <p>気になるアーティストの東京・神奈川・千葉・埼玉の公演を探し、新しい公演や発売情報、中止・延期の変更をLINEにお知らせします。</p>
+  <p>気になるアーティストの東京・神奈川・千葉・埼玉・茨城・栃木・群馬の公演を探し、新しい公演や発売情報、中止・延期の変更をLINEにお知らせします。</p>
   {% if not page_contents.login_user.is_linked_line_user %}
   <div class="alert alert-warning">巡回と通知を始めるには、<a href="/line/approve">LINE連携</a>とBotの友だち登録が必要です。アーティストは先に登録できます。</div>
   {% endif %}
@@ -35,15 +35,35 @@
   {% endif %}
   <div class="app-card p-3 mb-4">
     <p class="mb-2 small">横断検索：今月 {{ search_used }} / {{ search_limit }} 回（全ユーザー共通）</p>
-    <details class="small">
-      <summary>巡回する情報源と取得できない情報</summary>
-      <p class="mt-2">公式URLを追加しなくても、次のページを毎回確認します。</p>
-      <ul class="ps-3">
-        {% for source in standard_sources %}
-        <li class="mb-1"><a href="{{ source.url }}" target="_blank" rel="noopener noreferrer">{{ source.title }}</a></li>
-        {% endfor %}
-      </ul>
-      <p class="text-muted mb-0">各一覧で登録名や別名に一致するリンクを探し、公演の詳細ページへ進みます。Web検索ではその他の会場・主催者・チケットサイトも探します。SNS限定情報や自動取得できないページは対象にできません。</p>
+    <details class="small" id="shared-sources">
+      <summary>巡回する会場・フェス・主催者（{{ standard_sources | length }}情報源）と取得状況</summary>
+      <p class="mt-2">公式URLの追加は任意です。小規模ジャズ店・大型会場・フェスを含む次の情報源を、1日1回、順番に共通巡回します。</p>
+      <p>初回の一巡は最短で約{{ ((standard_sources | length) / 60) | round(1) }}時間です。アーティストの確認・通知を優先するため、延びる場合があります。登録アーティストがある間だけ巡回し、取得日時と成否は会場ごとに表示します。</p>
+      {% for group in source_groups %}
+      <details class="border rounded p-2 mb-2" data-testid="source-group-{{ group.name }}">
+        <summary>{{ group.name }}（{{ group.sources | length }}件）</summary>
+        <ul class="list-unstyled mt-2 mb-0">
+          {% for source in group.sources %}
+          <li class="border-top py-2" style="overflow-wrap:anywhere">
+            <div><a href="{{ source.url }}" target="_blank" rel="noopener noreferrer">{{ source.title }}</a></div>
+            <span class="text-muted">{{ catalog_kind_labels.get(source.kind, '情報源') }}</span>
+            <span class="badge {{ 'bg-success-subtle text-success-emphasis' if source.status == 'ok' else 'bg-warning-subtle text-warning-emphasis' }}">{{ {'ok':'取得済み', 'partial':'一部取得', 'error':'取得失敗', 'pending':'巡回待ち', 'stale':'再確認待ち'}.get(source.status, '未確認') }}</span>
+            <div class="text-muted">{{ local_time(source.checked_at) }}{% if source.checked_at %} JST · {{ source.page_count }}ページ{% endif %}</div>
+            {% if source.reason %}<div class="text-warning-emphasis">{{ source.reason }}</div>{% endif %}
+            {% if source.pages %}
+            <details class="mt-1"><summary>確認したページ（{{ source.pages | length }}件）</summary>
+              <ul class="ps-3 mt-1">
+                {% for item in source.pages %}<li>{% if item.url %}<a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.title }}</a>{% else %}{{ item.title }}{% endif %}
+                  <span class="text-muted">{{ '取得済み' if item.status == 'ok' else item.reason }}</span></li>{% endfor %}
+              </ul>
+            </details>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+      </details>
+      {% endfor %}
+      <p class="text-muted mb-0">取得済みはページを取得できたことを示します。日付・出演者・会場を確認できた公演だけが通知対象です。画像・SNSだけの告知や未対応のページ構造は読み取れない場合があります。横断検索でもその他の会場・主催者・チケットサイトを探します。</p>
     </details>
   </div>
   <div class="row g-4">
@@ -78,7 +98,10 @@
         <details class="mt-3" data-testid="source-details-{{ watch._id }}">
           <summary class="text-primary">探すページと前回の結果{% if watch.last_page_checks %}（{{ watch.last_page_checks | length }}ページ）{% endif %}</summary>
           <div class="small mt-3">
-            <h4 class="h6">毎回確認するページ</h4>
+            <h4 class="h6">探すページ</h4>
+            <p>共通の{{ standard_sources | length }}情報源から、登録名・別名を探します。<a href="#shared-sources" onclick="document.getElementById('shared-sources').open=true">都県別の会場・取得状況を見る</a></p>
+            {% if source_plans[watch._id].sources %}
+            <p class="mb-1">追加した公式URLは、アーティストのチェック時に確認します。</p>
             <ul class="ps-3 mb-3">
               {% for source in source_plans[watch._id].sources %}
               <li class="mb-1">
@@ -87,6 +110,7 @@
               </li>
               {% endfor %}
             </ul>
+            {% endif %}
             {% if watch.last_search_checks %}
             <h4 class="h6">前回のWeb検索</h4>
             {% for check in watch.last_search_checks %}
@@ -97,7 +121,7 @@
             {% endfor %}
             {% else %}
             <h4 class="h6">Webで探す検索語（次回予定）</h4>
-            <p class="text-muted">登録名・別名と、来日・ライブ・首都圏の地域名を組み合わせて探します。</p>
+            <p class="text-muted">登録名・別名と、来日・ライブ・関東の地域名を組み合わせて探します。</p>
             {% for query in source_plans[watch._id].queries %}
             <div class="border rounded p-2 mb-2 text-break">{{ query }}</div>
             {% endfor %}
@@ -113,6 +137,10 @@
                 <span class="badge bg-success-subtle text-success-emphasis">取得済み</span>
                 {% elif check.status == 'parse_error' %}
                 <span class="badge bg-warning-subtle text-warning-emphasis">取得済み・読み取りに失敗</span>
+                {% elif check.status == 'partial' %}
+                <span class="badge bg-warning-subtle text-warning-emphasis">一部取得</span>
+                {% elif check.status in ('pending', 'stale') %}
+                <span class="badge bg-warning-subtle text-warning-emphasis">共通巡回待ち</span>
                 {% else %}
                 <span class="badge bg-warning-subtle text-warning-emphasis">取得できず</span>
                 {% endif %}
@@ -125,6 +153,11 @@
               {% else %}
               <span>{{ check.title }}</span>
               {% endif %}
+              {% if check.checked_at %}<div class="text-muted">ページ取得：{{ local_time(check.checked_at) }} JST</div>{% endif %}
+              {% if check.pages %}<details class="mt-1"><summary>この情報源で確認したページ</summary><ul class="ps-3 mt-1">
+                {% for item in check.pages %}<li>{% if item.url %}<a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.title }}</a>{% else %}{{ item.title }}{% endif %}
+                  <span class="text-muted">{{ '取得済み' if item.status == 'ok' else item.reason }}</span></li>{% endfor %}
+              </ul></details>{% endif %}
               {% if check.reason %}<p class="text-warning-emphasis mt-1 mb-0">{{ check.reason }}</p>{% endif %}
             </div>
             {% endfor %}

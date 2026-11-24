@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "purpose": "Kanto venue coverage and conservative date/performer extraction",
+  "cases": [
+    {"id": "fixed_venue_ibaraki", "url": "https://cortez.jp/", "artist": "Test Artist", "html": "<main><article><h2>Test Artist</h2>2026年12月13日 開場16:30 開演17:00</article></main>", "dates": ["2026-12-13"]},
+    {"id": "calendar_unique_month_gunma", "url": "https://k-note.sakura.ne.jp/", "artist": "Test Artist", "html": "<main><h2>2026年12月</h2><table><tr><td>13 Test Artist LIVE OPEN 17:00</td></tr></table></main>", "dates": ["2026-12-13"]},
+    {"id": "calendar_ambiguous_month_rejected", "url": "https://k-note.sakura.ne.jp/", "artist": "Test Artist", "html": "<main><h2>2026年11月</h2><h2>2026年12月</h2><table><tr><td>13 Test Artist LIVE OPEN 17:00</td></tr></table></main>", "dates": []},
+    {"id": "blue_note_place_biography_is_not_performance", "url": "https://www.bluenoteplace.jp/live/example/", "artist": "Biography Artist", "html": "<main>Title Soul Journey Date &amp; Showtimes 2026 12.11 fri. —— OPEN 18:00 MEMBER Performing Artist ARTIST INFORMATION Biography Artist</main>", "dates": []}
+  ]
+}

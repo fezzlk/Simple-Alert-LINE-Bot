@@ -12,7 +12,7 @@ import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from html.parser import HTMLParser
 from urllib.parse import urlencode, urljoin, urlsplit, urlunsplit
 from urllib.robotparser import RobotFileParser
@@ -20,6 +20,7 @@ from zoneinfo import ZoneInfo
 
 from requests.certs import where as ca_bundle
 
+from src.Domains.ArtistSourceCatalog import SOURCES, unpack_cache, venue_for_url
 from src.Domains.Entities.ArtistWatch import ArtistWatch, ConcertEvent, matches_artist
 
 DEFAULT_SOURCES = (
@@ -38,10 +39,11 @@ SOURCE_NAMES = dict(zip(DEFAULT_SOURCES, (
     "SMASH・来日公演のお知らせ",
     "Creativeman・公演のお知らせ",
 )))
+SOURCE_NAMES.update({source["url"]: source["name"] for source in SOURCES if source["url"] not in SOURCE_NAMES})
 USER_AGENT = "remily-live-watch/1.0"
 MAX_PAGE_BYTES = 2 * 1024 * 1024
 TOKYO = ZoneInfo("Asia/Tokyo")
-METRO = re.compile(r"東京|神奈川|千葉|埼玉|横浜|川崎|さいたま|\b(?:tokyo|yokohama|kanagawa|chiba|saitama|kawasaki)\b", re.I)
+METRO = re.compile(r"東京|神奈川|千葉|埼玉|茨城|栃木|群馬|横浜|川崎|さいたま|宇都宮|高崎|前橋|水戸|\b(?:tokyo|yokohama|kanagawa|chiba|saitama|kawasaki|ibaraki|tochigi|gunma|utsunomiya|takasaki|maebashi|mito)\b", re.I)
 DATE = re.compile(r"(?<!\d)(20\d{2})(?:\s*[年./-]\s*|\s+)(\d{1,2})\s*[月./-]\s*(\d{1,2})(?:日)?(?!\d)")
 VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "wbr"}
 
@@ -96,7 +98,7 @@ class PublicPageClient:
         self._robots = {}
         self._lock = threading.Lock()
 
-    def _get(self, url: str, headers: dict | None = None) -> tuple[bytes, str, str]:
+    def _get(self, url: str, headers: dict | None = None, check_redirect_robots=False) -> tuple[bytes, str, str]:
         original_host = urlsplit(url).hostname
         for _ in range(4):
             url = validate_source_url(url)
@@ -119,6 +121,8 @@ class PublicPageClient:
                     if not location:
                         raise SourceError("redirect")
                     url = urljoin(url, location)
+                    if check_redirect_robots:
+                        self._check_robots(validate_source_url(url))
                     continue
                 if response.status != 200:
                     raise SourceError(f"http_{response.status}")
@@ -145,8 +149,7 @@ class PublicPageClient:
                 connection.close()
         raise SourceError("too_many_redirects")
 
-    def html(self, url: str) -> tuple[str, str]:
-        url = validate_source_url(url)
+    def _check_robots(self, url: str):
         parsed = urlsplit(url)
         origin = f"https://{parsed.netloc}"
         # Cache per source scan; no credentials or browser state are retained.
@@ -165,11 +168,16 @@ class PublicPageClient:
                 self._robots[origin] = policy
         if not policy.can_fetch(USER_AGENT, url):
             raise SourceError("robots_disallowed")
-        body, content_type, final_url = self._get(url)
+
+    def html(self, url: str) -> tuple[str, str]:
+        url = validate_source_url(url)
+        self._check_robots(url)
+        body, content_type, final_url = self._get(url, check_redirect_robots=True)
         if "html" not in content_type.lower():
             raise SourceError("not_html")
         charset = re.search(r"charset=[\"']?([\w-]+)", content_type, re.I)
-        encoding = charset.group(1) if charset else "utf-8"
+        meta_charset = re.search(rb'charset\s*=\s*["\x27]?([\w-]+)', body[:4096], re.I)
+        encoding = charset.group(1) if charset else meta_charset.group(1).decode("ascii") if meta_charset else "utf-8"
         try:
             return body.decode(encoding, errors="replace"), final_url
         except LookupError as error:
@@ -241,11 +249,15 @@ class ConcertHTML(HTMLParser):
             if node.tag != "a" or not node.attrs.get("href"):
                 continue
             text = node.text()
+            text += " " + " ".join(child.attrs.get("alt", "") for child in node.walk() if child.tag == "img")
             if node.parent and len(node.parent.text()) <= 600 and sum(child.tag == "a" for child in node.parent.walk()) <= 2:
                 text += " " + node.parent.text()
             if matches_artist(text, names):
                 try:
-                    links.append(validate_source_url(urljoin(base_url, node.attrs["href"])))
+                    target = urlsplit(urljoin(base_url, node.attrs["href"]))
+                    if target.scheme == "http" and target.hostname == urlsplit(base_url).hostname:
+                        target = target._replace(scheme="https")
+                    links.append(validate_source_url(target.geturl()))
                 except ValueError:
                     continue
         return list(dict.fromkeys(links))
@@ -349,6 +361,56 @@ def _structured_events(document: ConcertHTML, url: str, watch: ArtistWatch, toda
     return events
 
 
+def _catalog_events(document, url, watch, today):
+    """Dated performance blocks on a known, fixed venue's own site.
+
+    Never borrow an artist from a page headline or a date from another listing.
+    Date inference is deliberately limited: an explicit year is required, or a
+    unique year/month heading with a calendar cell containing the day.
+    """
+    source = venue_for_url(url)
+    if not source:
+        return []
+    headings = [node.text() for node in document.main.walk() if node.tag in ("h1", "h2", "h3", "caption")]
+    months = set()
+    for heading in headings:
+        match = re.fullmatch(r"\s*(20\d{2})\s*[年./-]\s*(\d{1,2})\s*月?\s*(?:スケジュール|SCHEDULE)?\s*", heading, re.I)
+        if match:
+            months.add(tuple(map(int, match.groups())))
+    events = {}
+    for node in document.main.walk():
+        if node.tag not in ("article", "section", "li", "td", "div"):
+            continue
+        block = node.text()
+        if len(block) > 1800 or not matches_artist(block, watch.names):
+            continue
+        parent = node
+        excluded = False
+        while parent:
+            if re.search(r"bio|profile|recommend|past[-_]?show|history|archive", str(parent.attrs.get("class", "")) + " " + str(parent.attrs.get("id", "")), re.I):
+                excluded = True
+                break
+            parent = parent.parent
+        if excluded or not re.search(r"開場|開演|出演|料金|チャージ|ライブ|セッション|\b(?:open|start|charge|live|session)\b|[¥￥]", block, re.I):
+            continue
+        dates = _date_values(block)
+        if not dates and len(months) == 1 and node.tag == "td":
+            day = re.match(r"^(\d{1,2})(?:日|\s)", block)
+            if day:
+                try:
+                    dates = [date(*next(iter(months)), int(day[1]))]
+                except ValueError:
+                    pass
+        # A parent containing multiple shows / dates cannot pair them safely.
+        if len(dates) != 1 or dates[0] < today:
+            continue
+        title = next((child.text() for child in node.walk() if child.tag in ("h1", "h2", "h3", "h4")
+                      and matches_artist(child.text(), watch.names)), watch.artist_name)
+        event = ConcertEvent(title[:200], dates[0], source["name"], url, _event_status(block))
+        events[event.key(watch.artist_name)] = event
+    return list(events.values())
+
+
 def extract_events(document: ConcertHTML, url: str, watch: ArtistWatch, today: date) -> list[ConcertEvent]:
     structured = _structured_events(document, url, watch, today)
     if structured:
@@ -400,10 +462,20 @@ def extract_events(document: ConcertHTML, url: str, watch: ArtistWatch, today: d
         reservation = re.search(r"[＜<]予約受付開始日[＞>](.*?)(?:※この公演|ご予約はこちら|CHARGE|$)", text)
         ticket_info = reservation.group(1).strip()[:500] if reservation else ""
         text = title + " " + (members.group(1) if members else "")
+    elif parsed.hostname in ("www.bluenoteplace.jp", "bluenoteplace.jp") and re.match(r"/live/[^/]+/?$", parsed.path):
+        # BNP's heading is a date, and its biography may name other musicians.
+        # Read only the labelled title / showtimes / member fields.
+        show = re.search(r"\bTitle\s+(.+?)\s+Date\s*&\s*Showtimes\s+(.+?)\s+MEMBER\s+(.+?)(?:ARTIST INFORMATION|EVENT SCHEDULE|$)", text, re.I)
+        if not show or not matches_artist(show[1] + " " + show[3], watch.names):
+            return []
+        venue, title = "BLUE NOTE PLACE", show[1]
+        date_text = re.split(r"[—―-]{2,}|\[1st\]|\bOPEN\b|予約開始", show[2], maxsplit=1, flags=re.I)[0]
+        dates = _schedule_dates(date_text)
+        text = " ".join(show.groups())
     else:
         # General promoters / ticket pages: inspect individual event blocks, never the
         # page footer or an unrelated Tokyo date elsewhere in a nationwide tour.
-        events = []
+        events = _catalog_events(document, url, watch, today)
         block_tags = ("article", "section", "li", "p", "tr", "div")
         for node in document.main.walk():
             if node.tag not in block_tags:
@@ -447,8 +519,8 @@ class DiscoveryResult:
 def build_search_queries(watch: ArtistWatch) -> list[str]:
     jp_name = next((name for name in watch.names if re.search(r"[^\x00-\x7f]", name)), watch.artist_name)
     en_name = next((name for name in watch.names if name.isascii()), watch.artist_name)
-    return [f'"{jp_name}" (来日 OR 公演 OR ライブ) (東京 OR 横浜 OR 千葉 OR 埼玉)',
-            f'"{en_name}" (Tokyo OR Yokohama OR Chiba OR Saitama) (live OR tour OR tickets)']
+    return [f'"{jp_name}" (来日 OR 公演 OR ライブ) (東京 OR 神奈川 OR 千葉 OR 埼玉 OR 茨城 OR 栃木 OR 群馬)',
+            f'"{en_name}" (Tokyo OR Kanagawa OR Chiba OR Saitama OR Ibaraki OR Tochigi OR Gunma) (live OR tour OR tickets)']
 
 
 def _page_check(url: str, kind: str, status: str, document=None, error=None) -> dict:
@@ -480,14 +552,62 @@ def _page_check(url: str, kind: str, status: str, document=None, error=None) -> 
 
 
 class ArtistLiveSourceService:
-    def __init__(self, api_key: str = "", client_factory=PublicPageClient):
+    def __init__(self, api_key: str = "", client_factory=PublicPageClient, cache_repository=None):
         self.api_key = api_key
         self.client_factory = client_factory
+        self.cache = cache_repository
+
+    def _cached_pages(self, watch, today, result, deadline):
+        pages = []
+        try:
+            index = self.cache.index()
+        except Exception:
+            index = {}
+        unavailable = 0
+        for source in SOURCES:
+            url = source["url"]
+            item = index.get(url, {})
+            checked_at = item.get("checked_at")
+            fresh = isinstance(checked_at, datetime) and checked_at.astimezone(TOKYO).date() in (today, today - timedelta(days=1))
+            status = item.get("status", "pending") if fresh else "stale" if checked_at else "pending"
+            record = _page_check(url, "shared", "ok" if status in ("ok", "partial") else status)
+            record.update(title=item.get("title") or source["name"], checked_at=checked_at.isoformat() if isinstance(checked_at, datetime) else "",
+                          prefecture=source["prefecture"], reason=item.get("reason", "") if fresh else "共通巡回の順番待ち" if not checked_at else "取得情報が古いため再確認待ち",
+                          page_count=item.get("page_count", 0), pages=item.get("page_checks", []))
+            if status == "partial":
+                record["status"] = "partial"
+                unavailable += 1
+            result.page_checks.append(record)
+            if status not in ("ok", "partial"):
+                unavailable += 1
+                continue
+            if time.monotonic() >= deadline - 2:
+                record.update(status="pending", reason="照合時間の上限に達したため未確認")
+                unavailable += 1
+                continue
+            result.checked_pages += 1
+            try:
+                text = unpack_cache(item["text_z"], 3 * MAX_PAGE_BYTES)
+                if not matches_artist(text, watch.names):
+                    continue
+                if time.monotonic() >= deadline - 1:
+                    raise SourceError("time_limit")
+                cached = self.cache.pages(url, timeout=max(0.1, min(3, deadline - time.monotonic())))
+                payload = json.loads(unpack_cache(cached, 3 * MAX_PAGE_BYTES))
+                for page in payload:
+                    final_url = validate_source_url(page["url"])
+                    pages.append((final_url, ConcertHTML(page["html"]), record))
+            except Exception:
+                record.update(status="parse_error", reason="共通巡回の取得内容を読み取れませんでした")
+                unavailable += 1
+        if unavailable:
+            result.warnings.append(f"共通巡回の{unavailable}情報源が未確認・取得失敗・再確認待ちです。会場一覧で確認できます。")
+        return pages
 
     def discover(self, watch: ArtistWatch, today: date, reserve_search, deadline: float) -> DiscoveryResult:
         client = self.client_factory(deadline)
         result = DiscoveryResult()
-        pages = []
+        pages = self._cached_pages(watch, today, result, deadline) if self.cache else []
         search_urls = []
 
         def page(url):
@@ -495,12 +615,15 @@ class ArtistLiveSourceService:
             return final_url, ConcertHTML(html)
 
         def search(query):
+            if time.monotonic() >= deadline - 1:
+                raise SourceError("time_limit")
             if not reserve_search():
                 return [], "検索の月間無料枠向け上限に達しました。公式サイト巡回は継続します。"
             return client.search(query, self.api_key), ""
 
         queries = build_search_queries(watch)
-        sources = list(dict.fromkeys([*watch.source_urls, *DEFAULT_SOURCES]))
+        shared_urls = {source["url"] for source in SOURCES} if self.cache else set()
+        sources = list(dict.fromkeys(url for url in [*watch.source_urls, *(() if self.cache else DEFAULT_SOURCES)] if url not in shared_urls))
         with ThreadPoolExecutor(max_workers=4) as pool:
             tasks = {pool.submit(page, url): ("page", url) for url in sources}
             if self.api_key:
@@ -535,12 +658,15 @@ class ArtistLiveSourceService:
 
             candidates = []
             candidate_kinds = {}
+            seen_events = {}
 
             def inspect_page(url, document, record, collect_links=True):
                 try:
                     events = extract_events(document, url, watch, today)
                     result.events.extend(events)
-                    record["event_count"] = len({event.key(watch.artist_name) for event in events})
+                    keys = seen_events.setdefault(id(record), set())
+                    keys.update(event.key(watch.artist_name) for event in events)
+                    record["event_count"] = len(keys)
                     return document.artist_links(watch.names, url) if collect_links else []
                 except Exception:
                     record.update(status="parse_error", reason="ページは取得できましたが公演情報を読み取れませんでした")
@@ -549,7 +675,7 @@ class ArtistLiveSourceService:
 
             for url, document, record in pages:
                 links = inspect_page(url, document, record)
-                record["candidate_links"] = len(links)
+                record["candidate_links"] = record.get("candidate_links", 0) + len(links)
                 candidates.extend(links)
                 candidate_kinds.update({link: "linked" for link in links})
             candidates.extend(search_urls)
@@ -585,7 +711,7 @@ class ArtistLiveSourceService:
                 unique[key] = event
         result.events = sorted(unique.values(), key=lambda event: (event.event_date, event.venue))
         result.warnings = list(dict.fromkeys(result.warnings))
-        kind_order = {"standard": 0, "custom": 1, "linked": 2, "search": 3}
+        kind_order = {"shared": 0, "standard": 0, "custom": 1, "linked": 2, "search": 3}
         result.page_checks.sort(key=lambda item: (kind_order[item["kind"]], item["title"], item["url"]))
         result.search_checks.sort(key=lambda item: queries.index(item["query"]))
         return result

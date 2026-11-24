@@ -1,0 +1,1170 @@
+{
+  "version": 1,
+  "reviewed_on": "2026-11-24",
+  "sources": [
+    {
+      "name": "Billboard Live 東京",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.billboard-live.com/tokyo/schedules",
+      "provenance": "official_site"
+    },
+    {
+      "name": "Billboard Live 横浜",
+      "prefecture": "神奈川",
+      "kind": "club",
+      "url": "https://www.billboard-live.com/yokohama/schedules",
+      "provenance": "official_site"
+    },
+    {
+      "name": "Blue Note Tokyo",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.bluenote.co.jp/jp/artists/schedule.html",
+      "provenance": "official_site"
+    },
+    {
+      "name": "Cotton Club",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.cottonclubjapan.co.jp/jp/",
+      "provenance": "official_site"
+    },
+    {
+      "name": "SMASH",
+      "prefecture": "広域",
+      "kind": "promoter",
+      "url": "https://smash-jpn.com/",
+      "provenance": "official_site"
+    },
+    {
+      "name": "Creativeman",
+      "prefecture": "広域",
+      "kind": "promoter",
+      "url": "https://www.creativeman.co.jp/",
+      "provenance": "official_site"
+    },
+    {
+      "name": "CAFE & BAR up’s",
+      "prefecture": "茨城",
+      "kind": "club",
+      "url": "https://www.ups-jazz.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Jazz Live Spot Village",
+      "prefecture": "茨城",
+      "kind": "club",
+      "url": "https://jazz1126.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Girl Talk",
+      "prefecture": "茨城",
+      "kind": "club",
+      "url": "https://www.girltalk.co.jp/g_live/girltalk.cgi",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "JAZZ ROOM CORTEZ",
+      "prefecture": "茨城",
+      "kind": "club",
+      "url": "https://cortez.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "INDULZ DREAM",
+      "prefecture": "栃木",
+      "kind": "club",
+      "url": "https://geo-buono.com/indulzdream/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Jazz&Blues Bar Village",
+      "prefecture": "群馬",
+      "kind": "club",
+      "url": "https://villagejazz.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Cafe' Jazzmal",
+      "prefecture": "埼玉",
+      "kind": "club",
+      "url": "https://jazzmal20090411.wixsite.com/jazzmal",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "jazz&drinks Sugar Hill",
+      "prefecture": "埼玉",
+      "kind": "club",
+      "url": "https://www.sugarhill.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "停車場",
+      "prefecture": "埼玉",
+      "kind": "club",
+      "url": "https://www.teishabajazz.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "ジャズハウス・スワン",
+      "prefecture": "埼玉",
+      "kind": "club",
+      "url": "https://swan.o.oo7.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "上尾 プラス・イレヴン",
+      "prefecture": "埼玉",
+      "kind": "club",
+      "url": "https://www.pluseleven-ageo.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "eighty one JAZZ CLUB",
+      "prefecture": "千葉",
+      "kind": "club",
+      "url": "https://www.technet.ne.jp/yasuto/eitghy-one.html",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "千葉みなと clipper",
+      "prefecture": "千葉",
+      "kind": "club",
+      "url": "https://clipper.live/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Jazz Spot CANDY",
+      "prefecture": "千葉",
+      "kind": "club",
+      "url": "https://blog.livedoor.jp/jazzspotcandy/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "りべるて2",
+      "prefecture": "千葉",
+      "kind": "club",
+      "url": "https://liberte2.exblog.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "コルコバード",
+      "prefecture": "千葉",
+      "kind": "club",
+      "url": "https://www7b.biglobe.ne.jp/jazz-bossa-corcovado",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "cooljojo jazz+art",
+      "prefecture": "千葉",
+      "kind": "club",
+      "url": "https://www.cooljojo.tokyo/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Live JAZZ HotHouse",
+      "prefecture": "千葉",
+      "kind": "club",
+      "url": "https://www.jbs-co.com/hothouse/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Jazz Bar Nardis",
+      "prefecture": "千葉",
+      "kind": "club",
+      "url": "https://knardis.com/knardis.com/Welcome.html",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "東京倶楽部水道橋店",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.tokyo-club.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "NARU お茶の水店",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://ocha-naru.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Jazz Spot PACO",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://jazzspotpaco.blog100.fc2.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "THE BAR BARBRA",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://ginza-barbra.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Jazz & Soul Bar The Deep",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.jazz-thedeep.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Piano Bar IZUMI",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://izumi-jazz.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "六本木クラップス",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://c-laps.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "KEYSTONE CLUB 東京",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://keystoneclubtokyo.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "六本木 アルフィー",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://alfie.tokyo/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "六本木 club t",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://clubt220music.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "ワインバー・クリマ",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.climat.org/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "ピアノバー My Scotch",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://myscotch.tokyo/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "ヴァーチュオーゾ赤坂",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.virtuosoakasaka.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "B flat",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://bflat.yamano-music.co.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "All Of Me Club",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://allofmeclub.net/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "赤坂 Tonalite",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.akasakatonalite.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "赤坂 G’s bar",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.g-s-bar.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Bossa Nova & Jazz Club Kei",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://akasakakei.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "ZIMAGINE",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://zimagine.genonsha.co.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "表参道 Jazz Bird",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://jazzbird.tokyo/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "上野アリエス",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://ueno-aries.jimdofree.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "FOUR & MORE",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://fourandmore.web.fc2.com/index.html",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "HUB浅草店",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.pub-hub.com/index.php/shop/detail/6",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "ライブ･バー 舵輪",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://live-darling.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Jazz Bar SOULTRANE",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://soultrane.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "JAZZ BAR MARS",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://jazz-bar-mars.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "合羽橋 なってるハウス",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.knuttelhouse.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "サムデイ",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://someday.net/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "壱岐坂 Bon Courage",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://bon-courage.tokyo/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "ライブ カスター",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.custer.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Cafe Clair",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://clair.cafe.coocan.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "JACK & SUZIE",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://jackandsuzie.tokyo/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "アーリーバード",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://e-birdmusic.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "錦糸町 J-flow",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://j-flow.net/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Chippy",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.chippy.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "BACK IN TIME",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.bqrecords.net/backintime.htm",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "JAZZ HOUSE COCHI",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.jazz-cochi.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "なぁ～じゅ",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://nage64.wixsite.com/nage",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "JZ Brat",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.jzbrat.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "公園通りクラシックス",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://koendoriclassics.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Jazz Bar 琥珀",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.udagawacafe.com/kohaku/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "渋谷 KO-KO",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://jazz-koko.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "代々木ナル",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.yoyogi-naru.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "珈琲美学",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.jazz.co.jp/LiveSpot/coffeebigaku_schedule.html",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Asian Cafe",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.asiancafe-live.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "A-TRAIN",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://atrain-jazz.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Jammin'",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.jammin-meguro.sakura.ne.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "hyphen",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://r.goope.jp/hyphen",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "中目黒 楽屋",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://rakuya.asia/home.shtml",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "ブルース アレイ ジャパン",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.bluesalley.co.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Neighbor",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://neighbor-live.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "rpm",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.rpmshimokita.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "下北沢 Apollo",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.apollonoise.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "LADY JANE",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://bigtory.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Crazy Love",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.jazzbar-crazylove.info/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "bar PENTA",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://penta.blue/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Cafe Beulmans",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://cafebeulmans.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "キンのツボ",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.jazz.co.jp/LiveSpot/kintubo_schedule.html",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Saci Perere",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.saciperere1974.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "曙橋 JAZZBAR FILL IN",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www5.hp-ez.com/hp/fillin/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "新宿ピットイン",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://pit-inn.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "POLKADOTS",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.jazz-polkadots.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "St. George's Bar",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://tokyo.hiltonjapan.co.jp/plans/restaurants/live/st-georges-bar-music",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "U-ma Kagurazaka",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.u-makagurazaka.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "神楽坂 もりのいえ",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.kagurazaka-morinoie.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "中野 Sweet Rain",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://jazzsweetrain.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "THELONIOUS",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://thelonious-hp.jimdofree.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Organ Jazz 倶楽部",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://ojcabecafe.jimdofree.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "MANHATTAN",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.ateliermw.com/manhattan/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "阿佐ヶ谷天",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://asagaya-ten.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "JIROKICHI",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://jirokichi.net/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "高円寺グッドマン",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://koenjigoodman.web.fc2.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "アケタの店",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.aketa.org/mise.html",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "西荻窪 ボイラー室",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://boiler-tokyo.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "荻窪ルースター",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://ogikubo-rooster.com/north/index.html",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "荻窪 ベルベットサン",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.velvetsun.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Minton House",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www7b.biglobe.ne.jp/~mintonhouse/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "CLOP CLOP",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.clopclop.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Sunny Side",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.sunny-side.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Boozy Muse",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.boozy-muse.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "カフェ・コットンクラブ",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://tb.cafecottonclub.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "gate one",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://jazzgateone.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "大塚 GRECO",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.greco.gr.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "DONFAN",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.jazzdonfan.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "MONTGOMERY LAND",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://montgomery-land.net/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "P’s Bar",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://ktmhp.com/hp/psbar/top",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "池袋バレルハウス",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.barrel-house.net/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "INDEPENDENCE",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://jazz-independence.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Apple Jump",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://applejump.net/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Hot Pepper",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://hotpepperjazz.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "ABSOLUTE BLUE",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://absol.blue/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "江古田 Buddy",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.buddy-tokyo.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "そるとぴーなつ",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://saltpeanuts.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "in F",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://in-f.live/site/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Ami's Bar",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://amisbar.wordpress.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "吉祥寺サムタイム",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.sometime.co.jp/sometime/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "音吉！MEG",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://otokichi-meg.net/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "吉祥寺ストリングス",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.jazz-strings.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Fontana",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://mcfontana.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Blue Moon",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.jazzbar-bluemoon.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Art×Jazz M's",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://artjazz-ms.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "国立 ハーバーライト",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.harborlight.co.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "国立 NO TRUNKS",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://notrunks.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "ジェシー・ジェイムス立川店",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://jessejames-tachikawa.music.coocan.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "INTO THE BLUE",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://intotheblue.info/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Nica's",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://nicas.pinoko.jp/nicas/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "狛江 Add 9th",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www2.u-netsurf.ne.jp/~add9th/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "La fiesta",
+      "prefecture": "神奈川",
+      "kind": "club",
+      "url": "https://lafiesta-jazz.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "馬車道 チャーリーズバー",
+      "prefecture": "神奈川",
+      "kind": "club",
+      "url": "https://charliesbarjazz.wixsite.com/my-site",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "WonderWall Yokohama",
+      "prefecture": "神奈川",
+      "kind": "club",
+      "url": "https://wonderwall-yokohama.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Megusta",
+      "prefecture": "神奈川",
+      "kind": "club",
+      "url": "https://megusta2288869.web.fc2.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "横浜エアジン",
+      "prefecture": "神奈川",
+      "kind": "club",
+      "url": "https://www.airegin.yokohama/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "本厚木 Cabin",
+      "prefecture": "神奈川",
+      "kind": "club",
+      "url": "https://www.cabinatsugi.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "JAZZ CLUB DAPHNE",
+      "prefecture": "神奈川",
+      "kind": "club",
+      "url": "https://jazz-daphne.jp/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "Jazz&Booze Storyville",
+      "prefecture": "神奈川",
+      "kind": "club",
+      "url": "https://www.jazz-storyville.com/",
+      "provenance": "https://jazzshiryokan.net/jazzDB/livehouse_link.php"
+    },
+    {
+      "name": "BLUE NOTE PLACE",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://www.bluenoteplace.jp/live/",
+      "provenance": "independent_official_site_research"
+    },
+    {
+      "name": "BLUES ALLEY JAPAN",
+      "prefecture": "東京",
+      "kind": "club",
+      "url": "https://reserve.bluesalley.co.jp/schedule/live.html",
+      "provenance": "independent_official_site_research"
+    },
+    {
+      "name": "Zepp Haneda",
+      "prefecture": "東京",
+      "kind": "large_venue",
+      "url": "https://www.zepp.co.jp/hall/haneda/",
+      "provenance": "independent_official_site_research"
+    },
+    {
+      "name": "LOVE SUPREME JAZZ FESTIVAL JAPAN",
+      "prefecture": "東京",
+      "kind": "festival",
+      "url": "https://lovesupremefestival.jp/",
+      "provenance": "independent_official_site_research"
+    },
+    {
+      "name": "横濱 JAZZ PROMENADE",
+      "prefecture": "神奈川",
+      "kind": "festival",
+      "url": "https://jazzpro.jp/",
+      "provenance": "independent_official_site_research"
+    },
+    {
+      "name": "宇都宮ジャズ協会・加盟店スケジュール",
+      "prefecture": "栃木",
+      "kind": "association",
+      "url": "https://www.ujazz.net/schedule.html",
+      "provenance": "independent_official_site_research"
+    },
+    {
+      "name": "K Note",
+      "prefecture": "群馬",
+      "kind": "club",
+      "url": "https://k-note.sakura.ne.jp/",
+      "provenance": "independent_official_site_research"
+    },
+    {
+      "name": "Shibuya WWW / WWW X",
+      "prefecture": "東京",
+      "kind": "large_venue",
+      "url": "https://www-shibuya.jp/schedule/",
+      "provenance": "official_site",
+      "fixed_venue": false
+    },
+    {
+      "name": "duo MUSIC EXCHANGE",
+      "prefecture": "東京",
+      "kind": "large_venue",
+      "url": "https://www.duomusicexchange.com/",
+      "provenance": "official_site"
+    },
+    {
+      "name": "LIQUIDROOM",
+      "prefecture": "東京",
+      "kind": "large_venue",
+      "url": "https://www.liquidroom.net/",
+      "provenance": "official_site"
+    },
+    {
+      "name": "Toyosu PIT",
+      "prefecture": "東京",
+      "kind": "large_venue",
+      "url": "https://toyosu.pia-pit.jp/",
+      "provenance": "official_site"
+    },
+    {
+      "name": "Zepp DiverCity TOKYO",
+      "prefecture": "東京",
+      "kind": "large_venue",
+      "url": "https://www.zepp.co.jp/hall/divercity/",
+      "provenance": "official_site"
+    },
+    {
+      "name": "Zepp Shinjuku",
+      "prefecture": "東京",
+      "kind": "large_venue",
+      "url": "https://www.zepp.co.jp/hall/shinjuku/",
+      "provenance": "official_site"
+    },
+    {
+      "name": "KT Zepp Yokohama",
+      "prefecture": "神奈川",
+      "kind": "large_venue",
+      "url": "https://www.zepp.co.jp/hall/yokohama/",
+      "provenance": "official_site"
+    },
+    {
+      "name": "Kアリーナ横浜",
+      "prefecture": "神奈川",
+      "kind": "large_venue",
+      "url": "https://k-arena.com/schedule/",
+      "provenance": "official_site"
+    },
+    {
+      "name": "東京国際フォーラム",
+      "prefecture": "東京",
+      "kind": "large_venue",
+      "url": "https://www.t-i-forum.co.jp/visitors/event/",
+      "provenance": "official_site"
+    },
+    {
+      "name": "すみだストリートジャズフェスティバル",
+      "prefecture": "東京",
+      "kind": "festival",
+      "url": "https://sumida-jazz.jp/sj/",
+      "provenance": "official_site"
+    },
+    {
+      "name": "高崎音楽祭",
+      "prefecture": "群馬",
+      "kind": "festival",
+      "url": "https://takasakiongakusai.jp/",
+      "provenance": "official_site"
+    },
+    {
+      "name": "SYNCHRONICITY",
+      "prefecture": "東京",
+      "kind": "festival",
+      "url": "https://synchronicity.tv/festival/",
+      "provenance": "official_site"
+    },
+    {
+      "name": "Live Nation Japan",
+      "prefecture": "広域",
+      "kind": "promoter",
+      "url": "https://www.livenation.co.jp/",
+      "provenance": "official_site"
+    },
+    {
+      "name": "GMOアリーナさいたま",
+      "prefecture": "埼玉",
+      "kind": "large_venue",
+      "url": "https://www.saitama-arena.co.jp/schedule/",
+      "provenance": "official_site"
+    },
+    {
+      "name": "横浜アリーナ",
+      "prefecture": "神奈川",
+      "kind": "large_venue",
+      "url": "https://www.yokohama-arena.co.jp/event/",
+      "provenance": "official_site"
+    },
+    {
+      "name": "東京ガーデンシアター",
+      "prefecture": "東京",
+      "kind": "large_venue",
+      "url": "https://www.shopping-sumitomo-rd.com/tokyo_garden_theater/schedule/",
+      "provenance": "official_site"
+    },
+    {
+      "name": "幕張メッセ",
+      "prefecture": "千葉",
+      "kind": "large_venue",
+      "url": "https://www.m-messe.co.jp/event/",
+      "provenance": "official_site"
+    },
+    {
+      "name": "東京ドーム",
+      "prefecture": "東京",
+      "kind": "large_venue",
+      "url": "https://www.tokyo-dome.co.jp/dome/event/",
+      "provenance": "official_site"
+    }
+  ],
+  "excluded": [
+    {
+      "name": "BODY&SOUL",
+      "reason": "2026-09-26の営業終了を公式サイトで確認",
+      "reference": "https://bodyandsoul.co.jp/schedule",
+      "reviewed_on": "2026-11-24"
+    }
+  ]
+}
