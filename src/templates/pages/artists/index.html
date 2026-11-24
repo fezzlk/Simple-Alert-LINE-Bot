@@ -1,0 +1,88 @@
+{% extends "layout.html" %}
+{% macro artist_fields(watch=none, prefix='new') %}
+<div class="mb-3">
+  <label class="form-label" for="{{ prefix }}-name">アーティスト名</label>
+  <input class="form-control" id="{{ prefix }}-name" name="artist_name" maxlength="100" required
+         value="{{ watch.artist_name if watch else '' }}" placeholder="Chris Dave">
+</div>
+<div class="mb-3">
+  <label class="form-label" for="{{ prefix }}-aliases">別名・日本語名・バンド名（任意）</label>
+  <textarea class="form-control" id="{{ prefix }}-aliases" name="aliases" rows="3"
+            placeholder="クリス・デイヴ&#10;Chris Dave and the Drumhedz">{{ watch.aliases | join('\n') if watch else '' }}</textarea>
+  <div class="form-text">1行に1つ、10件まで。出演者欄も確認し、共演名義を探します。</div>
+</div>
+<div class="mb-3">
+  <label class="form-label" for="{{ prefix }}-sources">追加で巡回する公式URL（任意）</label>
+  <textarea class="form-control" style="overflow-wrap:anywhere" id="{{ prefix }}-sources" name="source_urls" rows="2"
+            placeholder="https://アーティスト公式サイトのツアーページ">{{ watch.source_urls | join('\n') if watch else '' }}</textarea>
+  <div class="form-text">1行に1つ、3件まで。公開されているHTTPSのページを指定してください。</div>
+</div>
+{% endmacro %}
+{% block content %}
+<div class="container py-4" style="max-width:1000px">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <h1 class="page-title mb-0">アーティストウォッチ</h1>
+    <span class="badge bg-secondary">首都圏 · 1日1回</span>
+  </div>
+  <p>気になるアーティストの東京・神奈川・千葉・埼玉の公演を探し、新しい公演や発売情報、中止・延期の変更をLINEにお知らせします。</p>
+  {% if not page_contents.login_user.is_linked_line_user %}
+  <div class="alert alert-warning">巡回と通知を始めるには、<a href="/line/approve">LINE連携</a>とBotの友だち登録が必要です。アーティストは先に登録できます。</div>
+  {% endif %}
+  {% if not search_enabled %}
+  <div class="alert alert-warning">Web横断検索は準備中です。現在は公式サイト巡回のみ利用できます。</div>
+  {% elif search_used >= search_limit %}
+  <div class="alert alert-warning">今月の横断検索は上限に達しました。公式サイト巡回は続きます。</div>
+  {% endif %}
+  <div class="app-card p-3 mb-4">
+    <p class="mb-2 small">横断検索：今月 {{ search_used }} / {{ search_limit }} 回（全ユーザー共通）</p>
+    <details class="small">
+      <summary>巡回する情報源と取得できない情報</summary>
+      <p class="text-muted mt-2 mb-0">Billboard Live東京・横浜、Blue Note Tokyo、Cotton Club、SMASH、Creativemanの公式ページと、登録した公式URLを確認します。横断検索ではその他の会場・主催者・チケットサイトも探します。SNS限定情報や自動取得できないページは対象にできません。</p>
+    </details>
+  </div>
+  <div class="row g-4">
+    <div class="col-12 col-lg-5 order-2 order-lg-1">
+      <div class="app-card p-3">
+        <h2 class="h5 mb-3">アーティストを追加</h2>
+        <form method="post" action="{{ url_for('views_blueprint.save_artist') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          {{ artist_fields() }}
+          <button class="btn btn-primary w-100" type="submit">ウォッチに追加</button>
+        </form>
+        <p class="text-muted small mt-3 mb-0">登録・編集後は次の定期実行で確認します。その後は毎日9時以降に順番にチェックします。通知する新着がなければLINEは送りません。</p>
+      </div>
+    </div>
+    <div class="col-12 col-lg-7 order-1 order-lg-2">
+      <h2 class="h5 mb-3">ウォッチ中のアーティスト <span class="text-muted">{{ watches | length }} / 30</span></h2>
+      {% for watch in watches %}
+      <article class="app-card p-3 mb-3" style="overflow-wrap:anywhere">
+        <div class="d-flex justify-content-between align-items-start gap-2">
+          <h3 class="h5">{{ watch.artist_name }}</h3>
+          <form method="post" action="{{ url_for('views_blueprint.toggle_artist', watch_id=watch._id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="enabled" value="{{ 'false' if watch.enabled else 'true' }}">
+            <button type="submit" class="btn btn-sm {{ 'btn-outline-secondary' if watch.enabled else 'btn-outline-success' }}">{{ '停止' if watch.enabled else '再開' }}</button>
+          </form>
+        </div>
+        {% if not watch.enabled %}<p><span class="badge bg-secondary">停止中</span></p>{% endif %}
+        {% if watch.aliases %}<p class="small text-muted">{{ watch.aliases | join(' / ') }}</p>{% endif %}
+        <p class="small mb-1">最終チェック：{{ local_time(watch.last_checked_at) }}{% if watch.last_checked_at %} JST{% endif %}</p>
+        <p class="small mb-2">状態：{{ {'waiting':'チェック待ち', 'ok':'確認済み', 'partial':'一部の情報源を確認できませんでした', 'error':'確認に失敗しました', 'notification_pending':'LINE通知を保留中', 'line_unlinked':'LINE連携を確認してください'}.get(watch.status, 'チェック待ち') }}</p>
+        {% for warning in watch.warnings %}<p class="small text-warning-emphasis mb-1">{{ warning }}</p>{% endfor %}
+        <details class="mt-3">
+          <summary class="text-primary">登録内容を編集</summary>
+          <form class="mt-3" method="post" action="{{ url_for('views_blueprint.save_artist') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="watch_id" value="{{ watch._id }}">
+            {{ artist_fields(watch, watch._id) }}
+            <button class="btn btn-primary" type="submit">変更を保存</button>
+          </form>
+        </details>
+      </article>
+      {% else %}
+      <div class="app-card p-4 text-muted">まだ登録されていません。見逃したくないアーティストを追加してください。</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

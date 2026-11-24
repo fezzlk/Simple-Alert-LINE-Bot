@@ -28,3 +28,5 @@ LOCAL_AUTH_PASSWORD = os.getenv('LOCAL_AUTH_PASSWORD', '')
 # 無料βではハンドル名を既定とし、有料化時に特商法表記へ差し替える。
 SERVICE_PROVIDER_NAME = os.getenv('SERVICE_PROVIDER_NAME', 'fezzlk')
 CONTACT_FORM_URL = os.getenv('CONTACT_FORM_URL', '')
+# Optional: use a dedicated Brave Search key/account, with automatic top-ups disabled.
+BRAVE_SEARCH_API_KEY = os.getenv('BRAVE_SEARCH_API_KEY', '')

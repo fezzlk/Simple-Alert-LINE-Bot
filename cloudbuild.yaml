@@ -82,6 +82,7 @@ steps:
       - "--region=${_REGION}"
       - "--platform=managed"
       - "--allow-unauthenticated"
+      - "--update-secrets=BRAVE_SEARCH_API_KEY=BRAVE_SEARCH_API_KEY:1"
     waitFor: ["push"]
 
   # ─── Step 7: Smoke test ───

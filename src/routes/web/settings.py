@@ -3,6 +3,7 @@ import logging
 from flask import flash, redirect, render_template, request, session, url_for
 
 from src.Infrastructure.Repositories import (
+    artist_watch_repository,
     habit_pending_confirmation_repository,
     habit_task_log_repository,
     habit_task_repository,
@@ -118,6 +119,7 @@ def withdraw_account():
         line_user_repository=line_user_repository,
         web_user_repository=web_user_repository,
         pending_line_operation_service=PendingLineOperationService(),
+        artist_watch_repository=artist_watch_repository,
     )
 
     try:
