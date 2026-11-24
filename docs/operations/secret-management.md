@@ -14,6 +14,7 @@
 | `LINE_LOGIN_CHANNEL_ID` / `LINE_LOGIN_CHANNEL_SECRET` | LINE ログイン | 必須 | Secret Manager / 環境変数 |
 | `OPENAI_API_KEY` | 共通の意図解析キー（ユーザー未設定時のフォールバック） | 任意 | Secret Manager / 環境変数 |
 | `INTERNAL_API_KEY` | 内部API（通知バッチ）保護 | 推奨 | Secret Manager / 環境変数 |
+| `BRAVE_SEARCH_API_KEY` | ライブ情報のWeb横断検索 | 任意 | Secret Manager / 環境変数 |
 
 - `.env.example` に全キーのプレースホルダーを記載する。実値は `.env`（Git 管理外）または Cloud Run のシークレット参照で注入する。
 - `.env` の変更は CI（`deny-env-change.yml`）でブロックされる。実値をコミットしないこと。
@@ -50,6 +51,7 @@
   - `habit_pending_confirmations`（`owner_id` / `line_user_id`）
   - `line_pending_operations`（doc id = `line_user_id`）
   - `notification_schedules`（doc id = `line_user_id`）
+  - `artist_watches`（`owner_id` = WebのユーザーID）と、その配下の `events` サブコレクション（通知履歴）
   - `line_users`（`line_user_id`）/ `web_users`（`_id`）
 
 ## 6. 法務専門家への確認要否

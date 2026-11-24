@@ -5,6 +5,7 @@ from .WebUserRepository import WebUserRepository
 from .HabitTaskRepository import HabitTaskRepository
 from .HabitTaskLogRepository import HabitTaskLogRepository
 from .HabitPendingConfirmationRepository import HabitPendingConfirmationRepository
+from .ArtistWatchRepository import ArtistWatchRepository
 
 web_user_repository = WebUserRepository()
 line_user_repository = LineUserRepository()
@@ -13,3 +14,4 @@ stock_repository = StockRepository()
 habit_task_repository = HabitTaskRepository()
 habit_task_log_repository = HabitTaskLogRepository()
 habit_pending_confirmation_repository = HabitPendingConfirmationRepository()
+artist_watch_repository = ArtistWatchRepository()

@@ -31,6 +31,7 @@ class WithdrawAccountUseCase(IUseCase):
         line_user_repository,
         web_user_repository,
         pending_line_operation_service,
+        artist_watch_repository=None,
     ):
         self._stock_repository = stock_repository
         self._habit_task_repository = habit_task_repository
@@ -40,6 +41,7 @@ class WithdrawAccountUseCase(IUseCase):
         self._line_user_repository = line_user_repository
         self._web_user_repository = web_user_repository
         self._pending_line_operation_service = pending_line_operation_service
+        self._artist_watch_repository = artist_watch_repository
 
     def execute(
         self,
@@ -54,6 +56,8 @@ class WithdrawAccountUseCase(IUseCase):
         ]
 
         deleted: Dict[str, int] = {}
+        if self._artist_watch_repository is not None:
+            deleted["artist_watches"] = self._artist_watch_repository.delete_for_owner(web_user_id)
 
         # ユーザーが作成したデータ（owner_id は LINE / Web いずれかを取り得る）
         deleted["stocks"] = self._stock_repository.delete({"owner_id__in": owner_ids})

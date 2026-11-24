@@ -1,8 +1,10 @@
 from datetime import datetime
+import logging
 
 from flask import Blueprint, Response, abort
 
 from src.Infrastructure.Repositories import (
+    artist_watch_repository,
     habit_pending_confirmation_repository,
     habit_task_log_repository,
     habit_task_repository,
@@ -15,6 +17,10 @@ from src.middlewares.api_auth import internal_api_auth_required
 from src.services import line_response_service
 from src.services.HabitCalendarImageService import build_week_dates, render_habit_calendar_image
 from src.services.HabitCalendarTokenService import verify_token
+from src import config
+from src.services.ArtistLiveSourceService import ArtistLiveSourceService
+from src.services.ArtistLiveNotificationService import ArtistLiveNotificationService
+from src.UseCases.Line.CheckArtistLiveUseCase import CheckArtistLiveUseCase
 from src.UseCases.Line.CheckExpiredStockUseCase import CheckExpiredStockUseCase
 from src.UseCases.Line.CheckHabitTaskUseCase import CheckHabitTaskUseCase
 from src.UseCases.Line.SendWeeklyHabitCalendarUseCase import SendWeeklyHabitCalendarUseCase
@@ -40,6 +46,19 @@ def check_expire():
         stock_repository=stock_repository,
         line_response_service=line_response_service,
     ).execute()
+    # Reuse the existing minute scheduler. Each artist is scanned once per JST day;
+    # only one due artist is processed per call to keep requests short.
+    try:
+        CheckArtistLiveUseCase(
+            repository=artist_watch_repository,
+            web_user_repository=web_user_repository,
+            line_user_repository=line_user_repository,
+            source_service=ArtistLiveSourceService(config.BRAVE_SEARCH_API_KEY),
+            notification_service=ArtistLiveNotificationService(),
+        ).execute()
+    except Exception:
+        # A source outage must not prevent existing stock reminders from succeeding.
+        logging.getLogger(__name__).warning('Artist watch batch failed; stock check completed.')
     return 'done'
 
 

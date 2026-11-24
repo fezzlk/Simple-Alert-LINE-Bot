@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import Mock
 
 from src.UseCases.Web.WithdrawAccountUseCase import WithdrawAccountUseCase
 
@@ -52,6 +53,15 @@ def test_requires_web_user_id():
     use_case, _ = _build()
     with pytest.raises(ValueError):
         use_case.execute(web_user_id="", linked_line_user_id="L1")
+
+
+def test_withdraw_includes_artist_watches_and_notification_history():
+    artist_repo = Mock()
+    artist_repo.delete_for_owner.return_value = 2
+    use_case, _ = _build(artist_watch_repository=artist_repo)
+    result = use_case.execute(web_user_id="W1")
+    artist_repo.delete_for_owner.assert_called_once_with("W1")
+    assert result["artist_watches"] == 2
 
 
 def test_deletes_all_collections_for_linked_user():
