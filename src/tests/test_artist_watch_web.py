@@ -13,6 +13,9 @@ def web(monkeypatch):
     repository.list_for_owner.return_value = []
     repository.search_usage.return_value = 0
     monkeypatch.setattr(artists, "artist_watch_repository", repository)
+    cache = Mock()
+    cache.index.return_value = {}
+    monkeypatch.setattr(artists, "artist_source_cache_repository", cache)
     monkeypatch.setattr(config, "BRAVE_SEARCH_API_KEY", "")
     app.config.update(TESTING=True)
     with app.test_client() as client:
@@ -124,3 +127,29 @@ def test_stored_invalid_history_url_is_never_rendered_as_a_link(web):
     assert 'href="javascript:' not in text
     assert "<script>bad</script>" not in text
     assert "&lt;script&gt;bad&lt;/script&gt;" in text
+
+
+def test_prefecture_inventory_shows_shared_fetch_results_without_loading_bodies(web):
+    from datetime import datetime, timezone
+    client, _ = web
+    artists.artist_source_cache_repository.index.return_value = {
+        'https://cortez.jp/':{'status':'partial','checked_at':datetime.now(timezone.utc),'page_count':1,
+                              'reason':'埋め込みの予定表は未確認',
+                              'page_checks':[{'url':'https://cortez.jp/schedule/','title':'公演予定','status':'ok'}]},
+    }
+    text = client.get('/artists').get_data(as_text=True)
+    assert '関東1都6県' in text and '茨城（' in text and '栃木（' in text and '群馬（' in text
+    assert 'フェス' in text and '大型会場' in text
+    assert '一部取得' in text and '埋め込みの予定表は未確認' in text
+    assert 'href="https://cortez.jp/schedule/"' in text
+    artists.artist_source_cache_repository.index.assert_called_once_with(include_text=False)
+
+
+def test_nested_cached_page_link_is_sanitized(web):
+    client, repository = web
+    repository.list_for_owner.return_value = [ArtistWatch('a','W1','Artist',last_page_checks=[
+        {'url':'https://example.com/','status':'ok','kind':'shared','title':'Source',
+         'pages':[{'url':'javascript:alert(1)','title':'<script>x</script>','status':'ok'}]},
+    ])]
+    text = client.get('/artists').get_data(as_text=True)
+    assert 'href="javascript:' not in text and '<script>x</script>' not in text

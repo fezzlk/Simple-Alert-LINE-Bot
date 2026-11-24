@@ -4,15 +4,14 @@ from zoneinfo import ZoneInfo
 from flask import abort, flash, redirect, render_template, request, session, url_for
 
 from src import config
+from src.Domains.ArtistSourceCatalog import KIND_LABELS, PREFECTURES, SOURCES
 from src.Domains.Entities.ArtistWatch import normalize_name
-from src.Infrastructure.Repositories import artist_watch_repository
+from src.Infrastructure.Repositories import artist_source_cache_repository, artist_watch_repository
 from src.Infrastructure.Repositories.ArtistWatchRepository import MONTHLY_SEARCH_LIMIT
 from src.middlewares import login_required
 from src.routes.web import views_blueprint
 from src.routes.web.helpers import build_page_contents
 from src.services.ArtistLiveSourceService import (
-    DEFAULT_SOURCES,
-    SOURCE_NAMES,
     build_search_queries,
     validate_source_url,
 )
@@ -27,27 +26,55 @@ def _owner():
     return page
 
 
+def _safe_checks(checks):
+    safe = []
+    for item in checks:
+        item = dict(item)
+        try:
+            item["url"] = validate_source_url(str(item.get("url") or ""))
+        except ValueError:
+            item["url"] = ""
+        if item.get("pages"):
+            item["pages"] = _safe_checks(item["pages"])
+        safe.append(item)
+    return safe
+
+
 @views_blueprint.route('/artists', methods=['GET'])
 @login_required
 def view_artists():
     page = _owner()
     watches = artist_watch_repository.list_for_owner(page.login_user._id)
-    standard_sources = [{"url": url, "title": SOURCE_NAMES[url], "kind": "standard"} for url in DEFAULT_SOURCES]
+    try:
+        shared_index = artist_source_cache_repository.index(include_text=False)
+    except Exception:
+        shared_index = {}
+    now = datetime.now(UTC)
+    source_groups = []
+    standard_sources = []
+    for prefecture in PREFECTURES:
+        group = []
+        for source in SOURCES:
+            if source["prefecture"] != prefecture:
+                continue
+            snapshot = shared_index.get(source["url"], {})
+            checked_at = snapshot.get("checked_at")
+            status = snapshot.get("status", "pending")
+            if checked_at and (now.astimezone(ZoneInfo("Asia/Tokyo")).date() - checked_at.astimezone(ZoneInfo("Asia/Tokyo")).date()).days not in (0, 1):
+                status = "stale"
+            row = {**source, "title": source["name"], "status": status, "checked_at": checked_at,
+                   "reason": snapshot.get("reason", ""), "page_count": snapshot.get("page_count", 0),
+                   "pages": _safe_checks(snapshot.get("page_checks", []))}
+            group.append(row)
+            standard_sources.append(row)
+        source_groups.append({"name": prefecture, "sources": group})
     source_plans = {}
     for watch in watches:
         # Keep links safe even for older or manually repaired stored snapshots.
-        safe_checks = []
-        for check in watch.last_page_checks:
-            check = dict(check)
-            try:
-                check["url"] = validate_source_url(str(check.get("url") or ""))
-            except ValueError:
-                check["url"] = ""
-            safe_checks.append(check)
-        watch.last_page_checks = safe_checks
-        sources = list(standard_sources)
+        watch.last_page_checks = _safe_checks(watch.last_page_checks)
+        sources = []
         for url in watch.source_urls:
-            if url in DEFAULT_SOURCES:
+            if url in {source["url"] for source in SOURCES}:
                 continue
             try:
                 url = validate_source_url(url)
@@ -57,6 +84,11 @@ def view_artists():
         source_plans[watch._id] = {"sources": sources, "queries": build_search_queries(watch)}
 
     def local_time(value):
+        if isinstance(value, str):
+            try:
+                value = datetime.fromisoformat(value)
+            except ValueError:
+                value = None
         return value.astimezone(ZoneInfo("Asia/Tokyo")).strftime("%Y/%m/%d %H:%M") if value else "まだ確認していません"
 
     return render_template(
@@ -64,8 +96,8 @@ def view_artists():
         search_enabled=bool(config.BRAVE_SEARCH_API_KEY),
         search_used=artist_watch_repository.search_usage(datetime.now(UTC)),
         search_limit=MONTHLY_SEARCH_LIMIT,
-        standard_sources=standard_sources, source_plans=source_plans,
-        source_kind_labels={"standard": "標準の巡回先", "custom": "追加したURL", "linked": "公式ページから発見", "search": "Web検索から発見"},
+        standard_sources=standard_sources, source_groups=source_groups, catalog_kind_labels=KIND_LABELS, source_plans=source_plans,
+        source_kind_labels={"shared": "共通巡回", "standard": "標準の巡回先", "custom": "追加したURL", "linked": "公式ページから発見", "search": "Web検索から発見"},
         search_status_labels={"ok": "検索済み", "budget_exhausted": "月間上限で停止", "not_configured": "検索未設定", "error": "検索に失敗"},
     )
 
