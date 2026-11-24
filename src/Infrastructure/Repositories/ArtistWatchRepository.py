@@ -61,8 +61,10 @@ class ArtistWatchRepository:
 
     def due_watches(self, now: datetime) -> list[ArtistWatch]:
         # A single-field query avoids a new Firestore composite index / deployment requirement.
-        watches = [ArtistWatch.from_document(doc.id, doc.to_dict())
-                   for doc in self._collection().where("enabled", "==", True).stream()]
+        # Poll only small scheduling fields every minute. Full page history is
+        # loaded by claim() only for the one artist actually being processed.
+        query = self._collection().where("enabled", "==", True).select(["owner_id", "artist_name", "next_check_at"])
+        watches = [ArtistWatch.from_document(doc.id, doc.to_dict()) for doc in query.stream()]
         watches = [watch for watch in watches if not watch.next_check_at or watch.next_check_at <= now]
         return sorted(watches, key=lambda watch: watch.next_check_at or datetime.min.replace(tzinfo=UTC))
 

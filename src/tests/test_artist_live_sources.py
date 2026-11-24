@@ -7,6 +7,7 @@ import pytest
 
 from src.Domains.Entities.ArtistWatch import ArtistWatch, ConcertEvent, matches_artist
 from src.services.ArtistLiveSourceService import (
+    DEFAULT_SOURCES,
     ArtistLiveSourceService,
     ConcertHTML,
     SourceError,
@@ -157,6 +158,8 @@ def test_exhausted_search_budget_still_crawls_official_sources():
     assert result.checked_pages > 0
     assert len(result.events) == 1
     assert any("上限" in warning for warning in result.warnings)
+    assert len(result.search_checks) == 2
+    assert all(check["status"] == "budget_exhausted" for check in result.search_checks)
 
 
 def test_source_failure_is_visible_and_does_not_expose_upstream_secret():
@@ -173,3 +176,81 @@ def test_source_failure_is_visible_and_does_not_expose_upstream_secret():
     assert result.checked_pages == 0
     assert result.warnings
     assert "secret-test-value" not in str(result)
+    assert len(result.page_checks) == len(DEFAULT_SOURCES)
+    assert all(check["status"] == "error" for check in result.page_checks)
+
+
+def test_scan_records_visited_pages_and_own_queries_with_discovery_origin():
+    search_url = "https://promoter.example/concert"
+
+    class Client:
+        def __init__(self, deadline):
+            pass
+
+        def html(self, url):
+            if url == DEFAULT_SOURCES[0]:
+                return '<title>Tokyo schedule</title><main><a href="' + SHOW_URL + '">Chris Dave</a></main>', url
+            if url == SHOW_URL:
+                return '<title>Chris Dave joint bill</title>' + SHOW, url
+            if url == search_url:
+                return '<title>Independently fetched concert page</title><main></main>', url
+            if url == DEFAULT_SOURCES[-1]:
+                raise SourceError("http_403")
+            return '<title>Official schedule</title><main></main>', url
+
+        def search(self, query, api_key):
+            return [search_url]
+
+    result = ArtistLiveSourceService("private-test-key", Client).discover(
+        WATCH, date(2026, 10, 1), lambda: True, time.monotonic() + 10
+    )
+    rows = {check["url"]: check for check in result.page_checks}
+    assert len(rows) == 8
+    assert rows[DEFAULT_SOURCES[0]]["candidate_links"] == 1
+    assert rows[SHOW_URL]["kind"] == "linked"
+    assert rows[SHOW_URL]["event_count"] == 1
+    assert rows[search_url]["kind"] == "search"
+    assert rows[search_url]["title"] == "Independently fetched concert page"
+    assert rows[DEFAULT_SOURCES[-1]]["reason"] == "HTTP 403"
+    assert all(check["status"] == "ok" for check in result.search_checks)
+    assert "private-test-key" not in str(result)
+
+
+def test_scan_reports_unvisited_candidate_count_without_saving_search_results():
+    class Client:
+        def __init__(self, deadline):
+            pass
+
+        def html(self, url):
+            return '<title>Public page</title><main></main>', url
+
+        def search(self, query, api_key):
+            return [f"https://promoter.example/show-{number}" for number in range(12)]
+
+    result = ArtistLiveSourceService("test-key", Client).discover(
+        WATCH, date(2026, 10, 1), lambda: True, time.monotonic() + 10
+    )
+    assert result.checked_pages == 14
+    assert len(result.page_checks) == 14
+    assert result.skipped_details == 4
+    assert all("show-11" not in row["url"] for row in result.page_checks)
+
+
+def test_invalid_search_url_is_not_saved_as_a_clickable_history_link():
+    class Client:
+        def __init__(self, deadline):
+            pass
+
+        def html(self, url):
+            if url.startswith("javascript:"):
+                raise ValueError("invalid URL")
+            return '<main></main>', url
+
+        def search(self, query, api_key):
+            return ["javascript:alert(1)"]
+
+    result = ArtistLiveSourceService("test-key", Client).discover(
+        WATCH, date(2026, 10, 1), lambda: True, time.monotonic() + 10
+    )
+    assert any(row["url"] == "" and row["status"] == "error" for row in result.page_checks)
+    assert "javascript:" not in str(result.page_checks)

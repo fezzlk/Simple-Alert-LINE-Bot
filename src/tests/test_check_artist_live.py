@@ -104,3 +104,29 @@ def test_expired_outbox_is_discarded_without_recording_a_successful_send():
     case.notifications.send.assert_not_called()
     case.repository.mark_sent.assert_not_called()
     case.repository.discard_expired.assert_called_once_with("A1", "E1")
+
+
+def test_scan_saves_page_results_and_own_search_queries_in_existing_finish_write():
+    case = build()
+    checks = [{"url": "https://example.com/show", "title": "Concert", "kind": "linked", "status": "ok", "event_count": 1}]
+    searches = [{"query": '"Chris Dave" Tokyo live', "status": "ok"}]
+    case.sources.discover.return_value = DiscoveryResult([EVENT], [], 3, page_checks=checks,
+                                                       search_checks=searches, skipped_details=4)
+    case.execute(NOW)
+    saved = case.repository.finish.call_args.kwargs
+    assert saved["last_page_checks"] == checks
+    assert saved["last_search_checks"] == searches
+    assert saved["last_skipped_details"] == 4
+
+
+def test_notification_retry_preserves_page_results_without_repeating_search():
+    checks = [{"url": "https://example.com/show", "status": "ok"}]
+    searches = [{"query": '"Chris Dave" Tokyo live', "status": "ok"}]
+    case = build(ArtistWatch("A1", "W1", "Chris Dave", last_scan_day="2026-11-22", last_checked_at=NOW,
+                            last_page_checks=checks, last_search_checks=searches, last_skipped_details=2))
+    case.execute(NOW + timedelta(minutes=15))
+    case.sources.discover.assert_not_called()
+    saved = case.repository.finish.call_args.kwargs
+    assert saved["last_page_checks"] == checks
+    assert saved["last_search_checks"] == searches
+    assert saved["last_skipped_details"] == 2

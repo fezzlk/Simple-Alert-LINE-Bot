@@ -39,6 +39,9 @@ class ArtistWatch:
     last_scan_day: str = ""
     status: str = "waiting"
     warnings: list[str] = field(default_factory=list)
+    last_page_checks: list[dict] = field(default_factory=list)
+    last_search_checks: list[dict] = field(default_factory=list)
+    last_skipped_details: int = 0
 
     @property
     def names(self) -> list[str]:

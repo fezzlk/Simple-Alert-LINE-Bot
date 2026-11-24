@@ -42,6 +42,9 @@ class CheckArtistLiveUseCase:
             status = "ok"
             scan_day = watch.last_scan_day
             checked_at = watch.last_checked_at
+            page_checks = watch.last_page_checks
+            search_checks = watch.last_search_checks
+            skipped_details = watch.last_skipped_details
             try:
                 owners = self.web_users.find({"_id": watch.owner_id})
                 owner = owners[0] if owners else None
@@ -56,6 +59,9 @@ class CheckArtistLiveUseCase:
                             watch, local_now.date(), lambda: self.repository.reserve_search(now), time.monotonic() + 18
                         )
                         warnings = discovery.warnings
+                        page_checks = discovery.page_checks
+                        search_checks = discovery.search_checks
+                        skipped_details = discovery.skipped_details
                         if not self.repository.current(watch._id, token):
                             return {"status": "watch_changed"}
                         for event in discovery.events:
@@ -91,6 +97,7 @@ class CheckArtistLiveUseCase:
                 next_check = now + timedelta(minutes=15)
             self.repository.finish(watch._id, token, next_check_at=next_check, last_scan_day=scan_day,
                                    last_checked_at=checked_at, status=status,
-                                   warnings=list(dict.fromkeys(warnings)))
+                                   warnings=list(dict.fromkeys(warnings)), last_page_checks=page_checks,
+                                   last_search_checks=search_checks, last_skipped_details=skipped_details)
             return {"status": status, "processed": 1}
         return {"status": "idle", "processed": 0}

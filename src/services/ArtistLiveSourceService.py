@@ -30,6 +30,14 @@ DEFAULT_SOURCES = (
     "https://smash-jpn.com/",
     "https://www.creativeman.co.jp/",
 )
+SOURCE_NAMES = dict(zip(DEFAULT_SOURCES, (
+    "Billboard Live 東京・公演スケジュール",
+    "Billboard Live 横浜・公演スケジュール",
+    "Blue Note Tokyo・公演スケジュール",
+    "Cotton Club・公演案内",
+    "SMASH・来日公演のお知らせ",
+    "Creativeman・公演のお知らせ",
+)))
 USER_AGENT = "remily-live-watch/1.0"
 MAX_PAGE_BYTES = 2 * 1024 * 1024
 TOKYO = ZoneInfo("Asia/Tokyo")
@@ -431,6 +439,44 @@ class DiscoveryResult:
     events: list[ConcertEvent] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     checked_pages: int = 0
+    page_checks: list[dict] = field(default_factory=list)
+    search_checks: list[dict] = field(default_factory=list)
+    skipped_details: int = 0
+
+
+def build_search_queries(watch: ArtistWatch) -> list[str]:
+    jp_name = next((name for name in watch.names if re.search(r"[^\x00-\x7f]", name)), watch.artist_name)
+    en_name = next((name for name in watch.names if name.isascii()), watch.artist_name)
+    return [f'"{jp_name}" (来日 OR 公演 OR ライブ) (東京 OR 横浜 OR 千葉 OR 埼玉)',
+            f'"{en_name}" (Tokyo OR Yokohama OR Chiba OR Saitama) (live OR tour OR tickets)']
+
+
+def _page_check(url: str, kind: str, status: str, document=None, error=None) -> dict:
+    # Only our HTTP observations and independently fetched page titles are saved;
+    # no Brave result titles, snippets, response bodies or unfetched result URLs.
+    try:
+        url = validate_source_url(url)
+    except ValueError:
+        url = ""
+    title = ""
+    if document:
+        title = next((node.text() for node in document.root.walk() if node.tag == "title"), "")
+        title = title or next((node.text() for node in document.main.walk() if node.tag == "h1"), "")
+    reason = ""
+    if error:
+        code = str(error) if isinstance(error, SourceError) else "fetch_failed"
+        if re.fullmatch(r"http_\d{3}", code):
+            reason = f"HTTP {code[5:]}"
+        else:
+            reason = {
+                "robots_disallowed": "サイトの自動取得ルールにより対象外",
+                "time_limit": "確認時間の上限に到達",
+                "non_public_address": "公開サイト以外のため対象外",
+                "not_html": "対応していないページ形式",
+                "page_too_large": "ページのサイズ上限を超過",
+            }.get(code, "ページを取得できませんでした")
+    return {"url": url, "title": (title or SOURCE_NAMES.get(url) or urlsplit(url).hostname or "取得対象外のURL")[:200],
+            "kind": kind, "status": status, "reason": reason, "event_count": 0, "candidate_links": 0}
 
 
 class ArtistLiveSourceService:
@@ -441,7 +487,7 @@ class ArtistLiveSourceService:
     def discover(self, watch: ArtistWatch, today: date, reserve_search, deadline: float) -> DiscoveryResult:
         client = self.client_factory(deadline)
         result = DiscoveryResult()
-        pages = {}
+        pages = []
         search_urls = []
 
         def page(url):
@@ -453,50 +499,83 @@ class ArtistLiveSourceService:
                 return [], "検索の月間無料枠向け上限に達しました。公式サイト巡回は継続します。"
             return client.search(query, self.api_key), ""
 
-        jp_name = next((name for name in watch.names if re.search(r"[^\x00-\x7f]", name)), watch.artist_name)
-        en_name = next((name for name in watch.names if name.isascii()), watch.artist_name)
-        queries = [f'"{jp_name}" (来日 OR 公演 OR ライブ) (東京 OR 横浜 OR 千葉 OR 埼玉)',
-                   f'"{en_name}" (Tokyo OR Yokohama OR Chiba OR Saitama) (live OR tour OR tickets)']
+        queries = build_search_queries(watch)
         sources = list(dict.fromkeys([*watch.source_urls, *DEFAULT_SOURCES]))
         with ThreadPoolExecutor(max_workers=4) as pool:
             tasks = {pool.submit(page, url): ("page", url) for url in sources}
             if self.api_key:
-                tasks.update({pool.submit(search, query): ("search", "Web横断検索") for query in queries})
+                tasks.update({pool.submit(search, query): ("search", query) for query in queries})
             else:
                 result.warnings.append("横断検索は未設定です。公式サイト巡回のみ実行しました。")
+                result.search_checks = [{"query": query, "status": "not_configured"} for query in queries]
             for task in as_completed(tasks):
                 kind, source = tasks[task]
                 try:
                     value, detail = task.result()
                     if kind == "page":
-                        pages[value] = detail
+                        record = _page_check(value, "standard" if source in DEFAULT_SOURCES else "custom", "ok", detail)
+                        result.page_checks.append(record)
+                        pages.append((value, detail, record))
                         result.checked_pages += 1
                     else:
                         search_urls.extend(value)
+                        result.search_checks.append({"query": source, "status": "budget_exhausted" if detail else "ok"})
                         if detail:
                             result.warnings.append(detail)
-                except Exception:
+                except Exception as error:
                     # Do not include upstream exceptions: they may contain request headers / API keys.
-                    label = urlsplit(source).hostname if kind == "page" else source
+                    if kind == "page":
+                        result.page_checks.append(_page_check(
+                            source, "standard" if source in DEFAULT_SOURCES else "custom", "error", error=error
+                        ))
+                    else:
+                        result.search_checks.append({"query": source, "status": "error"})
+                    label = urlsplit(source).hostname if kind == "page" else "Web横断検索"
                     result.warnings.append(f"{label} を取得できませんでした。")
 
             candidates = []
-            for url, document in pages.items():
-                result.events.extend(extract_events(document, url, watch, today))
-                candidates.extend(document.artist_links(watch.names, url))
+            candidate_kinds = {}
+
+            def inspect_page(url, document, record, collect_links=True):
+                try:
+                    events = extract_events(document, url, watch, today)
+                    result.events.extend(events)
+                    record["event_count"] = len({event.key(watch.artist_name) for event in events})
+                    return document.artist_links(watch.names, url) if collect_links else []
+                except Exception:
+                    record.update(status="parse_error", reason="ページは取得できましたが公演情報を読み取れませんでした")
+                    result.warnings.append(f"{urlsplit(url).hostname} の公演情報を読み取れませんでした。")
+                    return []
+
+            for url, document, record in pages:
+                links = inspect_page(url, document, record)
+                record["candidate_links"] = len(links)
+                candidates.extend(links)
+                candidate_kinds.update({link: "linked" for link in links})
             candidates.extend(search_urls)
-            candidates = [url for url in dict.fromkeys(candidates) if url not in pages][:8]
+            for url in search_urls:
+                candidate_kinds.setdefault(url, "search")
+            visited = {url for url, _, _ in pages}
+            candidates = [url for url in dict.fromkeys(candidates) if url not in visited]
+            result.skipped_details = max(0, len(candidates) - 8)
+            candidates = candidates[:8]
             if candidates and time.monotonic() >= deadline - 1:
                 result.warnings.append("確認時間の上限に達し、一部の詳細ページを確認できませんでした。")
+                result.skipped_details += len(candidates)
                 candidates = []
             details = {pool.submit(page, url): url for url in candidates}
             for task in as_completed(details):
                 try:
                     url, document = task.result()
                     result.checked_pages += 1
-                    result.events.extend(extract_events(document, url, watch, today))
-                except Exception:
-                    result.warnings.append(f"{urlsplit(details[task]).hostname} の詳細を取得できませんでした。")
+                    record = _page_check(url, candidate_kinds[details[task]], "ok", document)
+                    result.page_checks.append(record)
+                    inspect_page(url, document, record, collect_links=False)
+                except Exception as error:
+                    record = _page_check(details[task], candidate_kinds[details[task]], "error", error=error)
+                    result.page_checks.append(record)
+                    label = urlsplit(record["url"]).hostname or "一部のページ"
+                    result.warnings.append(f"{label} の詳細を取得できませんでした。")
         # Group the same artist/date/venue even if announced on several sites.
         unique = {}
         for event in result.events:
@@ -506,4 +585,7 @@ class ArtistLiveSourceService:
                 unique[key] = event
         result.events = sorted(unique.values(), key=lambda event: (event.event_date, event.venue))
         result.warnings = list(dict.fromkeys(result.warnings))
+        kind_order = {"standard": 0, "custom": 1, "linked": 2, "search": 3}
+        result.page_checks.sort(key=lambda item: (kind_order[item["kind"]], item["title"], item["url"]))
+        result.search_checks.sort(key=lambda item: queries.index(item["query"]))
         return result
