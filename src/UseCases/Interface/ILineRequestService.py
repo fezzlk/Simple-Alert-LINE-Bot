@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from linebot.models.events import Event
+from linebot.v3.webhooks import Event
 
 
 class ILineRequestService(metaclass=ABCMeta):

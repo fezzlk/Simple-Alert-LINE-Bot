@@ -7,24 +7,25 @@ from src.tests.dummies import (
 )
 from src.line_bot_api import line_bot_api
 from src.models.Line.Event import Event
-from linebot.models import (
-    TextSendMessage,
-    ImageSendMessage,
-    TemplateSendMessage,
+from linebot.v3.messaging import (
+    TextMessage,
+    ImageMessage,
+    TemplateMessage,
     ButtonsTemplate,
     PostbackAction,
+    ReplyMessageRequest,
 )
 
 
 @pytest.fixture(params=[
     (
-        [TextSendMessage(text='hoge')],
+        [TextMessage(text='hoge')],
         1,
     ),
     (
         [
-            TextSendMessage(text='hoge'),
-            TextSendMessage(text='fuga'),
+            TextMessage(text='hoge'),
+            TextMessage(text='fuga'),
         ],
         2,
     ),
@@ -55,7 +56,9 @@ def test_reply_success_with_text(text_case, mocker):
 
     # Assert
     args = mock.call_args_list[0]
-    assert len(args[0][1]) == text_case[1]
+    request: ReplyMessageRequest = args[0][0]
+    assert request.reply_token == dummy_event.reply_token
+    assert len(request.messages) == text_case[1]
     assert len(line_response_service.texts) == 0
     assert len(line_response_service.images) == 0
     assert len(line_response_service.buttons) == 0
@@ -63,7 +66,7 @@ def test_reply_success_with_text(text_case, mocker):
 
 @pytest.fixture(params=[
     (
-        [ImageSendMessage(
+        [ImageMessage(
             original_content_url='dummy_image_url',
             preview_image_url='dummy_image_url',
         )],
@@ -71,11 +74,11 @@ def test_reply_success_with_text(text_case, mocker):
     ),
     (
         [
-            ImageSendMessage(
+            ImageMessage(
                 original_content_url='dummy_image_url1',
                 preview_image_url='dummy_image_url1',
             ),
-            ImageSendMessage(
+            ImageMessage(
                 original_content_url='dummy_image_url2',
                 preview_image_url='dummy_image_url2',
             ),
@@ -109,7 +112,8 @@ def test_reply_success_with_image(image_case, mocker):
 
     # Assert
     args = mock.call_args_list[0]
-    assert len(args[0][1]) == image_case[1]
+    request: ReplyMessageRequest = args[0][0]
+    assert len(request.messages) == image_case[1]
     assert len(line_response_service.texts) == 0
     assert len(line_response_service.images) == 0
     assert len(line_response_service.buttons) == 0
@@ -117,7 +121,7 @@ def test_reply_success_with_image(image_case, mocker):
 
 @pytest.fixture(params=[
     (
-        [TemplateSendMessage(
+        [TemplateMessage(
             alt_text='hoge',
             template=ButtonsTemplate(
                 title='hoge',
@@ -135,7 +139,7 @@ def test_reply_success_with_image(image_case, mocker):
     ),
     (
         [
-            TemplateSendMessage(
+            TemplateMessage(
                 alt_text='hoge',
                 template=ButtonsTemplate(
                     title='hoge',
@@ -149,7 +153,7 @@ def test_reply_success_with_image(image_case, mocker):
                     ]
                 )
             ),
-            TemplateSendMessage(
+            TemplateMessage(
                 alt_text='fuga',
                 template=ButtonsTemplate(
                     title='fuga',
@@ -171,7 +175,7 @@ def button_case(request) -> int:
     return request.param
 
 
-def test_reply_success_with_text(button_case, mocker):
+def test_reply_success_with_buttons(button_case, mocker):
     # Arrange
     line_response_service = LineResponseService()
     dummy_event = Event(
@@ -193,27 +197,11 @@ def test_reply_success_with_text(button_case, mocker):
 
     # Assert
     args = mock.call_args_list[0]
-    assert len(args[0][1]) == button_case[1]
+    request: ReplyMessageRequest = args[0][0]
+    assert len(request.messages) == button_case[1]
     assert len(line_response_service.texts) == 0
     assert len(line_response_service.images) == 0
     assert len(line_response_service.buttons) == 0
-
-
-@pytest.fixture(params=[
-    (
-        [TextSendMessage(text='hoge')],
-        1,
-    ),
-    (
-        [
-            TextSendMessage(text='hoge'),
-            TextSendMessage(text='fuga'),
-        ],
-        2,
-    ),
-])
-def text_case(request) -> int:
-    return request.param
 
 
 def test_reply_success_with_multi_contents(mocker):
@@ -231,12 +219,12 @@ def test_reply_success_with_multi_contents(mocker):
         'reply_message',
         return_value=None,
     )
-    line_response_service.texts = [TextSendMessage(text='hoge')]
-    line_response_service.images = [ImageSendMessage(
+    line_response_service.texts = [TextMessage(text='hoge')]
+    line_response_service.images = [ImageMessage(
         original_content_url='dummy_image_url',
         preview_image_url='dummy_image_url',
     )]
-    line_response_service.buttons = [TemplateSendMessage(
+    line_response_service.buttons = [TemplateMessage(
         alt_text='fuga',
         template=ButtonsTemplate(
             title='fuga',
@@ -256,7 +244,8 @@ def test_reply_success_with_multi_contents(mocker):
 
     # Assert
     args = mock.call_args_list[0]
-    assert len(args[0][1]) == 3
+    request: ReplyMessageRequest = args[0][0]
+    assert len(request.messages) == 3
     assert len(line_response_service.texts) == 0
     assert len(line_response_service.images) == 0
     assert len(line_response_service.buttons) == 0
@@ -303,7 +292,7 @@ def test_reply_success_with_no_reply_token(mocker):
         'reply_message',
         return_value=None,
     )
-    line_response_service.texts = [TextSendMessage(text='hoge')]
+    line_response_service.texts = [TextMessage(text='hoge')]
 
     # Act
     line_response_service.reply(dummy_event)

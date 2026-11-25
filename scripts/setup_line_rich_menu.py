@@ -2,17 +2,17 @@ import argparse
 import os
 import sys
 
-from linebot.models import (
+from linebot.v3.messaging import (
     MessageAction,
-    RichMenu,
     RichMenuArea,
     RichMenuBounds,
+    RichMenuRequest,
     RichMenuSize,
     URIAction,
 )
 
 from src import config
-from src.line_bot_api import line_bot_api
+from src.line_bot_api import line_bot_api, line_bot_blob_api
 
 
 def _parse_args():
@@ -47,7 +47,7 @@ def _parse_args():
     return parser.parse_args()
 
 
-def _build_rich_menu(name: str, chat_bar_text: str, server_url: str) -> RichMenu:
+def _build_rich_menu(name: str, chat_bar_text: str, server_url: str) -> RichMenuRequest:
     base_url = server_url.rstrip("/")
     stock_url = f"{base_url}/stock"
     habit_url = f"{base_url}/habit"
@@ -81,7 +81,7 @@ def _build_rich_menu(name: str, chat_bar_text: str, server_url: str) -> RichMenu
         ),
     ]
 
-    return RichMenu(
+    return RichMenuRequest(
         size=RichMenuSize(width=2500, height=1686),
         selected=True,
         name=name,
@@ -91,7 +91,7 @@ def _build_rich_menu(name: str, chat_bar_text: str, server_url: str) -> RichMenu
 
 
 def _delete_all_rich_menus() -> None:
-    menus = line_bot_api.get_rich_menu_list()
+    menus = line_bot_api.get_rich_menu_list().richmenus
     if not menus:
         print("No existing rich menus found.")
         return
@@ -121,7 +121,7 @@ def main() -> int:
         chat_bar_text=args.chat_bar_text,
         server_url=config.SERVER_URL,
     )
-    rich_menu_id = line_bot_api.create_rich_menu(rich_menu)
+    rich_menu_id = line_bot_api.create_rich_menu(rich_menu_request=rich_menu).rich_menu_id
     print(f"Created rich menu: {rich_menu_id}")
 
     content_type = "image/png"
@@ -129,15 +129,15 @@ def main() -> int:
         content_type = "image/jpeg"
 
     with open(args.image_path, "rb") as fp:
-        line_bot_api.set_rich_menu_image(
+        line_bot_blob_api.set_rich_menu_image(
             rich_menu_id=rich_menu_id,
-            content_type=content_type,
-            content=fp,
+            body=fp.read(),
+            _headers={"Content-Type": content_type},
         )
     print(f"Uploaded image: {args.image_path}")
 
     if not args.skip_set_default:
-        line_bot_api.set_default_rich_menu(rich_menu_id)
+        line_bot_api.set_default_rich_menu(rich_menu_id=rich_menu_id)
         print(f"Set default rich menu: {rich_menu_id}")
 
     print("Done.")

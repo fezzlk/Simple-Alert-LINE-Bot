@@ -3,7 +3,7 @@ import logging
 import re
 from typing import Optional
 
-from linebot.models import ButtonsTemplate, PostbackAction, TemplateSendMessage
+from linebot.v3.messaging import ButtonsTemplate, PostbackAction, TemplateMessage
 
 from src.Domains.Entities.HabitTask import HabitTask
 from src.Domains.Entities.HabitTaskLog import HabitTaskLog
@@ -222,7 +222,7 @@ class HandleIntentOperationUseCase(IUseCase):
 
         self._line_response_service.add_message(message)
         self._line_response_service.buttons.append(
-            TemplateSendMessage(
+            TemplateMessage(
                 alt_text="確認",
                 template=ButtonsTemplate(
                     text="実行しますか？",

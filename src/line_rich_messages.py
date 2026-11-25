@@ -1,4 +1,4 @@
-from linebot.models import FlexSendMessage
+from linebot.v3.messaging import FlexContainer, FlexMessage
 
 
 def add_stock_web_link_button(line_response_service, server_url: str) -> None:
@@ -15,9 +15,9 @@ def add_stock_web_link_button(line_response_service, server_url: str) -> None:
         return
 
     line_response_service.buttons.append(
-        FlexSendMessage(
+        FlexMessage(
             alt_text="webで一覧を確認",
-            contents={
+            contents=FlexContainer.from_dict({
                 "type": "bubble",
                 "hero": {
                     "type": "image",
@@ -63,6 +63,6 @@ def add_stock_web_link_button(line_response_service, server_url: str) -> None:
                         }
                     ],
                 },
-            },
+            }),
         )
     )
