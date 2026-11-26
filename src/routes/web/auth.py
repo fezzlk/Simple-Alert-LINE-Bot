@@ -7,6 +7,7 @@ from flask import (
     flash,
     request,
     abort,
+    make_response,
 )
 from authlib.integrations.base_client.errors import MismatchingStateError
 from werkzeug.exceptions import BadRequest
@@ -108,7 +109,24 @@ def login():
     # リクエスト元のドメインでコールバックURLを構築
     # → LINE内ブラウザのCookieドメインと一致させ、state ミスマッチを防止
     redirect_uri = url_for('views_blueprint.authorize', _external=True)
-    return line.authorize_redirect(redirect_uri)
+    web_login = request.args.get('mode') == 'web'
+    params = {'disable_auto_login': 'true'} if web_login else {}
+    authorization = line.create_authorization_url(redirect_uri, **params)
+    # Same state/redirect storage as authorize_redirect(), but the user taps the
+    # authorization URL directly. Launch-time redirects can fail to open LINE
+    # from an iOS Home Screen web app.
+    line.save_authorize_data(redirect_uri=redirect_uri, **authorization)
+    page_contents = build_page_contents(session, request, page_title='ログイン')
+    response = make_response(render_template(
+        'pages/line/login.html', page_contents=page_contents,
+        authorization_url=authorization['url'], web_login=web_login,
+    ))
+    # The page contains a one-use authorization URL. Do not cache or forward it
+    # as referrer data to external resources.
+    response.headers['Cache-Control'] = 'no-store'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Referrer-Policy'] = 'no-referrer'
+    return response
 
 
 @views_blueprint.route('/authorize')

@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4" style="max-width:560px">
+  <div class="app-card p-4">
+    <h1 class="h4 mb-3">ログイン</h1>
+    {% if web_login %}
+    <p>LINEのログイン画面で、メールアドレスまたはQRコードを使って認証します。</p>
+    {% else %}
+    <p>ログイン済みのLINEアプリで本人確認します。下のボタンをタップしてください。</p>
+    {% endif %}
+    <a id="line-login-button" class="btn w-100 py-3 text-dark fw-bold"
+       style="background-color:#06c755" href="{{ authorization_url }}" target="_self">
+      {{ 'LINEのログイン画面へ進む' if web_login else 'LINEアプリでログイン' }}
+    </a>
+    <p class="small text-muted mt-3 mb-0">認証が終わると、元のページに戻ります。</p>
+    {% if web_login %}
+    <p class="mt-3 mb-0"><a href="{{ url_for('views_blueprint.login') }}">LINEアプリでのログインに戻る</a></p>
+    {% else %}
+    <details class="small mt-4">
+      <summary>LINEアプリが開かない場合</summary>
+      <p class="mt-3">LINEのログイン画面が表示された場合は、画面下の「LINEアプリでログイン」を長押しして「LINEで開く」を選んでください。</p>
+      <p>ホーム画面のアイコンからうまく開けない場合は、Safariの通常タブでremilyを開いて試してください。</p>
+      <p><a href="{{ url_for('views_blueprint.login', mode='web') }}">メールアドレス・QRコードでログインする</a></p>
+      <p class="mb-0"><a href="https://developers.line.biz/ja/tips/2026/05/07/line-launch-issue/"
+         target="_blank" rel="noopener noreferrer">LINE公式の対処方法</a></p>
+    </details>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
