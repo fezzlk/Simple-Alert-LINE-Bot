@@ -132,6 +132,9 @@ def login():
 @views_blueprint.route('/authorize')
 @views_blueprint.route('/line/authorize')
 def authorize():
+    if request.args.get('state', '').startswith('h1.'):
+        from src.routes.web.line_handoff import authorize_line_handoff
+        return authorize_line_handoff()
     line = oauth.create_client('line')
     try:
         token = line.authorize_access_token()
@@ -149,13 +152,16 @@ def authorize():
         return redirect(url_for('views_blueprint.login'))
     session.pop('_oauth_retry_count', None)
     profile = line.get('v2/profile', token=token).json()
-    line_user_id = profile.get('userId')
-    display_name = profile.get('displayName')
-
-    session['login_line_user_id'] = line_user_id
-    session['login_name'] = display_name
     session['access_token'] = token.get('access_token')
     session['id_token'] = token.get('id_token')
+    return finish_line_login(profile)
+
+
+def finish_line_login(profile):
+    line_user_id = profile.get('userId')
+    display_name = profile.get('displayName')
+    session['login_line_user_id'] = line_user_id
+    session['login_name'] = display_name
 
     web_users = web_user_repository.find(
         {'linked_line_user_id': line_user_id})
