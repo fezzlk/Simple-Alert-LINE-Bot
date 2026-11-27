@@ -3,6 +3,16 @@
 <div class="container py-4" style="max-width:560px">
   <div class="app-card p-4">
     <h1 class="h4 mb-3">ログイン</h1>
+    {% if session.get('line_handoff') %}
+    <p><a href="{{ url_for('views_blueprint.view_line_handoff') }}">開始済みのログインを続ける・確認番号を入力する</a></p>
+    {% endif %}
+    <form id="home-screen-login" method="post" action="{{ url_for('views_blueprint.start_line_handoff') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      {% if web_login %}<input type="hidden" name="mode" value="web">{% endif %}
+      <p>ホーム画面アプリをお使いの場合は、こちらからログインしてください。認証後に表示される確認番号で、このアプリへログインできます。</p>
+      <button type="submit" class="btn btn-outline-primary w-100 mb-4">ホーム画面アプリでログインする</button>
+    </form>
+    <div id="browser-login">
     {% if web_login %}
     <p>LINEのログイン画面で、メールアドレスまたはQRコードを使って認証します。</p>
     {% else %}
@@ -25,6 +35,12 @@
          target="_blank" rel="noopener noreferrer">LINE公式の対処方法</a></p>
     </details>
     {% endif %}
+    </div>
   </div>
 </div>
+<script>
+  if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) {
+    document.getElementById('browser-login').hidden = true;
+  }
+</script>
 {% endblock %}

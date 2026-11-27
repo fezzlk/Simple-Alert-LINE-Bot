@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4" style="max-width:560px">
+  <div class="app-card p-4">
+    <h1 class="h4 mb-3">ホーム画面アプリのログイン</h1>
+    {% if error %}
+    <p role="alert">{{ error }}</p>
+    <a href="{{ url_for('views_blueprint.login') }}">ログインをやり直す</a>
+    {% elif stage == 'code' %}
+    <p>{{ display_name }} さんの本人確認ができました。</p>
+    <p>ホーム画面のremilyに戻り、次の確認番号を入力してください。有効期限はログイン開始から5分です。</p>
+    <p class="fs-2 fw-bold font-monospace text-center" id="handoff-code">{{ confirmation_code }}</p>
+    <p class="small text-muted">この番号は一度だけ使えます。他の人には教えないでください。</p>
+    {% if can_complete_here %}
+    <p>ログインを始めたアプリに戻っています。このまま完了できます。</p>
+    <form method="post" action="{{ url_for('views_blueprint.claim_line_handoff') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="confirmation_code" value="{{ confirmation_code }}">
+      <button type="submit" class="btn btn-primary w-100">このアプリでログインを完了する</button>
+    </form>
+    {% endif %}
+    {% else %}
+    <p>LINEで本人確認すると、Safariなどに8桁の確認番号が表示されます。このアプリに戻り、番号を入力するとログインできます。</p>
+    {% if authorization_url %}
+    <a id="line-handoff-button" class="btn w-100 py-3 text-dark fw-bold mb-4"
+       style="background-color:#06c755" href="{{ authorization_url }}" target="_self">{{ 'LINEのログイン画面へ進む' if web_login else 'LINEアプリで本人確認する' }}</a>
+    {% endif %}
+    <form method="post" action="{{ url_for('views_blueprint.claim_line_handoff') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label class="form-label" for="confirmation-code">認証後に表示された確認番号</label>
+      <input class="form-control mb-3" id="confirmation-code" name="confirmation_code"
+             type="text" inputmode="numeric" autocomplete="one-time-code"
+             pattern="[0-9]{8}" minlength="8" maxlength="8" required>
+      <button type="submit" class="btn btn-primary w-100">ログインを完了する</button>
+    </form>
+    <p class="small text-muted mt-3">有効期限は開始から5分です。番号を5回間違えるとやり直しになります。</p>
+    <a href="{{ url_for('views_blueprint.login') }}">ログインをやり直す</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
